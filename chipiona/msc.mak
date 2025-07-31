@@ -29,7 +29,7 @@ cleanit:
 test: test_cipher.exe	
 
 test_cipher.exe: chipiona.obj test_cipher.c
-	cl /Fe test_cipher.exe test_cipher.c chipiona.obj
+	cl /Fetest_cipher.exe test_cipher.c chipiona.obj
 
 chipiona.obj: chipiona.c chipiona.h
-	cl /c /Fo chipiona.obj chipiona.c
+	cl /c /Fochipiona.obj chipiona.c

@@ -1004,33 +1004,42 @@ const char *pdf_datetime(time_t t)
 
 /* -------------------------------------- */
 
-static int is_sep_before(wchar_t symb)
+static int is_sep_before(int curr,wchar_t *symb)
 {
-    switch(symb)
+     switch(curr)
     {
-        case L'£':
-        case L'$':
-        case L'¥':
-            return TRUE;            
-        case L'€':
-        default:
+        case PDF_CURR_POUND:
+           *symb = L'£';
+            return TRUE;
             break;
+        case PDF_CURR_DOLLAR:
+            *symb = L'$';
+            return TRUE;            
+        case PDF_CURR_YEN:
+            *symb = L'¥';
+            return TRUE;            
+        case PDF_CURR_EURO:
+            *symb= L'€';
+             break;
+        default:   
+            *symb= ' ';          
+             break;
     }
     return FALSE;
 }
 
 /* -------------------------------------- */
 
-wchar_t *pdf_format_num(wchar_t *dest,size_t max,wchar_t tsep,wchar_t dsep,int ndec,double num,wchar_t symb)
+wchar_t *pdf_format_num(wchar_t *dest,size_t max,wchar_t tsep,wchar_t dsep,int ndec,double num,int curr)
 {
-    wchar_t tmp[201]={0},*src,*dst;
+    wchar_t tmp[201]={0},*src,*dst,symb;
     float scale = 1;
     int d,len,grp,lft,before,zero = FALSE, minus = FALSE;
     size_t total = 0;
 
     if(dest)
     {
-        before=is_sep_before(symb);
+        before=is_sep_before(curr,&symb);
         if(ndec < 0 )
             ndec = 0;
         else if(ndec > 15)
@@ -1069,19 +1078,19 @@ wchar_t *pdf_format_num(wchar_t *dest,size_t max,wchar_t tsep,wchar_t dsep,int n
 
         total += len + grp;
 
-        if(symb)
+        if(curr)
             total++;
 
         if(ndec)
             total++;
 
-            if(total >= max)
+        if(total >= max)
         {
             wcsncpy(dest,L"???",max);
             return dest;
         }
 
-        if(symb && before)
+        if(curr && before)
             *dst++ = symb;
 
         if(minus)
@@ -1120,7 +1129,7 @@ wchar_t *pdf_format_num(wchar_t *dest,size_t max,wchar_t tsep,wchar_t dsep,int n
                 *dst++ = *src++;
         }
 
-        if(symb && !before)
+        if(curr && !before)
             *dst++ = symb;
        *dst = 0;
     }
@@ -1438,7 +1447,7 @@ int pdf_load_font(pdf_t *pdf,const char *family,const wchar_t *file)
 
     if(pdf && pdf->state != PDF_STATE_DOC_CLOSED && file)
     {
-        int t,id = PDF_EINVAL;;
+        int t,id = PDF_EINVAL;
         pdf_font_t *fnt = NULL;        
 
         ret = pdf_load_font_file(&fnt,file,family);

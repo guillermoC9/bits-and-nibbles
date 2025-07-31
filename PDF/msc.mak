@@ -20,8 +20,8 @@
 
 mkC_FLAGS=/nologo /O2 /W1
 
-mkCC_OBJ=gcc $(mkCC)  $(mkC_FLAGS) /c /Fe$@
-mkCC_EXE=gcc $(mkCC)  $(mkC_FLAGS) /Fo$@
+mkCC_OBJ=cl $(mkCC)  $(mkC_FLAGS) /c /Fo$@
+mkCC_EXE=cl $(mkCC)  $(mkC_FLAGS) /Fe$@
 
 ## Targets ##
 
@@ -39,49 +39,49 @@ test: test_pdf.exe
 ## Other Stuff 
 
 adler32.obj: zlib\adler32.c
-	$(mkCC_ZLIB) zlib\adler32.c
+	$(mkCC_OBJ) zlib\adler32.c
 
 crc32.obj: zlib\crc32.c
-	$(mkCC_ZLIB) zlib\crc32.c
+	$(mkCC_OBJ) zlib\crc32.c
 
 deflate.obj: zlib\deflate.c
-	$(mkCC_ZLIB) zlib\deflate.c
+	$(mkCC_OBJ) zlib\deflate.c
 
 infback.obj: zlib\infback.c
-	$(mkCC_ZLIB) zlib\infback.c
+	$(mkCC_OBJ) zlib\infback.c
 
 inffast.obj: zlib\inffast.c
-	$(mkCC_ZLIB) zlib\inffast.c
+	$(mkCC_OBJ) zlib\inffast.c
 
 inflate.obj: zlib\inflate.c
-	$(mkCC_ZLIB) zlib\inflate.c
+	$(mkCC_OBJ) zlib\inflate.c
 
 inftrees.obj: zlib\inftrees.c
-	$(mkCC_ZLIB) zlib\inftrees.c
+	$(mkCC_OBJ) zlib\inftrees.c
 
 trees.obj: zlib\trees.c
-	$(mkCC_ZLIB) zlib\trees.c
+	$(mkCC_OBJ) zlib\trees.c
 
 zutil.obj: zlib\zutil.c
-	$(mkCC_ZLIB) zlib\zutil.c
+	$(mkCC_OBJ) zlib\zutil.c
 
 compress.obj: zlib\compress.c
-	$(mkCC_ZLIB) zlib\compress.c
+	$(mkCC_OBJ) zlib\compress.c
 
 uncompr.obj: zlib\uncompr.c
-	$(mkCC_ZLIB) zlib\uncompr.c
+	$(mkCC_OBJ) zlib\uncompr.c
 
 gzclose.obj: zlib\gzclose.c
-	$(mkCC_ZLIB) zlib\gzclose.c
+	$(mkCC_OBJ) zlib\gzclose.c
 	
 gzlib.obj: zlib\gzlib.c
-	$(mkCC_ZLIB) zlib\gzlib.c
+	$(mkCC_OBJ) zlib\gzlib.c
 
 gzread.obj: zlib\gzread.c
-	$(mkCC_ZLIB) zlib\gzread.c
+	$(mkCC_OBJ) zlib\gzread.c
 
 gzwrite.obj: zlib\gzwrite.c
-	$(mkCC_ZLIB) zlib\gzwrite.c
+	$(mkCC_OBJ) zlib\gzwrite.c
 
 zLibOBJ=adler32.obj crc32.obj deflate.obj infback.obj inffast.obj inflate.obj inftrees.obj \
 		trees.obj zutil.obj compress.obj uncompr.obj gzclose.obj  gzlib.obj gzread.obj  gzwrite.obj  

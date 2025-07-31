@@ -137,6 +137,18 @@
 #define PDF_DOTGAP_LINE     4   /* Dotted line with bigger gaps*/
 #define PDF_DASHGAP_LINE    5   /* Dashed line with bigger gaps */
 
+/* List of currencies */
+
+enum {
+    PDF_CURR_NONE = 0,
+    PDF_CURR_DOLLAR,     /* $ */
+    PDF_CURR_POUND,      /* £ */
+    PDF_CURR_EURO,       /* € */
+    PDF_CURR_YEN,        /* ¥ */
+    PDF_MAX_CURR
+};
+
+
 /* -------------------------------------------------- *
     Return values for the functions of the engine
     They mostly take their names from the macros in

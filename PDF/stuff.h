@@ -31,6 +31,7 @@
 /** Essential headers */
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -85,6 +86,12 @@
 #ifdef FOR_WIN
 
 typedef unsigned __int64    u64_t;
+
+/* Microsoft C has different names than the rest for useful functions */
+
+#define snprintf        _snprintf
+#define strcasecmp      _stricmp
+#define strncasecmp     _strnicmp
 
 #else 
 
@@ -424,6 +431,16 @@ char    *strallocf(size_t *len,const char *fmt,...);
 wchar_t *wcsallocfv(size_t *len,const wchar_t *fmt,va_list vl);
 char    *strallocfv(size_t *len,const char *fmt,va_list vl);
 
+/* -------------------------------------------------- *
+   strlcpy() is a better version of strncpy() as
+   always adds the NUL. Like is only for Mac, we add
+   a version for the other OS
+ * -------------------------------------------------- */
+#ifndef FOR_MAC
+
+size_t strlcpy(char *s1, const char *s2, size_t max);
+
+#endif
 
 #ifdef __cplusplus
 };

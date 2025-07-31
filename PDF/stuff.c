@@ -26,8 +26,6 @@
 
 #include "stuff.h"
 
-
-
 /* -------------------------------------- */
 
 int mem_get_bit(void *b,size_t len,int x)
@@ -1222,3 +1220,24 @@ char *strallocf(size_t *size,const char *fmt,...)
     return ret;
 }
 
+#ifndef FOR_MAC
+
+/* ------------------------------- */
+
+size_t strlcpy(char *s1, const char *s2, size_t max)
+{
+    size_t t=0;
+
+    if(max > 0)
+    {
+        while(s2[t] && --max > 0)
+        {
+            s1[t] = s2[t];
+            t++;
+        }
+        s1[t]=0;
+    }
+    return t;
+}
+
+#endif

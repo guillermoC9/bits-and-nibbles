@@ -215,15 +215,15 @@ const char *pdf_datetime(time_t t);
       1234567.89 = 1.234.567,89 (Spanish)
                    1,234,567.89 (English)
 
-    If curr (currency) is other than 0, it formats with the
-    given currency symbol.
+    If curr (currency) is other than 0 (PDF_CURR_NONE), it 
+    formats with the given currency symbol.
 
-      1.234.567,89€  or  1,234,567.89€ 
-      £1.234.567,89  or  £1,234,567.89 
-      $1.234.567,89  or  $1,234,567.89 
+      1.234.567,89€  or  1,234,567.89€  (PDF_CURR_EURO)
+      £1.234.567,89  or  £1,234,567.89  (PDF_CURR_POUND)
+      $1.234.567,89  or  $1,234,567.89  (PDF_CURR_DOLLAR)
  * ------------------------------------------------------------ */
 
- wchar_t *pdf_format_num(wchar_t *dest,size_t max,wchar_t tsep,wchar_t dsep,int ndec,double num,wchar_t symb);
+ wchar_t *pdf_format_num(wchar_t *dest,size_t max,wchar_t tsep,wchar_t dsep,int ndec,double num,int curr);
 
 /* -------------------------------------------------- *
    Create a context for creating PDF files using the

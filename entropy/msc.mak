@@ -18,6 +18,11 @@
 #   Read the CC license at https://creativecommons.org/publicdomain/zero/1.0/
 #
 
+mkC_FLAGS=/nologo /O2 /W1
+
+mkCC_OBJ=cl $(mkCC)  $(mkC_FLAGS) /c /Fo$@
+mkCC_EXE=cl $(mkCC)  $(mkC_FLAGS) /Fe$@
+
 dummy:
 	@echo "Tell me what to compile!"
 	@echo "targets: test or cleanit (to  clean the builds)"
@@ -29,8 +34,8 @@ cleanit:
 
 test: test_entropy.exe	
 
-test_entropy.exe: entropy.obj test_entropy.c
-	cl /Fe test_entropy.exe test.c entropy.obj
-
 entropy.obj: entropy.c entropy.h
-	cl /c /Fo entropy.obj entropy.c
+	$(mkCC_OBJ) entropy.c
+
+test_entropy.exe: entropy.obj test_entropy.c
+	$(mkCC_EXE) test_entropy.c entropy.obj
