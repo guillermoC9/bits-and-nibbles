@@ -1,0 +1,14 @@
+# Object files
+*.o
+*.obj
+# Executables
+*.exe
+test_cipher
+test_entropy
+test_pdf
+# Test output files
+*.txt
+# Miscellaneous files
+.DS_Store
+
+
