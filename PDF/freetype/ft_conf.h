@@ -140,7 +140,7 @@
 /*                                                                       */
 /* Do NOT DEFINE THIS is you build a thread-safe version of the engine   */
 /*                                                                       */
-#define TT_CONFIG_OPTION_STATIC_RASTER
+#undef TT_CONFIG_OPTION_STATIC_RASTER
 
 
 /*************************************************************************/
