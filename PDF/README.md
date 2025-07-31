@@ -12,9 +12,9 @@ This distribution here includes parts of an old version (1.2.6) of Zlib by Mark 
 
 In order to support the embedding of arbitrary TrueType font files, we also include part of an old version of the FreeType-1, actually version XXX, which the authors of it (David Turner, Robert Wilhelm, and Werner Lemberg) let anyone use it under 3 conditions:
 
-    - We don't promise that this software works. However, we will be interested in any kind of bug reports. (`as is' distribution)
-    - You can use this software for whatever you want, in parts or full form, without having to pay us. (`royalty-free' usage)
-    - You may not pretend that  you wrote this software. If you use it, or only parts of it,  in a program,  you must acknowledge somewhere in  your documentation that you have used the FreeType code. (`credits')
+- We don't promise that this software works. However, we will be interested in any kind of bug reports. (`as is' distribution)
+- You can use this software for whatever you want, in parts or full form, without having to pay us. (`royalty-free' usage)
+- You may not pretend that  you wrote this software. If you use it, or only parts of it,  in a program,  you must acknowledge somewhere in  your documentation that you have used the FreeType code. (`credits')
 
 And we do comply with them all. :-)
  
