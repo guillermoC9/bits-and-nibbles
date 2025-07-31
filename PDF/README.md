@@ -22,6 +22,23 @@ Note that even if this is an old and unmantained version of the library, it is s
 
 - https://freetype.org/freetype1/index.html 
  
+## To build it:
 
+For Microsoft C/C++ for Windows (Visual Studio C++) use:  
 
+```
+nmake /f msc.mak test
+```
 
+For Macintosh, Linux and others using GNU C:
+
+```
+make -f gcc.mak test
+```
+### To clean the builds:
+
+Do the same that for build it but use *cleanit* instead of *test* as the target.
+
+## Example output from the test program:
+
+The program outputs a multiple page PDF file with compression ON (test_pdf.pdf) and one with compression OFF (test_pdf_uncompressed.pdf) so you can look at their size and content to see the differences.
