@@ -34,8 +34,7 @@ dummy:
 
 cleanit:		
 	rm -f *.o
-	rm -f *.txt
-	rm -f *.pdf
+	rm -f *.txt	
 	rm -f test_pdf
 
 test: test_pdf

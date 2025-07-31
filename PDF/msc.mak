@@ -32,7 +32,6 @@ dummy:
 cleanit:		
 	del /f *.obj
 	del /f *.txt
-	del /f *.pdf
 	del /f test_pdf.exe
 
 test: test_pdf.exe
