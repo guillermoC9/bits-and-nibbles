@@ -4,8 +4,8 @@ Each directory is an independent piece of code that can be downloaded and used s
 I know this causes code duplication, but the idea here is to grab whaetever you are interested on without dependencies, as the code should be easy to include in your own proyects.
 
 ## Content:
-- **Chipiona**:
-   The first SHAX cipher from Guillermo Amodeo Ojeda, intented for ciphering big amounts of data-in-motion. Although it can cipher small amounts of data-at-rest too.
+- ## Chipiona:
+  The first SHAX cipher from Guillermo Amodeo Ojeda, intented for ciphering big amounts of data-in-motion. Although it can cipher small amounts of data-at-rest too.
 - **Entropy**: Pseudo-random algorithms require unpredictable entropy for seeding. Here is an easy way to obtain it.
 - **PDF**: Wouldn't you like to create full fledged PDF files from C?
 
