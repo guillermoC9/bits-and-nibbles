@@ -18,7 +18,7 @@ In order to support the embedding of arbitrary TrueType font files, we also incl
 
 And we do comply with them all. :-)
 
-Note that even if this is an old and unmantained version of the library, it is still a very capable TTF engine, despite its limitations, specially for small proyects wanting to enable support for TTF fonts. As said, FreeType-1 is not longer mantained in favour of FreeType-2, but you can still play with it, specially now that the patents on the rasterizer that forced the authors to move away from it have expired. You can take it from here, but it is still available at:
+Note that even if this is an old and unmantained version of the library, it is still a very capable TTF engine, despite its limitations, specially for small proyects wanting to enable support for TTF fonts. As said, FreeType-1 is not longer mantained in favour of FreeType-2, but you can still play with it, specially now that the patents on the rasterizer -that forced the authors to move away from it- have expired. You can take it from here, but it is still available at:
 
 - https://freetype.org/freetype1/index.html 
  
