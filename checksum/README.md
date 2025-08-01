@@ -19,7 +19,7 @@ Spain has two documents used to identify people:
 - DNI: Which is an anagram for 'Documento Nacional de Identidad' (Identity Document of National)
 - NIE: Which is an anagram for 'Numero de Identidad de Extranjero' (Identity Number of Foreigner)
 
-These two documents use a 'number' that finish with a letter which is used in the exact same way of the Luhn's check: to allow determine if the other digits of the 'number' are correct.  The reson why I enclose 'number' in quotes, is because they are technically numbers, but in practice they include letters. In the case of the DNI the check on last position; but in the case of NIE, there is also a letter at the start -which are always X,Y or Z- and the check one last. Note that teh initial letter is not included in the calculation of the control letter:
+These two documents use a 'number' that finish with a letter which is used in the exact same way of the Luhn's check: to allow determine if the other digits of the 'number' are correct.  The reson why I enclose 'number' in quotes, is because they are technically numbers, but in practice they include letters. In the case of the DNI the check on last position; but in the case of NIE, there is also a letter at the start -which are always X,Y or Z- and the check one last. Note that the initial letter is not included in the calculation of the control letter in a NIE:
 
         - DNI format is XXXXXXXXC  where: X is a number and C the control letter.
         - NIE format is LXXXXXXXC  where: L is a letter (X, Y or Z), X is a number and C is the control letter.
