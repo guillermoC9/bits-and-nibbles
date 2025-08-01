@@ -650,14 +650,14 @@ void test_pdf(void)
 
     pdf_close(pdf);
 
-    pdf_output(pdf,"test_pdf.pdf");
+    pdf_output(pdf,"example.pdf");
 
     pdf_set_compression(pdf,FALSE);
-    //pdf_set_links_border(pdf,TRUE);
+    pdf_set_links_border(pdf,TRUE);
 
     pdf_set_display_mode(pdf,PDF_ZOOM_FULLPAGE,PDF_PAGE_SINGLE);
 
-    pdf_output(pdf,"test_pdf_uncompressed.pdf");
+    pdf_output(pdf,"example_uncompressed.pdf");
 
     pdf_destroy(pdf);
 

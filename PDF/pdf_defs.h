@@ -30,69 +30,109 @@
 
 /* Limits */
 
-#define PDF_MAX_TEMP      2048     /* Temporary buffer for conversions */
-#define PDF_MAX_URI        512     /* Maximum chars in a URI */
+#define PDF_MAX_TEMP         2048     /* Temporary buffer for conversions */
+#define PDF_MAX_URI           512     /* Maximum chars in a URI */
 
 /* Document's orientation */
 
-#define PDF_PORTRAIT         0     /* Vertical (default) */
-#define PDF_LANDSCAPE        1     /* Horizontal */
+#define PDF_PORTRAIT            0     /* Vertical (default) */
+#define PDF_LANDSCAPE           1     /* Horizontal */
 
 /* Document's page sizes */
 
-#define PDF_SIZE_A4          0      /* A4 (default) */
-#define PDF_SIZE_A3          1      /* A3 */
-#define PDF_SIZE_A5          2      /* A5 */
-#define PDF_SIZE_LETTER      3      /* Letter */
-#define PDF_SIZE_LEGAL       4      /* Legal */
-
-#define PDF_PAGE_SIZES       5
+enum 
+{
+    PDF_SIZE_A4  = 0,   /* A4 (default) */
+    PDF_SIZE_A3,        /* A3 */
+    PDF_SIZE_A5,        /* A5 */
+    PDF_SIZE_LETTER,    /* Letter */
+    PDF_SIZE_LEGAL,     /* Legal */
+    
+    PDF_NUM_PAGE_SIZES
+};
 
 /* Document's units */
 
+enum 
+{
+    PDF_UNIT_MM = 0,    /* Millimeters (default) */
+    PDF_UNIT_CM,        /* Centimeters */
+    PDF_UNIT_IN,        /* Inches */
+    PDF_UNIT_PT,        /* Points per inch  */
 
-#define PDF_UNIT_MM          0      /* Millimeters (default) */
-#define PDF_UNIT_CM          1      /* Centimeters */
-#define PDF_UNIT_IN          2      /* Inches */
-#define PDF_UNIT_PT          3      /* Points per inch  */
+    PDF_NUM_UNITS
+};
 
-#define PDF_UNITS            4
+/* Document's Zoom Modes */
 
-/* Document's Zoom Mode */
+enum 
+{
+    PDF_ZOOM_DEFAULT = 0,   /* Default */
+    PDF_ZOOM_FULLPAGE,      /* Full Page */
+    PDF_ZOOM_WIDTH,         /* Full eidth */
+    PDF_ZOOM_ACTUAL,        /* Actual size */
 
-#define PDF_ZOOM_DEFAULT     0      /* Default */
-#define PDF_ZOOM_FULLPAGE    1      /* Full Page */
-#define PDF_ZOOM_WIDTH       2      /* Full eidth */
-#define PDF_ZOOM_ACTUAL      3      /* Actual size */
+    PDF_ZOOM_NUM_MODES
+};
+
+/* Document's Zoom Factors (Range))*/
+
 #define PDF_ZOOM_MIN         4      /* Minimum Zoom */
 #define PDF_ZOOM_MAX      3000      /* Maximum Zoom Factor */
 
 /* Document's Page Layout */
 
-#define PDF_PAGE_DEFAULT     0      /* Default */
-#define PDF_PAGE_ROLL        1      /* Full eidth */
-#define PDF_PAGE_SINGLE      2      /* Single Page */
-#define PDF_PAGE_DUAL_LEFT   3      /* Dual Page odd in left */
-#define PDF_PAGE_DUAL_RIGHT  4      /* Dual Page odd in right */
+enum 
+{
+    PDF_PAGE_DEFAULT = 0,   /* Default */
+    PDF_PAGE_ROLL,          /* Full eidth */
+    PDF_PAGE_SINGLE,        /* Single Page */
+    PDF_PAGE_DUAL_LEFT,     /* Dual Page odd in left */
+    PDF_PAGE_DUAL_RIGHT,    /* Dual Page odd in right */
 
-#define PDF_LAYOUTS          5
+    PDF_NUM_LAYOUTS
+};
 
 /* Document's Metadata */
 
-#define PDF_DOC_TITLE           0   /* Document's Title */
-#define PDF_DOC_AUTHOR          1   /* Document's Author */
-#define PDF_DOC_SUBJECT         2   /* Document's Subject */
-#define PDF_DOC_KEYWORDS        3   /* Document's Keywords */
-#define PDF_DOC_PRODUCER        4   /* Document's Producer (default GAO-PDF) */
-#define PDF_DOC_CREATOR         5   /* Document's Creator */
-#define PDF_DOC_CREATION_DATE   6   /* Document's Creation Date (default automatic) */
+enum 
+{
+    PDF_DOC_TITLE = 0,      /* Document's Title */
+    PDF_DOC_AUTHOR,         /* Document's Author */
+    PDF_DOC_SUBJECT,        /* Document's Subject */
+    PDF_DOC_KEYWORDS,       /* Document's Keywords */
+    PDF_DOC_PRODUCER,       /* Document's Producer (default GAO-PDF) */
+    PDF_DOC_CREATOR,        /* Document's Creator */
+    PDF_DOC_CREATION_DATE,  /* Document's Creation Date (default automatic) */
 
-#define PDF_MAX_MD_FIELDS       7
+    PDF_MAX_MD_FIELDS
+};
 
-#define PDF_STATE_EMPTY         0   /* Document is empty */
-#define PDF_STATE_PAGE_CLOSED   1   /* Page is closed */
-#define PDF_STATE_PAGE_READY    2   /* Page is ready for writing */
-#define PDF_STATE_DOC_CLOSED    3   /* Document is closed */
+/* Document's status */
+
+enum 
+{
+    PDF_STATE_EMPTY = 0,    /* Document is empty */
+    PDF_STATE_PAGE_CLOSED,  /* Page is closed */
+    PDF_STATE_PAGE_READY,   /* Page is ready for writing */
+    PDF_STATE_DOC_CLOSED,   /* Document is closed */
+
+    PDF_NUM_DOC_STATES
+};
+
+/* Line Types */
+
+enum 
+{
+    PDF_SOLID_LINE = 0,     /* Solid line */
+    PDF_DOTTED_LINE,        /* Dotted line */
+    PDF_DASHED_LINE,        /* Dashed line */
+    PDF_MORSE_LINE,         /* Dot-Dash-Dot-Dash line */
+    PDF_DOTGAP_LINE,        /* Dotted line with bigger gaps*/
+    PDF_DASHGAP_LINE,       /* Dashed line with bigger gaps */
+
+    PDF_NUM_LINE_TYPES
+};
 
 /* Drawing Attributes */
 
@@ -128,18 +168,10 @@
 #define PDF_A_JUST(a)       ((a) & 0x000f000)
 #define PDF_A_EXTRA(a)      ((a) & 0x00f0000)
 
-/* Line Types */
-
-#define PDF_SOLID_LINE      0   /* Solid line */
-#define PDF_DOTTED_LINE     1   /* Dotted line */
-#define PDF_DASHED_LINE     2   /* Dashed line */
-#define PDF_MORSE_LINE      3   /* Dot-Dash-Dot-Dash line */
-#define PDF_DOTGAP_LINE     4   /* Dotted line with bigger gaps*/
-#define PDF_DASHGAP_LINE    5   /* Dashed line with bigger gaps */
-
 /* List of currencies */
 
-enum {
+enum 
+{
     PDF_CURR_NONE = 0,
     PDF_CURR_DOLLAR,     /* $ */
     PDF_CURR_POUND,      /* £ */

@@ -427,11 +427,11 @@ int pdf_set_font(pdf_t *pdf,const char *family,int style,float size);
    family name from the file by sending family as
    NULL.
 
-   Note that if teh call is succesful (returns OK)
+   Note that if the call is succesful (returns OK)
    the font will be set as the current font, thus you
    can actually find out the family name and style
    by calling pdf_get_font_family() and/or
-    pdf_get_font_style()
+    pdf_get_font_style() just after this call
  * -------------------------------------------------- */
 
 int pdf_load_font(pdf_t *pdf,const char *family,const wchar_t *file);

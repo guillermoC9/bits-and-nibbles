@@ -44,9 +44,9 @@
     Internal variables, global to this file
  * -------------------------------------------------- */
 
-static const float  pdf_units[PDF_UNITS]       = { 72.00 / 25.4, 72.00 / 2.54, 72.00, 1.00  };
-static const float  pdf_size_h[PDF_PAGE_SIZES] = { 595.28,  841.89, 420.94, 612.00,  612.00 };
-static const float  pdf_size_v[PDF_PAGE_SIZES] = { 841.89, 1190.55, 595.28, 792.00, 1008.00 };
+static const float  pdf_units[PDF_NUM_UNITS]       = { 72.00 / 25.4, 72.00 / 2.54, 72.00, 1.00  };
+static const float  pdf_size_h[PDF_NUM_PAGE_SIZES] = { 595.28,  841.89, 420.94, 612.00,  612.00 };
+static const float  pdf_size_v[PDF_NUM_PAGE_SIZES] = { 841.89, 1190.55, 595.28, 792.00, 1008.00 };
 
 static const char  *meta_fields[PDF_MAX_MD_FIELDS] = {"Title","Author","Subject","Keywords","Producer","Creator","CreationDate"};
 
@@ -1191,12 +1191,12 @@ pdf_t *pdf_create(int orientation,int unit,int size)
 
         /* Default unit to Points */
 
-        pdf->unit = (unit > PDF_UNIT_MM || unit < PDF_UNITS) ? unit : PDF_UNIT_MM;
+        pdf->unit = (unit >= PDF_UNIT_MM && unit < PDF_NUM_UNITS) ? unit : PDF_UNIT_MM;
         pdf->scale    = pdf_units[pdf->unit];
 
         /* Default to A4 */
 
-        pdf->size   = (size > PDF_SIZE_A4 || size < PDF_PAGE_SIZES) ? size : PDF_SIZE_A4;
+        pdf->size   = (size >= PDF_SIZE_A4 && size < PDF_NUM_PAGE_SIZES) ? size : PDF_SIZE_A4;
 
         pdf->size_h = pdf_size_h[size] / pdf->scale;
         pdf->size_v = pdf_size_v[size] / pdf->scale;
