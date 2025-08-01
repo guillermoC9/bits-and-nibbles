@@ -10,7 +10,7 @@ If you do the calculation of the whole number, 0 should be the result; and if yo
 
 If you want to learn more about it go to wikipedia, which is what I read to write the code:
 
-    https://en.wikipedia.org/wiki/Luhn_algorithm
+https://en.wikipedia.org/wiki/Luhn_algorithm
 
 ## Spanish's control letter
 
@@ -26,7 +26,7 @@ These two documents use a 'number' that finish with a letter which is used in th
 
 You can find details for all these -which I read to write the code- at (**Warning: pages are in Spanish**) :
 
-    https://www.interior.gob.es/opencms/ca/servicios-al-ciudadano/tramites-y-gestiones/dni/calculo-del-digito-de-control-del-nif-nie/
+https://www.interior.gob.es/opencms/ca/servicios-al-ciudadano/tramites-y-gestiones/dni/calculo-del-digito-de-control-del-nif-nie/
 
 
 
