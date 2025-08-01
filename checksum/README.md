@@ -2,7 +2,7 @@
 
 ## Luhn's Check
 
-Luhn's check if a CRC calculation which generates a single digit from an array of numbers. That single digit allows to check the correctness of the array of numbers by just adding the number to the end of the array, and repeating the CRC calculation, which then will result in a 0. That is a very powerfull way to check if the numbers are correct before checking it, for example after a user has typed it.
+Luhn's check if a checksum calculation which generates a single digit from an array of numbers. That single digit allows to check the correctness of the array of numbers by just adding the number to the end of the array, and repeating the CRC calculation, which then will result in a 0. That is a very powerfull way to check if the numbers are correct before checking it, for example after a user has typed it.
 
 It is widely used in the industry since Hans Peter Luhn from IBM invented the algorithm on the 80's. For example is in every credit or debit card number, bank account numbers and even in the OTP numbers, which are these 6 digit numbers you get in your device or by email, sent from Apple, Google, Amazon or Microsoft to verify that you are yourself. ;-) The 6th digit is the Luhn's digit of the other 5, like is always the last on the credit card or account number. 
 
