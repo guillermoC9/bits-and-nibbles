@@ -10,7 +10,7 @@ This code forces de internal encoding of the PDF to CP1252 enconding (aka Window
 
 This distribution here includes parts of an old version (1.2.6) of Zlib by Mark Adler and Jean-loup Gailly. Yeah quite old in fact (2012), but good enough to add deflating/inflating support on the PDF and PNG Files. The reasons for using this particular version and not other are its permissive license, and because all the code is in C.
 
-In order to support the embedding of arbitrary TrueType font files, we also include a version of the FreeType-1 library, actually version 1.4, which the authors of it (David Turner, Robert Wilhelm, and Werner Lemberg) let anyone use under 3 conditions that we reproduce here:
+In order to support the embedding of arbitrary TrueType font files, we also include part of the FreeType-1 library -actually version 1.4-, which the authors of it (David Turner, Robert Wilhelm, and Werner Lemberg) let anyone use under 3 conditions that we reproduce here:
 
 - We don't promise that this software works. However, we will be interested in any kind of bug reports. (`as is' distribution)
 - You can use this software for whatever you want, in parts or full form, without having to pay us. (`royalty-free' usage)
@@ -18,7 +18,7 @@ In order to support the embedding of arbitrary TrueType font files, we also incl
 
 And we do comply with them all. :-)
 
-Note that even if this is an old and unmantained version of the library, it is still a very capable TTF engine, despite its limitations, specially for small proyects wanting to enable support for TTF fonts. As said, FreeType-1 is not longer mantained in favour of FreeType-2, but you can still play with it, specially now that the patents on the rasterizer -that forced the authors to move away from it- have expired. You can take it from here, but it is still available at:
+Note that even if this is an old and unmantained version of the library, it is still a very capable TTF engine, despite its limitations, specially for small proyects wanting to enable support for TTF fonts. As said, FreeType-1 is not longer mantained in favour of FreeType-2, but you can still play with it, specially now that the patents on the rasterizer -that forced the authors to move away from it- have expired. The full library is still available at:
 
 - https://freetype.org/freetype1/index.html 
  
