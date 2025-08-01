@@ -1,7 +1,7 @@
 # bits-and-nibbles
 Bits and nibbles of code from ideas, articles, conferences and someday books.
 Each directory is an independent piece of code that can be downloaded and used separately.
-I know this causes code duplication, but the idea here is to grab whaetever you are interested on without dependencies, as the code should be easy to include in your own proyects.
+I know this causes code duplication, but the idea here is to grab whatever you are interested on without dependencies, as the code should be easy to include in your own proyects.
 
 ## Content:
 - ### Chipiona:
