@@ -28,7 +28,24 @@ You can find details **-in Spanish-** for all these at:
 
 - https://www.interior.gob.es/opencms/ca/servicios-al-ciudadano/tramites-y-gestiones/dni/calculo-del-digito-de-control-del-nif-nie/
 
+## To build it:
 
+For Microsoft C/C++ for Windows (Visual Studio C++) use:  
+
+```
+nmake /f msc.mak test
+```
+
+For Macintosh, Linux and others using GNU C:
+
+```
+make -f gcc.mak test
+```
+### To clean the builds:
+
+Do the same that for build it but use *cleanit* instead of *test* as the target.
+
+## Example output from the test program:
 
 
 
