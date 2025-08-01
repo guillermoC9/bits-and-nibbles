@@ -24,7 +24,7 @@ These two documents use a 'number' that finish with a letter which is used in th
         - DNI format is XXXXXXXXC  where: X is a number and C the control letter.
         - NIE format is LXXXXXXXC  where: L is a letter (X, Y or Z), X is a number and C is the control letter.
 
-You can find details **-in Spanish-** for all these -which I read to write the code- at :
+You can find details **-in Spanish-** for all these at:
 
 - https://www.interior.gob.es/opencms/ca/servicios-al-ciudadano/tramites-y-gestiones/dni/calculo-del-digito-de-control-del-nif-nie/
 
