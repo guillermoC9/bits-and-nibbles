@@ -82,7 +82,54 @@ Do the same that for build it but use *cleanit* instead of *test* as the target.
 
 ## Example output from the test program:
 
+```
 
+*** Test DNI/NIE's check ***
+
+Write a DNI or NIE (empty to end):
+X1234567
+The control letter for 'X1234567' is 'L', so the one given is Wrong
+Write a DNI or NIE (empty to end):
+X1234567L
+The control letter for 'X1234567L' is 'L', so the one given is Ok
+Write a DNI or NIE (empty to end):
+12345678z
+The control letter for '12345678z' is 'Z', so the one given is Ok
+Write a DNI or NIE (empty to end):
+
+calc_dni_letterw(12345678)   = 'Z'
+check_dni_letterw(12345678Z) = 'Ok'
+calc_dni_letterw(2564589)    = 'T'
+check_dni_letterw(2564589C)  = 'Ok'
+calc_dni_letterw(X1234567)   = 'L'
+check_dni_letterw(X1234567L) = 'Ok'
+calc_dni_letterw(Z3456789)   = 'D'
+check_dni_letterw(X3456789T) = 'Bad' (it should be D)
+
+
+*** Test Luhn's CRC ***
+
+calc_luhnc('7992739871 3',0,TRUE,TRUE) = 0. Must be 0
+calc_luhnc('7992739871 3',0,FALSE,FALSE) = 3. Must be 3
+calc_luhnc('7992739871 3',0,TRUE,TRUE) = 0. Must be 0
+calc_luhnc('7992-7398-71',0,FALSE,TRUE) = 3. Must be 3
+calc_luhnc('7992-7398-71-3',0,TRUE,TRUE) = 0. Must be 0
+calc_luhnc('7992739871',0,FALSE,FALSE) = 3. Must be 3
+calc_luhnc('7992739871 3',0,TRUE,TRUE) = 0. Must be 0
+calc_luhnc('7992739878',0,FALSE,FALSE) = 8. Must be 8
+calc_luhnc('7992739878 8',0,TRUE,TRUE) = 0. Must be 0
+calc_luhnc('7992739878 3',0,TRUE,TRUE) = ?. Must be ?
+calc_luhnc('502071110577440',0,FALSE,FALSE) = 7. Must be 7
+calc_luhnc('5020711105774407',0,TRUE,FALSE) = 0. Must be 0
+calc_luhnc('502071110577440',0,FALSE,FALSE) = 7. Must be 7
+calc_luhnc('5020 7111 0577 4407',0,TRUE,TRUE) = 0. Must be 0
+calc_luhnc('411111111111111',0,FALSE,FALSE) = 1. Must be 1
+calc_luhnc('4111111111111111',0,TRUE,FALSE) = 0. Must be 0
+calc_luhnc('4111111112111111',0,TRUE,FALSE) = ?. Must be ?
+calc_luhnw('555544443333111 ',0,FALSE,FALSE) = 1. Must be 1
+calc_luhnw('5555444433331111',0,TRUE,FALSE) = 0. Must be 0
+
+```
 
 
 
