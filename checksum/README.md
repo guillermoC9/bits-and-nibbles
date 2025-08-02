@@ -59,7 +59,7 @@ X = 0
 Y = 1
 Z = 2
 ```
-Then is divied by 23 and the digit is taken from the same table as the DNI/NIE.
+Then is divied by 23 and the digit is taken from the same table as the DNI/NIF.
 
 This means that X1234567 becomes 01234567 and gives a remainder of 19 (letter L) and Z3456789 becomes 23456789, giving remainder 0 (letter T).
 
