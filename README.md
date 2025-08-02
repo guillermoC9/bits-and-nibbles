@@ -9,7 +9,7 @@ I know this causes code duplication, but the idea here is to grab whatever you a
 - ### Entropy:
   Pseudo-random algorithms require unpredictable entropy for seeding. Here is an easy way to obtain it.
 - ### Checksum: 
-  There are some checksums which are very uself for everyday life, like the luhn's checksum or the Spanish control letter (letra del DNI, NIF o NIE).
+  There are some checksums which are very uself for everyday life, like the Luhn's checksum or the Spanish control letter (letra del DNI, NIF o NIE).
 - ### PDF:
   Wouldn't you like to create full fledged PDF files from C?
 
