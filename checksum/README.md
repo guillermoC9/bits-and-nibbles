@@ -24,9 +24,44 @@ These two documents use a 'number' that finish with a letter which is used in th
         - DNI format is XXXXXXXXC  where: X is a number and C the control letter.
         - NIE format is LXXXXXXXC  where: L is a letter (X, Y or Z), X is a number and C is the control letter.
 
+**Note** that the DNI is also called NIF: Número de Identificación Fiscal (Taxpayer Identification Number).
+
 You can find details **-in Spanish-** for all these at:
 
 - https://www.interior.gob.es/opencms/ca/servicios-al-ciudadano/tramites-y-gestiones/dni/calculo-del-digito-de-control-del-nif-nie/
+
+### Translation of the page:
+
+Calculation of the control letter for NIF/NIE, as per article of 12 of Royal Decree-law 255/2025, from 1st of april, which establishes that the Identitity Document of National, will include the number and control letter for the unequivocal verification of the DNI.
+
+To verify the DNI/NIF of Spanish residents, the algorithm to calculate the control letter would be as follows:
+
+```
+
+Divide the number by 23 and the remainder (0-22) would be replaced for a letter from the following table:
+
+REMAINDER	0	1	2	3	4	5	6	7	8	9	10	11
+LETTER        	T	R	W	A	G	M	Y	F	P	D	X	B
+ 
+
+REMAINDER	12	13	14	15	16	17	18	19	20	21	22
+LETTER        	N	J	Z	S	Q	V	H	L	C	K	E
+
+```
+
+So if the number is 12345678, divided by 23 will have a remainder of 14, so the letter would be Z, completing the number to 12345678Z.
+
+The NIE for foreigners resident in Spain starts by one of the letters: X, Y, Z and is followed by 7 letters and the control letter.
+For the calculation of the control letter, the first letter take the following digit values: 
+
+```
+X = 0
+Y = 1
+Z = 2
+```
+Then is divied by 23 and the digit is taken from the same table as the DNI/NIE.
+
+This means that X1234567 becomes 01234567 and gives a remainder of 19 (letter L) and Z3456789 becomes 23456789, giving remainder 0 (letter T).
 
 ## To build it:
 
