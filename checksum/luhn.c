@@ -98,7 +98,7 @@ char calc_luhnc(const char *num,int len,int check,int sep)
         if(ret > -1)            
             return (char) (ret + 0x30);
     }
-    return '?';
+    return 0;
 }
 
 
@@ -132,5 +132,5 @@ wchar_t calc_luhnw(const wchar_t *num,int len,int check,int sep)
         if(ret > -1)            
             return (wchar_t) (ret + 0x30);
     }
-    return L'?';
+    return 0;
 }

@@ -75,12 +75,12 @@ extern "C" {
             calc_luhnw(L"79-927398-71",0,FALSE,TRUE) == L'3'
             calc_luhnw(L"X79-927398-71-3",0,TRUE,TRUE) == L'0'
 
-    The functions will return '?' if the check fails or no
+    The functions will return 0 if the check fails or no
     digits are found
 
-            calc_luhnw(L"X79-927398-71-3",0,TRUE,FALSE) == L'?'
-            calc_luhnc("7927398713 8",0,TRUE,TRUE) == '?'
-            calc_luhnc("X7927398713 8",0,TRUE,FALSE) == '?'
+            calc_luhnw(L"X79-927398-71-3",0,TRUE,FALSE) == 0
+            calc_luhnc("7927398713 8",0,TRUE,TRUE) == 0
+            calc_luhnc("X7927398713 8",0,TRUE,FALSE) == 0
             calc_luhnc("X792739871 3",0,TRUE,TRUE) == '0'
 
     *** IMPORTANT ***

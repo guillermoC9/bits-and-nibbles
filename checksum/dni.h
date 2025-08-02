@@ -57,8 +57,8 @@ extern "C" {
 
     Examples.
 
-            calc_dni_letter("28345678") == 'K'
-            calc_dni_letter("X6699273") == 'V'
+            calc_dni_letter("12345678") == 'Z'
+            calc_dni_letter("X1234567") == 'L'
 
  * -------------------------------------------------- */
 
@@ -76,9 +76,9 @@ wchar_t calc_dni_letterw(const wchar_t *num);
 
     Examples.
 
-            check_dni_letter("28589136K") == TRUE
-            check_dni_letter("X6699273V") == TRUE
-            check_dni_letter("X6699273X") == FALSE
+            check_dni_letter("12345678Z") == TRUE
+            check_dni_letter("X1234567L") == TRUE
+            check_dni_letter("X1234567X") == FALSE
 
  * -------------------------------------------------- */
 
