@@ -151,8 +151,8 @@ void csv_destroy(csv_t *csv);
 
     It returns:
 
-        S9_EINVAL   Parameters are missing or wrong
-        S9_EBUG     separator and quote cannot be the same
+        CSV_EINVAL   Parameters are missing or wrong
+        CSV_EBUG     separator and quote cannot be the same
 
  * -------------------------------------------------- */
 

@@ -9,6 +9,8 @@ test_pdf
 test_checksum
 test_csv
 test_ticks
+test_hashes
+# Test output fil
 # Test output files
 *.txt
 uk_postcodes.csv
