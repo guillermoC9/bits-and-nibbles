@@ -1,0 +1,18 @@
+# Object files
+*.o
+*.obj
+# Executables
+*.exe
+test_cipher
+test_entropy
+test_pdf
+test_checksum
+test_csv
+test_ticks
+# Test output files
+*.txt
+uk_postcodes.csv
+# Miscellaneous files
+.DS_Store
+
+
