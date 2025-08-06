@@ -26,6 +26,7 @@ dummy:
 cleanit:
 	cd chipiona; nmake /f gcc.mak cleanit; cd ..
 	cd entropy;  nmake /f gcc.mak cleanit; cd ..
+	cd hashes;   nmake /f gcc.mak cleanit; cd ..
 	cd time;     nmake /f gcc.mak cleanit; cd ..	
 	cd csv;      nmake /f gcc.mak cleanit; cd ..
 	cd checksum; nmake /f gcc.mak cleanit; cd ..
@@ -34,6 +35,7 @@ cleanit:
 buildit: 
 	cd chipiona; nmake /f gcc.mak test; cd ..
 	cd entropy;  nmake /f gcc.mak test; cd ..
+	cd hashes;   nmake /f gcc.mak test; cd ..
 	cd time;     nmake /f gcc.mak test; cd ..
 	cd csv;      nmake /f gcc.mak test; cd ..
 	cd checksum; nmake /f gcc.mak test; cd ..
