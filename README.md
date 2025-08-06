@@ -27,7 +27,7 @@ Some of the code here have been throughly tested, and some just functionally -no
 
 ## To build all the tests:
 
-Each of them has its own makefile (read their Readme to get how to build them). But if you want build or clear them all from here, do:
+Each of them has its own makefile (read the *README.md* in each dir to know how to build each of them, but to build or clear them all from here, do:
 
 For Microsoft C/C++ for Windows (Visual Studio C++) use:  
 
