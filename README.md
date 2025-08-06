@@ -25,3 +25,24 @@ Of course everything here is **free of cost**. But if you are making profit from
 ## Disclaimer:
 Some of the code here have been throughly tested, and some just functionally -not stressed- , so you will for sure find some bugs, please report them to me and accept my apologies, as no programmer is free of them due to the nature of what we do: compulsory write thousands of lines of code. Of course I disclaim any liability for problems that may arise with code from here, whatever it comes from me or from someone else. The code here is provided 'as is' for the purpose of information and -hopefully- usefulness.
 
+## To build all the tests:
+
+Each of them has its own makefile (read their Readme to get how to build them). But if you want build or clear them all from here, do:
+
+For Microsoft C/C++ for Windows (Visual Studio C++) use:  
+
+```
+nmake /f msc.mak buildit
+```
+
+For Macintosh, Linux and others using GNU C:
+
+```
+make -f gcc.mak buildit
+```
+
+Please note that some test may need extra steps, read the output messages.
+
+### To clean all the builds:
+
+Do the same that to build them but use *cleanit* instead of *build it* as the target.
