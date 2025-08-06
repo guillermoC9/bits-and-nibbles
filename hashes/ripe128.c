@@ -44,14 +44,14 @@
 #define J(x, y, z)    (x ^ (y | ~z))
 
 #define k0 0
-#define k1 0x5a827999UL
-#define k2 0x6ed9eba1UL
-#define k3 0x8f1bbcdcUL
-#define k4 0xa953fd4eUL
-#define k5 0x50a28be6UL
-#define k6 0x5c4dd124UL
-#define k7 0x6d703ef3UL
-#define k8 0x7a6d76e9UL
+#define k1 0x5a827999
+#define k2 0x6ed9eba1
+#define k3 0x8f1bbcdc
+#define k4 0xa953fd4e
+#define k5 0x50a28be6
+#define k6 0x5c4dd124
+#define k7 0x6d703ef3
+#define k8 0x7a6d76e9
 #define k9 0
 
 /* Rounds */
