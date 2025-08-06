@@ -23,7 +23,7 @@ The plan is that ALL code here would be released as public domain so people can 
 Of course everything here is **free of cost**. But if you are making profit from stuff you got from here, it would be good to donate some if you can afford to, just to square the paradox of you making profit from work that we give away for free. It could be to someone in need or to charity, whatever you think is fair. And again: only if you can afford to, as if you can make a decent living from our stuff here, it would be good enough for us.
 
 ## Disclaimer:
-Some of the code here have been throughly tested, and some just functionally -not stressed- , so you will for sure find some bugs, please report them to me and accept my apologies, as no programmer is free of them due to the nature of what we do: compulsory write thousands of lines of code. Of course I disclaim any liability for problems that may arise with code from here, whatever it comes from me or from someone else. The code here is provided 'as is' for the purpose of information and -hopefully- usefulness.
+Most of the code here have been throughly tested, and some just functionally -not stressed- as has been modernized for publishing, so there will be some bugs. Please report them to me and accept my apologies, as no programmer is free of them due to the nature of what we do: compulsory write thousands of lines of code. Of course I disclaim any liability for problems that may arise with code from here, whatever it comes from me or from someone else. The code here is provided 'as is' for the purpose of information and -hopefully- usefulness.
 
 ## To build all the tests:
 
