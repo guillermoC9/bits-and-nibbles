@@ -283,8 +283,7 @@ void utime_to_pot(utime_t ut,point_on_time_t *pot,int local)
 
 time_t add_to_time(time_t tm,int unit,int howmany)
 {    
-    point_on_time_t pot;
-    int y,m;
+    point_on_time_t pot;    
     ticks_t total = (ticks_t) tm;
 
     if(unit < ADD_UNIT_SECS || unit > ADD_UNIT_YEARS)
@@ -312,12 +311,12 @@ time_t add_to_time(time_t tm,int unit,int howmany)
             pot.year += (howmany / 12);
             pot.mon  += (howmany % 12);
 
-            if( m > 12)
+            if( pot.mon > 12)
             {
                 pot.year++;
                 pot.mon -= 12;
             }
-            else if (m < 0)
+            else if (pot.mon < 0)
             {
                 pot.year--;
                 pot.mon += 12;
@@ -325,6 +324,7 @@ time_t add_to_time(time_t tm,int unit,int howmany)
             return time_from_pot(&pot);                        
         case ADD_UNIT_YEARS:
             time_to_pot(tm,&pot,FALSE);                
+            pot.year += howmany;
             return time_from_pot(&pot);
         default:
             break;
@@ -515,7 +515,7 @@ static int easter_days(int year)
 {
     int g,c,p,d;
 
-    if(year > 1581 || year < 20001)
+    if(year > 1581 && year < 20001)
     {
         /* 
             Calculate the date of the full moon p 
