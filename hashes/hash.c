@@ -673,6 +673,18 @@ static int do_hash_file_content(hash_t *ctx,FILE *fp,u64_t *tam)
 
 /* --------------------------------------- */
 
+static FILE *fopenw(const wchar_t *name,const char *perm)
+{
+    char tmp[1384];
+    FILE *fp=NULL;
+
+    if(name && wcstombs(tmp,name,1383) > 0)
+        fp = fopen(tmp,perm);
+    return fp;
+}
+
+/* --------------------------------------- */
+
 #define F_H_NAMETOO     1
 #define F_H_WCHAR       2
 
@@ -686,7 +698,7 @@ static int do_hash_file(int alg,const void *fich,void *hash,u64_t *tam,int flags
     if(ret)
     {
         if(flags & F_H_WCHAR)
-            fp=fopen((const wchar_t *)fich,"rb");
+            fp=fopenw((const wchar_t *)fich,"rb");
         else
             fp=fopen((const char *)fich,"rb");
         if(!fp)
@@ -777,7 +789,7 @@ static int do_hmac_file(int alg,const void *clave,unsigned int tam_clave,const v
     if(ret)
     {
         if(flags & F_H_WCHAR)
-            fp=fopen((const wchar_t *)fich,"rb");
+            fp=fopenw((const wchar_t *)fich,"rb");
         else
             fp=fopen((const char *)fich,"rb");
         if(!fp)
