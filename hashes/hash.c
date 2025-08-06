@@ -521,26 +521,26 @@ int hmac_init(hmac_t *ctx,int alg,const void *key,size_t tam_key)
                 break;
             case HASH_KECCAK_224:
             case HASH_SHA3_224:
-                ctx->tam_block = S9_HMAC_SHA3_224_SIZE;
+                ctx->tam_block = HMAC_SHA3_224_SIZE;
                 break;
             case HASH_KECCAK_256:
             case HASH_SHA3_256:
-                ctx->tam_block = S9_HMAC_SHA3_256_SIZE;
+                ctx->tam_block = HMAC_SHA3_256_SIZE;
                 break;
             case HASH_KECCAK_384:
             case HASH_SHA3_384:
-                ctx->tam_block = S9_HMAC_SHA3_384_SIZE;
+                ctx->tam_block = HMAC_SHA3_384_SIZE;
                 break;
             case HASH_KECCAK_512:
             case HASH_SHA3_512:
-                ctx->tam_block = S9_HMAC_SHA3_512_SIZE;
+                ctx->tam_block = HMAC_SHA3_512_SIZE;
                 break;
             case HASH_SHA384:
             case HASH_SHA512:
-                ctx->tam_block = S9_HMAC_BIG_SIZE;
+                ctx->tam_block = HMAC_BIG_SIZE;
                 break;
             default:
-                ctx->tam_block = S9_HMAC_SIZE;
+                ctx->tam_block = HMAC_SIZE;
                 break;
         }
 
@@ -555,7 +555,7 @@ int hmac_init(hmac_t *ctx,int alg,const void *key,size_t tam_key)
             ctx->tam_hash = hash_init(&ctx->h,alg,NULL,0);
             if(ctx->tam_hash > 0)
             {
-                unsigned char ipad[S9_HMAC_MAX_BLOCK_SIZE];
+                unsigned char ipad[HMAC_MAX_BLOCK_SIZE];
 
                 if(tam_key > ctx->tam_block)
                     calc_hash(alg,key,tam_key,ctx->hkey);
@@ -610,7 +610,7 @@ void hmac_update_wcs(hmac_t *ctx,const wchar_t *str)
 
 void hmac_final(hmac_t *ctx,void *hmac)
 {
-    unsigned char opad[S9_HMAC_MAX_BLOCK_SIZE];
+    unsigned char opad[HMAC_MAX_BLOCK_SIZE];
     int alg = ctx->h.alg;
 
     if(ctx->passthru != TRUE)

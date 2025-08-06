@@ -200,20 +200,20 @@ typedef struct
 
 /** Block size for normal HMAC as RFCs */
 
-#define S9_HMAC_SIZE         64
+#define HMAC_SIZE         64
 
 /** Blocksize for HMAC-SHA384 and HMAC-SHA512 as RFCs */
 
-#define S9_HMAC_BIG_SIZE    128
+#define HMAC_BIG_SIZE    128
 
 /** Blocksizes for HMAC-SHA3_... as per NIST tables */
 
-#define S9_HMAC_SHA3_224_SIZE   144  /* 1152 bits */
-#define S9_HMAC_SHA3_256_SIZE   136  /* 1088 bits */
-#define S9_HMAC_SHA3_384_SIZE   104  /*  832 bits */
-#define S9_HMAC_SHA3_512_SIZE    72  /*  576 bits */
+#define HMAC_SHA3_224_SIZE   144  /* 1152 bits */
+#define HMAC_SHA3_256_SIZE   136  /* 1088 bits */
+#define HMAC_SHA3_384_SIZE   104  /*  832 bits */
+#define HMAC_SHA3_512_SIZE    72  /*  576 bits */
 
-#define S9_HMAC_MAX_BLOCK_SIZE  150
+#define HMAC_MAX_BLOCK_SIZE  150
 
 typedef struct
 {
@@ -221,7 +221,7 @@ typedef struct
 
     hash_t h;
 
-    unsigned char hkey[S9_HMAC_MAX_BLOCK_SIZE];
+    unsigned char hkey[HMAC_MAX_BLOCK_SIZE];
 
 } hmac_t;
 
