@@ -17,7 +17,7 @@ This is not the place to discuss that -specially because this is the space of sy
 
 Unlike with symmetric keys, were getting hold of a key exposes just your info, a private key is also used to prove that it was you who signed something, so someone with your private key can be yourself, and someone with a Quantum computer can become *anyone* for whom the public key can be obtained. Welcome to chaos, as most authentication systems use private keys to identify people, a thing invented to solve the distribution problem, not the identity one.    
 
-Anyway, that is for another day, here we put at your dispossal the following symmetric cipher primitives: AES, ARIA, BLOWFISH, CAMELLIA, CHACHA, CHACHA+POLY, DES, RC4, SALSA, TWOFISH and XTEA, and the way you distribute our keys is your problme for the moment. ;-)
+Anyway, that is for another day, here we put at your dispossal the following symmetric cipher primitives: AES, ARIA, BLOWFISH, CAMELLIA, CHACHA, CHACHA+POLY, DES, RC4, SALSA, TWOFISH and XTEA, but the way you would use to distribute your keys is your problem, at least at the moment. ;-)
 
 The cipher engine in cipher.c does support different cipher types like stream or block ciphers, as well as different modes like: ECB, CBC, CTR, GCM and AED. It does also support few padding schemes for block ciphers. Note that this is implemented by the cipher engine itself, and not the cipher primitives themselves. This methodology allows to add new ciphers by just developing the initialization and basic encoding/decoding functions.
 
