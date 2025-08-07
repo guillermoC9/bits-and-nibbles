@@ -1,5 +1,5 @@
 # Ciphers
-## Criptographic primitives
+## Symmetric Criptographic primitives
 
 The list of supported cipher primitives is: AES, ARIA, BLOWFISH, CAMELLIA, CHACHA, CHACHA+POLY, DES, RC4, SALSA, TWOFISH and XTEA
 
