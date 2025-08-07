@@ -1,5 +1,5 @@
 /*
-    hashc.h
+    hash.h
 
     Cryptographic Hashing functions
 
