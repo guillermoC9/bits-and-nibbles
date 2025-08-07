@@ -7,7 +7,7 @@ Unlike criptographic hashes, ciphers were well in use long before computers came
 
 Here, we are presenting a set of symmetric ciphers together with a way to use them easily, much like the [**Hashes and HMAC**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/hashes) stuff in this same repository.
 
-When is said *symmetric cipher*, what is meant is that the same key -because all ciphers have keys- is used to cipher and decipher the information, which bears a big disadvantage. That is that if I am Alice -which is what the industry likes to call the sender of information- I would need to distribute the key to the information's recipient -that's Bob-, and there is a danger of the key actually ending up in the hands of an unwanted recipient -which is usually called Eve for *eavesdropper*- whoh can then decipher the data as well as Bob. 
+When is said *symmetric cipher*, what is meant is that the same key -because all ciphers have keys- is used to cipher and decipher the information, which bears a big disadvantage. That is that if I am Alice -which is what the industry likes to call the sender of information- I would need to distribute the key to the information's recipient -that's Bob-, and there is a danger of the key actually ending up in the hands of an unwanted recipient -which is usually called Eve for *eavesdropper*- who can then decipher the data as well as Bob. 
 
 Is to solve this problem that *asymmetric ciphers* were created -being RSA the most famous-. They are cipher systems that use two keys: a public key and a private one. Being called like that is just because one is made public, and the other one you keep for yourself. Whatever is ciphered by one key, canonly be deciphered with the other.
 
