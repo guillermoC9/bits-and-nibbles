@@ -10,6 +10,7 @@ test_checksum
 test_csv
 test_ticks
 test_hashes
+test_ciphers
 # Test output fil
 # Test output files
 *.txt
