@@ -21,7 +21,10 @@ The industry tend to 'forget' broken or pressumibly broken algorithms, but I thi
 The list of supported hash primitives is: MD2, MD4, MD5, SHA1, SHA2, SHA2, RIPE128, RIPE160, RIPE256, RIPE320, POLY1305 and GHASH.
 
 Also included here is the same mechanism to create HMACs with any of the same primitives. HMAC means **H**ash-based **M**essage **A**uthentication **C**ode, and as its name indicates, it is a code obtained by hashing a message together with some key, which allows not only to know that the message has not been tampered with, but also that it comes from whoever has set the key. Protocols like ```TLS``` use HMACs to operate. 
-Just to let you know, the primitive ```Poly1505 ``` is not a pure hash primitive but an actual HMAC algorithm. The HMAC protocol is defined by RFC-2104, RFC-6234 and RFC-4868.
+
+Just to let you know, the primitive ```Poly1505 ``` is not a pure hash primitive but an actual HMAC algorithm. 
+
+The HMAC protocol is defined by RFC-2104, RFC-6234 and RFC-4868.
 
 ## To build it:
 
