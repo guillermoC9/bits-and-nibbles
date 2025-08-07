@@ -42,5 +42,3 @@ Do the same that for build it but use *cleanit* instead of *test* as the target.
 ## Example output from the test program:
 
 The program outputs a multiple page PDF file with compression ON (test_pdf.pdf) and one with compression OFF (test_pdf_uncompressed.pdf) so you can look at their size and content to see the differences. 
-
-**IMPORTANT** When you open the example PDFs built by the test program, in some versions of Microsoft Edge, some bits of the PDF files are not rendered properly, but if you open them with Firefox, they show fine.
