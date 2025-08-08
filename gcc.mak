@@ -30,7 +30,7 @@ cleanit:
 	cd time;     make -f gcc.mak cleanit; cd ..
 	cd csv;      make -f gcc.mak cleanit; cd ..
 	cd checksum; make -f gcc.mak cleanit; cd ..
-	cd PDF;      make -f gcc.mak cleanit; cd ..
+	cd pdf;      make -f gcc.mak cleanit; cd ..
 
 buildit: 
 	cd chipiona; make -f gcc.mak test; cd ..
@@ -40,7 +40,7 @@ buildit:
 	cd time;     make -f gcc.mak test; cd ..
 	cd csv;      make -f gcc.mak test; cd ..
 	cd checksum; make -f gcc.mak test; cd ..
-	cd PDF;      make -f gcc.mak test; cd ..
+	cd pdf;      make -f gcc.mak test; cd ..
 
 
 
