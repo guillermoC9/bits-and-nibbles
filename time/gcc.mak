@@ -18,6 +18,11 @@
 #   Read the CC license at https://creativecommons.org/publicdomain/zero/1.0/
 #
 
+mkC_FLAGS=-Wall -O2 -o $@ -fPIC -fno-strict-aliasing
+
+mkCC_OBJ=gcc $(mkCC)  $(mkC_FLAGS) -c
+mkCC_EXE=gcc $(mkCC)  $(mkC_FLAGS)
+
 dummy:
 	@echo "Tell me what to compile!"
 	@echo "targets: test or cleanit (to  clean the builds)"
@@ -30,8 +35,8 @@ cleanit:
 test: test_ticks
 
 test_ticks: ticks.o test_ticks.c
-	gcc -o test_ticks test_ticks.c ticks.o
+	$(mkCC_EXE) test_ticks.c ticks.o
 
 ticks.o: ticks.c ticks.h
-	gcc -c -o ticks.o ticks.c
+	$(mkCC_OBJ) ticks.c
 

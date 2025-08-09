@@ -1,5 +1,5 @@
 /*
-    test_cipher.c
+    test_chipiona.c
 
     Test of chipiona cipher routines
 

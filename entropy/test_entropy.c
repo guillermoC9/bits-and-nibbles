@@ -1,5 +1,5 @@
 /*
-    test.c
+    test_entropy.c
 
     Test of entropy routines
 

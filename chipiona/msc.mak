@@ -18,18 +18,23 @@
 #   Read the CC license at https://creativecommons.org/publicdomain/zero/1.0/
 #
 
+mkC_FLAGS=/nologo /O2 /W1
+
+mkCC_OBJ=cl $(mkCC)  $(mkC_FLAGS) /c /Fo$@
+mkCC_EXE=cl $(mkCC)  $(mkC_FLAGS) /Fe$@
+
 dummy:
 	@echo "Tell me what to compile!"
 	@echo "targets: test or cleanit (to  clean the builds)"
 
 cleanit:
 	del /f *.obj
-	del /f test_cipher.exe
+	del /f test_chipiona.exe
 
-test: test_cipher.exe	
+test: test_chipiona.exe	
 
-test_cipher.exe: chipiona.obj test_cipher.c
-	cl /Fetest_cipher.exe test_cipher.c chipiona.obj
+test_chipiona.exe: chipiona.obj test_chipiona.c
+	$(mkCC_EXE) test_chipiona.c chipiona.obj
 
 chipiona.obj: chipiona.c chipiona.h
-	cl /c /Fochipiona.obj chipiona.c
+	$(mkCC_OBJ) chipiona.c

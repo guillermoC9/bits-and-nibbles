@@ -18,6 +18,11 @@
 #   Read the CC license at https://creativecommons.org/publicdomain/zero/1.0/
 #
 
+mkC_FLAGS=-Wall -O2 -o $@ -fPIC -fno-strict-aliasing
+
+mkCC_OBJ=gcc $(mkCC)  $(mkC_FLAGS) -c
+mkCC_EXE=gcc $(mkCC)  $(mkC_FLAGS)
+
 dummy:
 	@echo "Tell me what to compile!"
 	@echo "targets: test or cleanit (to  clean the builds)"
@@ -31,10 +36,10 @@ cleanit:
 test: test_csv uk_postcodes.csv
 
 test_csv: csv.o test_csv.c
-	gcc -o test_csv test_csv.c csv.o
+	$(mkCC_EXE) test_csv.c csv.o
 
 csv.o: csv.c csv.h
-	gcc -c -o csv.o csv.c
+	$(mkCC_OBJ) csv.c
 
 uk_postcodes.csv:
 	@echo ""

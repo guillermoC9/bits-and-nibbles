@@ -1,7 +1,7 @@
 #
-#   gcc.mak
+#   msc.mak
 #
-#   Makefile for Macintosh, Linux and any gcc based
+#   Makefile for Microsoft C for Windows
 #
 #   (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 #
@@ -18,21 +18,23 @@
 #   Read the CC license at https://creativecommons.org/publicdomain/zero/1.0/
 #
 
-mkC_FLAGS=-Wall -O2 -o $@ -fPIC -fno-strict-aliasing
+mkC_FLAGS=/nologo /O2 /W1
 
-mkCC_OBJ=gcc $(mkCC)  $(mkC_FLAGS) -c
-mkCC_EXE=gcc $(mkCC)  $(mkC_FLAGS)
+mkCC_OBJ=cl $(mkCC)  $(mkC_FLAGS) /c /Fo$@
+mkCC_EXE=cl $(mkCC)  $(mkC_FLAGS) /Fe$@
 
 dummy:
 	@echo "Tell me what to compile!"
 	@echo "targets: test or cleanit (to  clean the builds)"
 
 cleanit:
-	rm -f *.o
-	rm -f test_chipiona
+	del /f *.obj
+	del /f test_random.exe
 
-test: chipiona.o test_chipiona.c
-	$(mkCC_EXE) test_chipiona.c chipiona.o
+test: test_random.exe	
 
-chipiona.o: chipiona.c chipiona.h
-	$(mkCC_OBJ) chipiona.c
+test_random.exe: random.obj test_random.c
+	$(mkCC_EXE) test_random.c random.obj
+
+random.obj: random.c random.h
+	$(mkCC_OBJ) random.c

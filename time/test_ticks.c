@@ -1,5 +1,5 @@
 /*
-    test_csv.c
+    test_ticks.c
 
     Test of entropy routines
 

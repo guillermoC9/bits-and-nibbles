@@ -24,19 +24,25 @@ dummy:
 	@echo "targets: buildit (build all dirs) or cleanit (clean all builds)"
 
 cleanit:
+	cd checksum; nmake /f gcc.mak cleanit; cd ..
 	cd chipiona; nmake /f gcc.mak cleanit; cd ..
+	cd ciphers;  nmake /f gcc.mak cleanit; cd ..
+	cd csv;      nmake /f gcc.mak cleanit; cd ..	
 	cd entropy;  nmake /f gcc.mak cleanit; cd ..
 	cd hashes;   nmake /f gcc.mak cleanit; cd ..
+	cd pdf;      nmake /f gcc.mak cleanit; cd ..	
+	cd random;   nmake /f gcc.mak cleanit; cd ..
 	cd time;     nmake /f gcc.mak cleanit; cd ..	
-	cd csv;      nmake /f gcc.mak cleanit; cd ..
-	cd checksum; nmake /f gcc.mak cleanit; cd ..
-	cd pdf;      nmake /f gcc.mak cleanit; cd ..
+	
 
 buildit: 
+	cd checksum; nmake /f gcc.mak test; cd ..
 	cd chipiona; nmake /f gcc.mak test; cd ..
+	cd ciphers;  nmake /f gcc.mak test; cd ..
+	cd csv;      nmake /f gcc.mak test; cd ..
 	cd entropy;  nmake /f gcc.mak test; cd ..
 	cd hashes;   nmake /f gcc.mak test; cd ..
-	cd time;     nmake /f gcc.mak test; cd ..
-	cd csv;      nmake /f gcc.mak test; cd ..
-	cd checksum; nmake /f gcc.mak test; cd ..
 	cd pdf;      nmake /f gcc.mak test; cd ..
+	cd random;   nmake /f gcc.mak test; cd ..
+	cd time;     nmake /f gcc.mak test; cd ..
+

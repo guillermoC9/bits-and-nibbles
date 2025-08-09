@@ -18,6 +18,11 @@
 #   Read the CC license at https://creativecommons.org/publicdomain/zero/1.0/
 #
 
+mkC_FLAGS=-Wall -O2 -o $@ -fPIC -fno-strict-aliasing
+
+mkCC_OBJ=gcc $(mkCC)  $(mkC_FLAGS) -c
+mkCC_EXE=gcc $(mkCC)  $(mkC_FLAGS)
+
 dummy:
 	@echo "Tell me what to compile!"
 	@echo "targets: test or cleanit (to  clean the builds)"
@@ -30,7 +35,7 @@ cleanit:
 test: 
 
 test_entropy: entropy.o test_entropy.c
-	gcc -o test_entropy test_entropy.c entropy.o
+	$(mkCC_EXE) test_entropy.c entropy.o
 
 entropy.o: entropy.c entropy.h
-	gcc -c -o entropy.o entropy.c
+	$(mkCC_OBJ) entropy.c

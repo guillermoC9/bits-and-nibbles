@@ -29,10 +29,18 @@ dummy:
 
 cleanit:
 	rm -f *.o
-	rm -f test_chipiona
+	rm -f test_random
 
-test: chipiona.o test_chipiona.c
-	$(mkCC_EXE) test_chipiona.c chipiona.o
+test: test_random
 
-chipiona.o: chipiona.c chipiona.h
-	$(mkCC_OBJ) chipiona.c
+test_random: random.o test_random.c
+	$(mkCC_EXE) test_random.c random.o sha512.o stuff.o
+
+random.o: sha512.o random.c random.h
+	$(mkCC_OBJ) random.c
+
+sha512.o: stuff.o sha512.c sha512.h
+	$(mkCC_OBJ) sha512.c
+
+stuff.o: stuff.c stuff.h
+	$(mkCC_OBJ) stuff.c
