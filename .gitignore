@@ -1,0 +1,23 @@
+# Object files
+*.o
+*.obj
+# Executables
+*.exe
+test
+test_chipiona
+test_entropy
+test_pdf
+test_checksum
+test_csv
+test_ticks
+test_hashes
+test_ciphers
+test_random
+# Test output fil
+# Test output files
+*.txt
+uk_postcodes.csv
+# Miscellaneous files
+.DS_Store
+
+
