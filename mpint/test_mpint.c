@@ -276,7 +276,7 @@ void test_mpint(void)
 
     mp_sqrt(&r2,&r);
 
-    mp_show("srt(r2)",&r);
+    mp_show("sqrt(r2)",&r);
 
     mp_sqr(&r2,&r2);
 
@@ -284,25 +284,25 @@ void test_mpint(void)
     mp_sqrt(&r2,&r);
 
     mp_show("r2     ",&r2);
-    mp_show("srt(r2)",&r);
+    mp_show("sqrt(r2)",&r);
 
     mp_sqr(&r2,&r2);
     mp_sqrt(&r2,&r);
 
     mp_show("r2     ",&r2);
-    mp_show("srt(r2)",&r);
+    mp_show("sqrt(r2)",&r);
 
     mp_sqr(&r2,&r2);
     mp_sqrt(&r2,&r);
 
     mp_show("r2     ",&r2);
-    mp_show("srt(r2)",&r);
+    mp_show("sqrt(r2)",&r);
 
     mp_sqr(&r2,&r2);
     mp_sqrt(&r2,&r);
 
     mp_show("r2     ",&r2);
-    mp_show("srt(r2)",&r);
+    mp_show("sqrt(r2)",&r);
 
     mp_free(m1);
     mp_clear(&m2);
