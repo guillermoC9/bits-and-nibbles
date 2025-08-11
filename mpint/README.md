@@ -5,7 +5,7 @@ Big numbers are essential to many tasks, especially to criptography. Here we pre
 
 I adapted the original code to my needs adding few bits and nibbles to it so I can use it for my criptography stuff like: prime numbers, RSA, ECC, etc. 
 
-I left this here alone in case all you are interested on is a multi-precision library implemntation that works, even if I messed up a bit the function interface. :-(
+I left this here alone in case all you are interested on is a multi-precision library implementation that works, even if I messed up a bit the function interface. :-(
 
 ## To build it:
 
