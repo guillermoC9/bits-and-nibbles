@@ -32,6 +32,7 @@ cleanit:
 	cd hashes;   nmake /f gcc.mak cleanit; cd ..
 	cd pdf;      nmake /f gcc.mak cleanit; cd ..	
 	cd random;   nmake /f gcc.mak cleanit; cd ..
+	cd primes;   nmake /f gcc.mak cleanit; cd ..
 	cd mpint;    nmake /f gcc.mak cleanit; cd ..
 	cd time;     nmake /f gcc.mak cleanit; cd ..	
 	
@@ -45,6 +46,7 @@ buildit:
 	cd hashes;   nmake /f gcc.mak test; cd ..
 	cd pdf;      nmake /f gcc.mak test; cd ..
 	cd random;   nmake /f gcc.mak test; cd ..
+	cd primes;   nmake /f gcc.mak test; cd ..
 	cd mpint;    nmake /f gcc.mak test; cd ..
 	cd time;     nmake /f gcc.mak test; cd ..
 

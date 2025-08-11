@@ -330,11 +330,11 @@ void usage(void)
            "makes the algorithm to be seeded with an umpredictable number.\n\n"
            "Algorithms:\n\n\t1 = Mother of George Marsaglia (RAND_GM)\n"
            "\t2 = Mersenne Twister of Matsumoto & Nishimura (RAND_MT)\n"
-           "\t3 = Xorshift of George Marsaglia (S9_RAND_GX)\n"
+           "\t3 = Xorshift of George Marsaglia (RAND_GX)\n"
            "\t4 = TLS-PRF-MD5_SHA1 (RAND_TLS_MD5_SHA1)\n"
            "\t5 = TLS-PRF-SHA256 (RAND_TLS_SHA256)\n"
            "\t6 = TLS-PRF-SHA384 (RAND_TLS_SHA384)\n"
-           "\t7 = OSSYS of Kenneth MacKay (S9_RAND_OS)\n"
+           "\t7 = OSSYS of Kenneth MacKay (RAND_OS)\n"
            "\n"
         );
     printf("options:\n\t-v = Verbose. Would also show the numbers repeated once\n\n");

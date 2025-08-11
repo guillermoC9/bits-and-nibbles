@@ -14,6 +14,7 @@ test_hashes
 test_ciphers
 test_random
 test_mpint
+test_primes
 # Test output fil
 # Test output files
 *.txt
