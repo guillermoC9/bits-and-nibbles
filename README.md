@@ -1,7 +1,7 @@
 # bits-and-nibbles
 Bits and nibbles of code from ideas, articles, conferences and someday books.
 Each directory is an independent piece of code that can be used separately.
-I know this causes code duplication, but the idea here is to grab whatever you are interested on without dependencies, as the code should be easy to include in your own proyects. Just rememebr that the duplication always bear smaller functionality than the one in the directories to avoid making the repository too big.
+I know this causes code duplication, but the idea here is to grab whatever you are interested on without dependencies, as the code should be easy to include in your own proyects. Just remember that the duplication always bear smaller functionality than the one in the directories to avoid making the repository too big.
 
 ## Directory Content:
 - ### Chipiona:
