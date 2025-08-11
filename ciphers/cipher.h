@@ -385,12 +385,6 @@ void cipher_end(cipher_t *ctx);
 size_t cipher_encode(cipher_t *ctx,void *dest,const void *orig,size_t tam);
 size_t cipher_decode(cipher_t *ctx,void *dest,const void *orig,size_t tam);
 
-/* ------------------------------------------------ *
-   Copy the OID in ASN.1/DER, returns bytes copied
- * ------------------------------------------------ */
-
-int cipher_copy_asn1(cipher_t *ctx,void *asn1,int tam);
-
  /* ------------------------------------------------ *
    It returns the number of bytes that needs to be
    added to make 'size' a multiple of the algorithm
