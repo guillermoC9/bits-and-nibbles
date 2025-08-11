@@ -1,7 +1,7 @@
 # mpint
 ## Multiprecision Integers
 
-Big numbers are essential to many takss, especially to criptography. Here we present a multi-precision integer library called mpint, which was originally written by  Michael J. Fromberger's, who donated it to the public domain in 2002. The original code can be found at https://fossies.org/linux/txr/mpi/mpi.h 
+Big numbers are essential to many tasks, especially to criptography. Here we present a multi-precision integer library called mpint, which was originally written by  Michael J. Fromberger's, who donated it to the public domain in 2002. The original code can be found at https://fossies.org/linux/txr/mpi/mpi.h 
 
 I adapted the original code to my needs addig few bits and nibbles to it so I can use it for my criptography stuff like: prime numbers, RSA, ECC, etc. 
 
