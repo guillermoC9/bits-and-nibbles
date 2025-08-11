@@ -6,14 +6,18 @@ I know this causes code duplication, but the idea here is to grab whatever you a
 ## Directory Content:
 - ### Chipiona:
   The first SHAX cipher from Guillermo Amodeo Ojeda, intented for ciphering big amounts of data-in-motion. Although it can cipher small amounts of data-at-rest too.
-- ### Entropy:
-  Pseudo-random algorithms require unpredictable entropy for seeding. Here is an easy way to obtain it.
 - ### Hashes & HMACs:
   Criptographic Hashes & HMACs are extremely important, thus here is an easy way to produce many of them. Some very secure, some considered broken. There are a couple of good reasons to have an easy way to handle them from C:
   - Experimentation: That is why we support broken algorithms, to allow reserchers play with them easily.
   - Availability: Usually this amount of hashes are usually available through language libraries for Java, Python, JavaScript, ... but not C. Here is your Hash & HMACs one-stop shop for: MD2, MD4, MD5, SHA1, SHA2, SHA2, RIPE128, RIPE160, RIPE256, RIPE320, POLY1305 and GHASH.
 - ### Ciphers:
   Just like a one-stop shop for criptographic hashes, here you have a one-stop shop for symmetric criptographic cipher primitives. Note that my Chipiona cipher is not included becuse this is for well-known ciphers. Although you can easily add it if you like. ;-)  
+- ### Entropy:
+  Pseudo-random algorithms require unpredictable entropy for seeding. Here is an easy way to obtain it.
+- ### Random:
+  Pseudo-random number generators for general purpose or criptography.
+- ### mpint:
+  Multi-precision number support.
 - ### Time (time & ticks):
   Measure time acurately is extremely important in computing. Let's have a look at ticks and learn how to manage time better. You will also find useful time utilities here, like calendar sheets.
 - ### CSV:

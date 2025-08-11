@@ -13,6 +13,7 @@ test_ticks
 test_hashes
 test_ciphers
 test_random
+test_mpint
 # Test output fil
 # Test output files
 *.txt
