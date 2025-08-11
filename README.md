@@ -17,7 +17,7 @@ I know this causes code duplication, but the idea here is to grab whatever you a
 - ### Random:
   Pseudo-random number generators for general purpose or criptography.
 - ### Primes:
-  To generate quality prime numbers is really important. Let's do it taking advantage of our random stuff.
+  Generate quality prime numbers is really important. Let's do it taking advantage of our random stuff.
 - ### mpint:
   Multi-precision number support.
 - ### Time (time & ticks):
