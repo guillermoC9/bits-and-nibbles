@@ -58,7 +58,7 @@ extern "C" {
     bits  = bits of key (40, 128, ...)
     key   = Initialization key (at least 'bits'/8 bytes of size)
 
-    Return S9_OK (0) or negative error
+    Return OK (0) or negative error
  * -------------------------------------------------- */
 
 int rc4_init(rc4_t *ctx,int bits,const void *key);

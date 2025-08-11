@@ -31,8 +31,8 @@
 */
 
 
-#ifndef S9_GALOIS_HASH
-#define S9_GALOIS_HASH
+#ifndef GAO_GALOIS_HASH
+#define GAO_GALOIS_HASH
 
 #include "stuff.h"
 

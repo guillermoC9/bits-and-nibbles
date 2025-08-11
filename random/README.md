@@ -67,11 +67,11 @@ Algorithms:
 
 	1 = Mother of George Marsaglia (RAND_GM)
 	2 = Mersenne Twister of Matsumoto & Nishimura (RAND_MT)
-	3 = Xorshift of George Marsaglia (S9_RAND_GX)
+	3 = Xorshift of George Marsaglia (RAND_GX)
 	4 = TLS-PRF-MD5_SHA1 (RAND_TLS_MD5_SHA1)
 	5 = TLS-PRF-SHA256 (RAND_TLS_SHA256)
 	6 = TLS-PRF-SHA384 (RAND_TLS_SHA384)
-	7 = OSSYS of Kenneth MacKay (S9_RAND_OS)
+	7 = OSSYS of Kenneth MacKay (RAND_OS)
 
 options:
 	-v = Verbose. Would also show the numbers repeated once

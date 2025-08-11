@@ -66,7 +66,7 @@ extern "C" {
     'resp' is the string that receives the row
 
     'max' is the number of bytes that fit in 'resp',
-          if less than 12 it returns S9_ERANGE
+          if less than 12 it returns -1
 
     'bc' is the numeric code of the barcode. If
            less than 13 digits, it adds the check
@@ -74,7 +74,7 @@ extern "C" {
            at the left until its 13 chars
 
     If 'bc' is not a correct EAN-13 it returns
-    the error S9_EINCORRECT
+    the error -1
 
  * -------------------------------------------------- */
 
@@ -88,7 +88,7 @@ int get_ean_13(unsigned char *resp,size_t max,const char *bc);
 
     'max' is the number of chars that fit in 'resp'
           counting the final 0. If less than 14
-          it returns S9_ERANGE
+          it returns -1
 
     'bc'  is the numeric code of the barcode. If
           less than 13 digits, it adds the check
@@ -96,7 +96,7 @@ int get_ean_13(unsigned char *resp,size_t max,const char *bc);
           at the left until its 13 chars
 
     If 'bc' is not a correct EAN-13 it returns
-    the error S9_EINCORRECT
+    the error -1
 
  * -------------------------------------------------- */
 
@@ -122,7 +122,7 @@ int format_ean_13(char *resp,size_t max,const char *bc);
    to avoid fails
 
    If 'bc' is not a correct EAN-8 it returns
-    the error S9_EINCORRECT
+    the error -1
 
  * -------------------------------------------------- */
 
@@ -152,7 +152,7 @@ int format_ean_8(char *resp,size_t max,const char *bc);
    bitmask and to validate the read by the reader.
 
    if bc is not 5 digits long or max is less
-   than 10 it will return S9_ERANGE
+   than 10 it will return -1
 
  * -------------------------------------------------- */
 
@@ -175,7 +175,7 @@ int get_ean_5(unsigned char *resp,size_t max,const char *bc);
    the two codes.
 
    if bc is not 2 digits long or max is less
-   than 3 it will return S9_ERANGE
+   than 3 it will return -1
 
  * -------------------------------------------------- */
 

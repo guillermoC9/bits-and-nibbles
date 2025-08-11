@@ -592,7 +592,7 @@ void rand_end(rand_t *rc);
         Generate random data EXACTLY in the same way as TLS does, so 
     it can be used for TLS as well as  for other applications.
 
-    'prf' is one of S9_RAND_TLS_MD5_SHA1, RAND_TLS_SHA256 or 
+    'prf' is one of RAND_TLS_MD5_SHA1, RAND_TLS_SHA256 or 
      RAND_TLS_SHA384, any other gets silently discarded and
     set tothe default RAND_TLS_SHA256.
 
