@@ -38,7 +38,7 @@ There are far too many feasible timing attacks in the world. Actually, so many t
 
 Also, the new 'brat in the neighbourhood' -Quantum Computers- use probablistics in order to find answers to questions like: *Which are the two prime factors of a modulus in a RSA key?* So timing is **really important** for the security of algorithms in both Classic and Quantum Computers.
 
-Now, people make huge efforts to make sure algorithms are **time constant** in order to beat timing attacks. I think that its much better to make the algorithms **time unpredictable**, which means that the algorithm will take different timing to do things even if they are in the same state or fed the same input. This will make impossible to attack algorithms by feeding it with input and time the behaviour to gather time information to guess things. Disturbing time unpredictibly will effectively neutralize timing attacks.
+Now, people make huge efforts to make sure algorithms are **time constant** in order to beat timing attacks. I think that its much better to make the algorithms **time unpredictable**, which means that the algorithm will take different timing to do things even if they are in the same state or fed the same input. This will make impossible to attack algorithms by feeding then with some particular input and time their behaviour in order to gather time information to guess things. Disturbing time unpredictibly will effectively neutralize timing attacks.
 
 This is the intented use of this function, which you can use to disturb exectution time, even if you do not need an unpredictable seed, calling it for example like this:
 
