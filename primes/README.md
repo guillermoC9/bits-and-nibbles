@@ -1,13 +1,14 @@
 # primes
 ## Prime numbers library
 
-Prime numbers are essential to computing, especially criptography. They are a very especial kind of number, as a prime is a number that is only divisible by 1 and itself. The other numbers are called composite. The reason why primes are so important is due to the mathematical properties they bear. For example, a prime number is an excellent choice for the size of a hash table, as when you do
+Prime numbers are essential to computing, especially criptography. They are a very especial kind of number, as a prime is a number that is only divisible by 1 and itself. The other numbers are called composite. The reason why primes are so important is due to the mathematical properties they bear. For example, a prime number is an excellent choice for the size of a hash table, as when you do:
 ```
 position = (hash_value % table_size)
 ```
 the distribution wolud be much better than if ```table_size``` was composite. 
 
 They are also common choices for hash code calculations, being ```31``` one of the most used primes, as it  was the choice of Kernighan & Ritchie for the ```hash()``` function in their book. Note that he following warning accompained the function: *"This is not the best possible algorithm, but it has the merit of extreme simplicity."*. 
+
 Daniel J Bernstein choose ```33``` in his DJB Hash instead, which is not a prime. We use this hash in our ```unpredictable_seed()``` function twice. Have a look into it, is an interesting hash, and you do not see the number ```33``` because ```x << 5 + x``` is the same as ```x * 33```. ;-)
 
 In criptography are very important because until the arrival of Quantum computers and the infamous -but great- Shor's algorithm, finding the prime factors of a huge number was extremely complicated. RSA, DSA and ECC -Eliptic Curve Criptography- all relay their security on this fact. 
