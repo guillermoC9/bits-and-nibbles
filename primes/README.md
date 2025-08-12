@@ -20,7 +20,7 @@ I personally think one of the 'beauties' of his code is how it implements the Ra
 
 It is pretentious because -maybe you are not familiar with this- there is not a definitive algorithm to determine if a number is an actual prime with 100% accuracy. This is why most people in criptography call them *'probable primes'*. There is even a set of numbers called *'Carmichel Numbers'* that are false primes, as they pass most primarily tests being composite. 
 
-Fortunately for us, the Rabin-Miller test implemented by Simon does find most of them, and in the case of it failing, the false prime should be good enough anyway, because its only weakness would be that is easier to factorize, but being huge and having Mr Shor's stuff around, may not be in a bigger danger than a prime number itself.      
+Fortunately for us, the Rabin-Miller test implemented by Simon does find most of them, and in the case of it failing, the false prime should be good enough anyway, as its only weakness would be that is easier to factorize, but being huge and having Mr Shor's stuff around, may not be in a bigger danger than a prime number itself.      
 
 ## To build it:
 
