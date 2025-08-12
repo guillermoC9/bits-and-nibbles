@@ -36,7 +36,7 @@ Here is an interesting function not only intended for generating unpredictable d
 
 There are far too many feasible timing attacks in the world. Actually, so many that they neutralised few algorithms an ciphering modes like CBC. 
 
-Also, the new 'brat in the neighbourhood' -Quantum Computers- use probablistics in order to find answers to questions like: *What are the two factors of a prime modulus in a RSA key?* So timing is **really important** for the security of algorithms in both Classic and Quantum Computers.
+Also, the new 'brat in the neighbourhood' -Quantum Computers- use probablistics in order to find answers to questions like: *What are the two prime factors of a modulus in a RSA key?* So timing is **really important** for the security of algorithms in both Classic and Quantum Computers.
 
 Now, people make huge efforts to make sure algorithms are **time constant** in order to beat timing attacks. I think that its much better to make the algorithms **time unpredictable**, which means that the algorithm will take different timing to do things even if they are in the same state or fed the same input. This will make impossible to attack algorithms by feeding it with input and time the behaviour to gather time information to guess things. Disturbing time unpredictibly will effectively neutralize timing attacks.
 
