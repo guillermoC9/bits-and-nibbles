@@ -50,7 +50,7 @@ This is the intented use of this function, which you can use to disturb exectuti
     }
 ```
 
-Which plays with the knowledge that unpredictable seed never returns 0 -somethign the compiler doesn't know-
+Which plays with the knowledge that ```unpredictable_seed_non_linear()``` never returns 0 -somethign the compiler doesn't know-
 
 The function **get_entropy_non_linear()** uses it to make sure its execution time is unpredictable.  
 
