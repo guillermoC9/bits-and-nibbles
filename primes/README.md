@@ -1,5 +1,4 @@
 # primes
-## Prime numbers library
 
 Prime numbers are essential to computing, especially criptography. They are a very especial kind of number, as a prime is a number that is only divisible by 1 and itself. The other numbers are called composite. The reason why primes are so important is due to the mathematical properties they bear. For example, a prime number is an excellent choice for the size of a hash table, as when you do:
 ```
