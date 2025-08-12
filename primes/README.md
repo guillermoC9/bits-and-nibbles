@@ -12,11 +12,11 @@ Daniel J Bernstein choose ```33``` in his DJB Hash instead, which is not a prime
 
 In criptography primes are very important because until the arrival of Quantum computers and the infamous -but great- Shor's algorithm, finding the prime factors of a huge number was extremely complicated. RSA, DSA and ECC -Eliptic Curve Criptography- all relay their security on this fact. 
 
-Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example-.
+Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example- but good enough for the examples. You can easily add the support by using the other version of random.
 
-This is the base for stuff like RSA, ECC, etc. look at the test program because it is quite complete to ilustrate the power of this small library. 
+Look at the test program because it is quite complete to ilustrate the power of this small library. Most of the credit should be for Simon Tatham, as this code took base on SSHPRIME.c that came with Putty v0.60, and even if it is largely changed, the core thing: **generate a quality prime**, is still his. 
 
-Most of the credit should be for Simon Tatham, as this code took base on SSHPRIME.c that came with Putty v0.60, and even if it is largely changed, the core thing: **generate a quality prime**, is still his. ;-)
+I personally think one of the 'beauties' of his code is how it implements the Rabin-Miller test -I just merely changed his implementation from his own big numbers to mpint and moved it to a pretentious function called ```is_prime()```-. I say pretentious because -maybe you are not familiar with this-, there is not a definitive algorithm to determine if a number is an actual prime with 100% accuracy. This is why most people in criptography call them *'probable primes'*. There is even a set of numbers called *'Carmichel Numbers'* that are false primes, as they pass most primarily tests. Fortunatelly for us, the Rabin-Miller test implemented by Simon does find most of them, and in the case of it failing, the false prime should be good enough anyway, because its only weakness would be that is easier to factorize, but being huge and having Mr Shor's stuff around, may not be in more danger than a prime number.      
 
 ## To build it:
 
