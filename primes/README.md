@@ -1,7 +1,13 @@
 # primes
 ## Prime numbers library
 
-Prime numbers are essential to criptography. Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example-.
+Prime numbers are essential to computing, especially criptography. They are a very especial kind of number, as a prime is a number that is only divisible by 1 and itself. The other numbers are called composite. The reason why primes are so important is due to the mathematical properties they bear. For example, a prime number is an excellent choice for the size of a hash table, as when you do ```position = (hash_value % table_size)``` the distribution wolud be much better than if ```table_size``` was composite. 
+They are also common choices for hash code calculations, being ```31``` one of the most used primes, as it  was the choice of Kernighan & Ritchie for the ```hash()``` function in their book. Note that he following warning accompained the function: *"This is not the best possible algorithm, but it has the merit of extreme simplicity."*. 
+Daniel J Bernstein choose ```33``` in his DJB Hash instead, which is not a prime. We use this hash in our ```unpredictable_seed()``` function twice. Have a look into it, is an interesting hash, and you do not see the number ```33``` because ```x << 5 + x``` is the same as ```x * 33```. ;-)
+
+In criptography are very important because until the arrival of Quantum computers and the infamous -but great- Shor's algorithm, finding the prime factors of a huge number was extremely complicated. RSA, DSA and ECC -Eliptic Curve Criptography- all relay their security on this fact. 
+
+Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example-.
 
 This is the base for stuff like RSA, ECC, etc. look at the test program because it is quite complete to ilustrate the power of this small library. 
 
