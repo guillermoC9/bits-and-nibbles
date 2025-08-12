@@ -10,7 +10,7 @@ They are also common choices for hash code calculations, being ```31``` one of t
 
 Daniel J Bernstein choose ```33``` in his DJB Hash instead, which is not a prime. We use this hash in our ```unpredictable_seed()``` function twice. Have a look into it, is an interesting hash, and you see the number ```33``` just once because the ```(seed << 5) + seed``` at the end is the same as ```seed * 33```.
 
-In criptography are very important because until the arrival of Quantum computers and the infamous -but great- Shor's algorithm, finding the prime factors of a huge number was extremely complicated. RSA, DSA and ECC -Eliptic Curve Criptography- all relay their security on this fact. 
+In criptography primes are very important because until the arrival of Quantum computers and the infamous -but great- Shor's algorithm, finding the prime factors of a huge number was extremely complicated. RSA, DSA and ECC -Eliptic Curve Criptography- all relay their security on this fact. 
 
 Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example-.
 
