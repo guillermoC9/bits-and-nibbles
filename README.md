@@ -23,7 +23,7 @@ I know this causes code duplication, but the idea here is to grab whatever you a
 - ### Time (time & ticks):
   Measure time acurately is extremely important in computing. Let's have a look at ticks and learn how to manage time better. You will also find useful time utilities here, like calendar sheets.
 - ### CSV:
-  Data is the most important thing in computing, as that is what computers do: process data. CSV (Comma Separated Values) files are a **very** popular way to share data. Here is a very easy way to handle them. And not only CSV files, also other kind of separator based files like TSV (Tabulator Separated Values) in two encondings like Windows 1252 and UTF-8.  
+  Data is the most important thing in computing, as that is what computers do: process data. CSV (Comma Separated Values) files are a **very** popular way to share that data. Here is a very easy way to handle them. And not only CSV files, also other kind of separator based files like TSV (Tabulator Separated Values) in two encondings like Windows 1252 and UTF-8.  
 - ### Checksum: 
   There are some checksums which are very uself for everyday life, like the Luhn's checksum or the Spanish control letter (letra del DNI, NIF o NIE).
 - ### PDF:
