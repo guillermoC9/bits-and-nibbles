@@ -7,7 +7,7 @@ I know this causes code duplication, but the idea here is to grab whatever you a
 - ### Chipiona:
   The first SHAX cipher from Guillermo Amodeo Ojeda, intented for ciphering big amounts of data-in-motion. Although it can cipher small amounts of data-at-rest too.
 - ### Hashes & HMACs:
-  Criptographic Hashes & HMACs are extremely important, thus here is an easy way to produce many of them. Some very secure, some considered broken. There are a couple of good reasons to have an easy way to handle them from C.
+  Criptographic Hashes & HMACs are extremely important, thus here is an one-stop shop to use many of them easily. Some very secure, some considered broken. There are a couple of good reasons to have an easy way to handle them from C.
 - ### Ciphers:
   Just like a one-stop shop for criptographic hashes, here you have a one-stop shop for symmetric criptographic cipher primitives. Note that my Chipiona cipher is not included becuse this is for well-known ciphers. Although you can easily add it if you like. ;-)  
 - ### Entropy:
