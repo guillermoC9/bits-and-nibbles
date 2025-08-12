@@ -34,6 +34,7 @@ cleanit:
 	cd random;   nmake /f gcc.mak cleanit; cd ..
 	cd primes;   nmake /f gcc.mak cleanit; cd ..
 	cd mpint;    nmake /f gcc.mak cleanit; cd ..
+	cd rsa;      nmake /f gcc.mak cleanit; cd ..	
 	cd time;     nmake /f gcc.mak cleanit; cd ..	
 	
 
@@ -48,5 +49,6 @@ buildit:
 	cd random;   nmake /f gcc.mak test; cd ..
 	cd primes;   nmake /f gcc.mak test; cd ..
 	cd mpint;    nmake /f gcc.mak test; cd ..
+	cd rsa;      nmake /f gcc.mak test; cd ..
 	cd time;     nmake /f gcc.mak test; cd ..
 

@@ -32,7 +32,8 @@ cleanit:
 	cd pdf;      make -f gcc.mak cleanit; cd ..
 	cd random;   make -f gcc.mak cleanit; cd ..	
 	cd mpint;    make -f gcc.mak cleanit; cd ..	
-	cd primes;   make -f gcc.mak cleanit; cd ..	
+	cd primes;   make -f gcc.mak cleanit; cd ..
+	cd rsa;      make -f gcc.mak cleanit; cd ..	
 	cd time;     make -f gcc.mak cleanit; cd ..	
 
 buildit: 
@@ -44,8 +45,9 @@ buildit:
 	cd hashes;   make -f gcc.mak test; cd ..
 	cd pdf;      make -f gcc.mak test; cd ..
 	cd random;   make -f gcc.mak test; cd ..
-	cd primes;   make -f gcc.mak test; cd ..
 	cd mpint;    make -f gcc.mak test; cd ..
+	cd primes;   make -f gcc.mak test; cd ..
+	cd rsa;      make -f gcc.mak test; cd ..	
 	cd time;     make -f gcc.mak test; cd ..
 
 
