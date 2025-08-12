@@ -17,7 +17,7 @@ I know this causes code duplication, but the idea here is to grab whatever you a
 - ### Primes:
   Generate quality prime numbers is really important. Let's do it taking advantage of our random stuff.
 - ### RSA:
-  The infamous Public Key algorithm that many asume broken by *'Quantom computers'*, although none of them proved it completely broken. I think it still has few tricks up the sleeve.
+  The infamous Public Key algorithm that many asume broken by *'Quantum computers'*, although none of them proved it completely broken. I think it still has few tricks up the sleeve.
 - ### mpint:
   Multi-precision number support.
 - ### Time (time & ticks):
