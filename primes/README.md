@@ -12,7 +12,7 @@ Daniel J Bernstein choose ```33``` in his DJB Hash instead, which is not a prime
 
 In criptography primes are very important because until the arrival of Quantum computers and the infamous -but great- Shor's algorithm, finding the prime factors of a huge number was extremely complicated. RSA, DSA and ECC -Eliptic Curve Criptography- all relay their security on this fact. 
 
-Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example- but good enough for the examples. You can easily add the support by using the other version of random.
+Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example- is good enough for the examples. You can easily add the support by using the other version of random.
 
 Look at the test program because it is quite complete to ilustrate the power of this small library. Most of the credit should be for Simon Tatham, as this code took base on SSHPRIME.c that came with Putty v0.60, and even if it is largely changed, the core thing: **generate a quality prime**, is still his. 
 
