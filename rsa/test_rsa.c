@@ -62,18 +62,40 @@ static void print_rsa_key(rsa_t *key)
         return;
     }
 
-    printf("--- RSA KEY %d bits (%d) ---\n", key->bits, key->bytes);
+    printf("--- RSA KEY %d bits (%d) ---\n", key->bits, key->bytes);    
     mp_copy_string(&(key->modulus), tmp, sizeof(tmp));
     printf("MOD =%s\n", tmp);
     mp_copy_string(&(key->exponent), tmp, sizeof(tmp));
     printf("EXP =%s\n", tmp);
-    mp_copy_string(key->private_exponent, tmp, sizeof(tmp));
-    printf("PRIV=%s\n", tmp);
 
-    mp_copy_string(key->p, tmp, sizeof(tmp));
-    printf("P=%s\n", tmp);
-    mp_copy_string(key->q, tmp, sizeof(tmp));
-    printf("Q=%s\n", tmp);
+    if(key->private_exponent)
+    {
+        mp_copy_string(key->private_exponent, tmp, sizeof(tmp));
+        printf("PRIV=%s\n", tmp);
+    }
+    else
+    {
+        printf("PRIV=NULL\n");
+    }
+    
+    if(key->p)
+    {
+        mp_copy_string(key->p, tmp, sizeof(tmp));
+        printf("P=%s\n", tmp);
+    }
+    else
+    {
+        printf("P=NULL\n");
+    }
+    if(key->q)
+    {
+        mp_copy_string(key->q, tmp, sizeof(tmp));
+        printf("Q=%s\n", tmp);
+    }
+    else
+    {
+        printf("Q=NULL\n");
+    }
 
 
     printf("-----------------------------\n");
@@ -360,7 +382,7 @@ static void test_rsa_rnd(int cual,int seed)
     rsa_t *rsa = NULL;
     rand_t *rng;    
 
-    printf("\n===== Test RSA =====\n");
+    printf("\n===== Test RSA Key =====\n");
 
     rng = rand_start(cual, seed);
     if (rng)
@@ -395,9 +417,120 @@ static void test_rsa_rnd(int cual,int seed)
     rand_end(rng);
 }
 
+/* ------------------------------------------------------------------------------- *
 
+   RSA Signature Test from Wei Day test vectors of PKCS-1 v1.5 
 
+   https://github.com/weidai11/cryptopp/blob/master/TestVectors/rsa_pkcs1_1_5.txt 
 
+ * ------------------------------------------------------------------------------- */
+
+/* Example 1.4 (1024 bits) */
+
+rsa_t *create_key_sign_test1(void)
+{
+    char *mod="0a66791dc6988168de7ab77419bb7fb0c001c62710270075142942e19a8d8c51"
+                    "d053b3e3782a1de5dc5af4ebe99468170114a1dfe67cdc9a9af55d655620bbab";
+
+    char *exp="010001";
+
+    char *pri="0123c5b61ba36edb1d3679904199a89ea80c09b9122e1400c09adcf7784676d0"
+                    "1d23356a7d44d6bd8bd50e94bfc723fa87d8862b75177691c11d757692df8881";
+
+    return rsa_from_chars(mod, exp, pri);
+}
+
+/*  */
+
+rsa_t *create_key_sign_test2(void)
+{
+    char *mod="a885b6f851a8079ab8a281db0297148511ee0d8c07c0d4ae6d6fed461488e0d4"
+                    "1e3ff8f281b06a3240b5007a5c2ab4fb6be8af88f119db998368dddc9710abed";
+
+    char *exp="010001";
+
+    char *pri="2b259d2ca3df851ee891f6f4678bddfd9a131c95d3305c63d2723b4a5b9c960f"
+                    "5ec8bb7dcddbebd8b6a38767d64ad451e9383e0891e4ee7506100481f2b49323";
+
+    return rsa_from_chars(mod, exp, pri);
+}
+
+unsigned char sign_msg1[25] = /* Message:  "Everyone gets Friday off." */
+{
+    0x45, 0x76, 0x65, 0x72, 0x79, 0x6f, 0x6e, 0x65, 0x20, 0x67, 
+    0x65, 0x74, 0x73, 0x20, 0x46, 0x72, 0x69, 0x64, 0x61, 0x79, 
+    0x20, 0x6f, 0x66, 0x66, 0x2e
+};
+
+unsigned char sign_val1[64] =    /* Signature */
+{
+	0x05, 0xfa, 0x6a, 0x81, 0x2f, 0xc7, 0xdf, 0x8b, 0xf4, 0xf2, 0x54, 0x25, 0x09, 0xe0, 0x3e, 0x84,
+	0x6e, 0x11, 0xb9, 0xc6, 0x20, 0xbe, 0x20, 0x09, 0xef, 0xb4, 0x40, 0xef, 0xbc, 0xc6, 0x69, 0x21, 
+    0x69, 0x94, 0xac, 0x04, 0xf3, 0x41, 0xb5, 0x7d, 0x05, 0x20, 0x2d, 0x42, 0x8f, 0xb2, 0xa2, 0x7b, 
+    0x5c, 0x77, 0xdf, 0xd9, 0xb1, 0x5b, 0xfc, 0x3d, 0x55, 0x93, 0x53, 0x50, 0x34, 0x10, 0xc1, 0xe1
+};
+
+unsigned char sign_msg2[4] = /* Message:  "test" */
+{
+    0x74, 0x65, 0x73, 0x74 
+};
+
+unsigned char sign_val2[64] = /* Signature */
+{
+    0xa7, 0xe0, 0x0c, 0xe4, 0x39, 0x1f, 0x91, 0x4d, 0x82, 0x15, 0x8d, 0x9b, 0x73, 0x27, 0x59, 0x80, 
+    0x8e, 0x25, 0xa1, 0xc6, 0x38, 0x3f, 0xe8, 0x7a, 0x51, 0x99, 0x15, 0x76, 0x50, 0xd4, 0x29, 0x6c, 
+    0xf6, 0x12, 0xe9, 0xff, 0x80, 0x9e, 0x68, 0x6a, 0x0a, 0xf3, 0x28, 0x23, 0x83, 0x06, 0xe7, 0x99, 
+    0x65, 0xf6, 0xd0, 0x13, 0x81, 0x38, 0x82, 0x9d, 0x9a, 0x1a, 0x22, 0x76, 0x43, 0x06, 0xf6, 0xce
+};
+
+void rsa_test_signature(void)
+{
+    unsigned char tmp[128];
+    int ret;
+    rsa_t *k1,*k2;
+
+    printf("\n===== Test RSA signature =====\n");
+
+    k1 = create_key_sign_test1();
+    if(k1)
+    {
+
+        printf("Test with Key 1\n");
+        print_bytes("TXT ", sign_msg1, 25);
+        print_bytes("SIGN", sign_val1, 64);
+        ret = rsa_sign(k1,tmp,128,HASH_MD2,sign_msg1,25,RSA_PAD_ONES);
+        if(ret < 1)
+            printf("ERROR %d signing with MD2\n",ret);
+        else    
+            print_bytes("RES ", tmp, ret);
+        printf("Result is %sorrect\n\n",memcmp(tmp,sign_val1,ret) ? "in" : "c");
+        rsa_destroy(k1);
+    }
+    else
+    {
+        printf("Key 1 could not be created\n");
+    }
+
+    k2 = create_key_sign_test2();
+    if(k2)
+    {
+        printf("Test with Key 2\n");
+        print_bytes("TXT ", sign_msg2, 4);
+        print_bytes("SIGN", sign_val2, 64);
+        ret = rsa_sign(k2,tmp,128,HASH_SHA1,sign_msg2,4,RSA_PAD_ONES);
+        if(ret < 1)
+            printf("ERROR %d signing with MD2\n",ret);
+        else    
+            print_bytes("RES ", tmp, ret);
+        printf("Result is %sorrect\n\n",memcmp(tmp,sign_val2,ret) ? "inc" : "c");
+        rsa_destroy(k2);
+    }
+    else
+    {
+        printf("Key 2 could not be created\n");
+    }
+
+}
 
 
 /* -------------------------------------- */
@@ -445,7 +578,8 @@ int main(int argc,char **argv)
     }
     else
     {
-        test_rsa_rnd(alg,seed);        
+        test_rsa_rnd(alg,seed);      
+        rsa_test_signature();  
         //test_rsa(alg,seed,bits);
     }        
     return 0;

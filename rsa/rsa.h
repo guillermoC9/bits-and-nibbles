@@ -289,7 +289,7 @@ int rsa_decode(rsa_t *key,void *buf,unsigned int tam,int public,int pad);
 
  * ---------------------------------------------------- */
 
-int rsa_sign(rsa_t *key,void *dest,unsigned int max,int alg,const void *datos,unsigned int tam);
+int rsa_sign(rsa_t *key,void *dest,unsigned int max,int alg,const void *datos,unsigned int tam,int pad);
 
 /* -------------------------------------------------- *
    Uses the public key 'key' to extract the hash of

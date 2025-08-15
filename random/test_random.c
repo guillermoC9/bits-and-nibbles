@@ -189,6 +189,29 @@ void test_random(int alg,int seed,int count)
     }
 }
 
+/* -------------------------------------- */
+
+void print_bytes(char *prefix, void *d, size_t n)
+{
+    size_t t;
+    unsigned char *dat;
+
+    dat = (unsigned char *)d;
+
+    if (prefix)
+        printf("%s=", prefix);
+
+    if (d)
+    {
+        for (t = 0; t < n; t++)
+            printf("%02x", dat[t]);
+        printf("\n");
+    }
+    else
+    {
+        printf("NULL\n");
+    }
+}
 
 /* ------------------------------------------------------ *
    Official Vectors to Test the TLS PRF
@@ -200,8 +223,7 @@ static void test_tls_prf()
         secr10[48]={REPEAT_32(0xab),REPEAT_16(0xab)},
         seed10[64]={REPEAT_64(0xcd)},
         secr12[16]={0x9b ,0xbe ,0x43 ,0x6b ,0xa9 ,0x40 ,0xf0 ,0x17 ,0xb1 ,0x76 ,0x52 ,0x84 ,0x9a ,0x71 ,0xdb ,0x35},
-        seed12[16]={0xa0 ,0xba ,0x9f ,0x93 ,0x6c ,0xda ,0x31 ,0x18 ,0x27 ,0xa6 ,0xf7 ,0x96 ,0xff ,0xd5 ,0x19 ,0x8c};
-    int t;
+        seed12[16]={0xa0 ,0xba ,0x9f ,0x93 ,0x6c ,0xda ,0x31 ,0x18 ,0x27 ,0xa6 ,0xf7 ,0x96 ,0xff ,0xd5 ,0x19 ,0x8c};    
 
     printf("\n*** Test PRF ***\n\n");
 
@@ -209,29 +231,17 @@ static void test_tls_prf()
 
     rand_tls_prf(RAND_TLS_MD5_SHA1,"secret",6,"label","seed",4,NULL,0,res,20);
 
-    printf("tls_test_prf(CALC) -> TLSv1.0 (MD5+SHA1) = ");
-    for(t=0;t<20;t++)
-        printf("%02x",res[t]);
-    printf("\n");
+    print_bytes("tls_test_prf(CALC) -> TLSv1.0 (MD5+SHA1)",res,20);
 
     rand_tls_prf(RAND_TLS_MD5_SHA1,secr10,48,"PRF Testvector",seed10,64,NULL,0,res,32);
 
     printf("tls_test_prf(REAL) -> TLSv1.1 (MD5^SHA1) = D3D4D1E349B5D515044666D51DE32BAB258CB521B6B053463E354832FD976754\n");
-    printf("tls_test_prf(CALC) -> TLSv1.1 (MD5^SHA1) = ");
-
-    for(t=0;t<32;t++)
-        printf("%02X",res[t]);
-    printf("\n");
+    print_bytes("tls_test_prf(CALC) -> TLSv1.1 (MD5^SHA1)",res,32);
 
     rand_tls_prf(RAND_TLS_SHA256,secr12,16,"test label",seed12,16,NULL,0,res,32);
 
     printf("tls_test_prf(REAL) -> TLSv1.2 (SHA-256)  = e3f229ba727be17b8d122620557cd453c2aab21d07c3d495329b52d4e61edb5a\n");
-
-    printf("tls_test_prf(CALC) -> TLSv1.2 (SHA-256)  = ");
-
-    for(t=0;t<32;t++)
-        printf("%02x",res[t]);
-    printf("\n");
+    print_bytes("tls_test_prf(CALC) -> TLSv1.2 (SHA-256) ",res,32);
 
     printf("\n");
 
@@ -317,6 +327,24 @@ void AutoID_test(void)
     printf("\n");
 }
 
+/* -------------------------------------- */
+
+void test_entropy(void)
+{
+    unsigned char data[64];
+    int t;
+    char str[256];
+
+    printf("**** Test hash_get_entropy() ****\n\n");
+
+    for(t=HASH_NONE+1; t< HASH_NUM_HASHES;t++)
+    {        
+        snprintf(str,256,"hash_get_entropy(%s)",hash_name(t));
+        hash_get_entropy(t,data,64);
+        print_bytes(str, data,64);
+    }
+    printf("\n");
+}
 
 /* -------------------------------------- */
 
@@ -363,6 +391,7 @@ int main(int argc,char **argv)
             AutoID_test();
             get_bits_test( (++arg < argc) ? atoi(argv[arg]) : 0);
             test_tls_prf();
+            test_entropy();
             return 0;
         }
 

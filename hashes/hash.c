@@ -29,27 +29,27 @@
 /* Algorithms name */
 
 static char    *lst_hashc[HASH_NUM_HASHES]={"","MD2","MD4","MD5","SHA-1","SHA-224","SHA-256","SHA-384","SHA-512",
-                                               "SHA-512/224","SHA-512/256","SHA3-224","SHA3-256","SHA3-384","SHA3-512",
-                                               "KECCAK-224","KECCAK-256","KECCAK-384","KECCAK-512","SHAKE-128","SHAKE-256",
-                                               "GHASH","RIPEMD-128","RIPEMD-160","RIPEMD-256","RIPEMD-320","POLY1305"};
+                                            "SHA-512/224","SHA-512/256","SHA3-224","SHA3-256","SHA3-384","SHA3-512",
+                                            "KECCAK-224","KECCAK-256","KECCAK-384","KECCAK-512","SHAKE-128","SHAKE-256",
+                                            "RIPEMD-128","RIPEMD-160","RIPEMD-256","RIPEMD-320","POLY1305"};
 
 static wchar_t *lst_hashw[HASH_NUM_HASHES]={L"",L"MD2",L"MD4",L"MD5",L"SHA-1",L"SHA-224",L"SHA-256",L"SHA-384",L"SHA-512",
-                                               L"SHA-512/224",L"SHA-512/256",L"SHA3-224",L"SHA-256",L"SHA-384",L"SHA-512",
-                                               L"KECCAK-224",L"KECCAK-256",L"KECCAK-384",L"KECCAK-512",L"SHAKE-128",L"SHAKE-256",
-                                               L"GHASH",L"RIPEMD-128",L"RIPEMD-160",L"RIPEMD-256",L"RIPEMD-320",L"POLY1305"};
+                                            L"SHA-512/224",L"SHA-512/256",L"SHA3-224",L"SHA-256",L"SHA-384",L"SHA-512",
+                                            L"KECCAK-224",L"KECCAK-256",L"KECCAK-384",L"KECCAK-512",L"SHAKE-128",L"SHAKE-256",
+                                            L"RIPEMD-128",L"RIPEMD-160",L"RIPEMD-256",L"RIPEMD-320",L"POLY1305"};
 
 /** Nombres alternativos */
 
 static char    *lst_hashC[HASH_NUM_HASHES]={"","MD-2","MD-4","MD-5","SHA1","SHA224","SHA256","SHA384","SHA512",
-                                                "SHA512/224","SHA512/256","SHA3_224","SHA3_256","SHA3_384","SHA3_512",
-                                                "KECCAK_224","KECCAK_256","KECCAK_384","KECCAK_512","SHAKE_128","SHAKE_256",
-                                                "GHASH","RIPEMD_128","RIPEMD_160","RIPEMD_256","RIPEMD_320","POLY-1305"};
+                                            "SHA512/224","SHA512/256","SHA3_224","SHA3_256","SHA3_384","SHA3_512",
+                                            "KECCAK_224","KECCAK_256","KECCAK_384","KECCAK_512","SHAKE_128","SHAKE_256",
+                                            "RIPEMD_128","RIPEMD_160","RIPEMD_256","RIPEMD_320","POLY-1305"};
 
 
 static wchar_t *lst_hashW[HASH_NUM_HASHES]={L"",L"MD-2",L"MD-4",L"MD-5",L"SHA1",L"SHA224",L"SHA256",L"SHA384",L"SHA512",
-                                               L"SHA512/224",L"SHA512/256",L"SHA3_224",L"SHA3_256",L"SHA3_384",L"SHA3_512",
-                                               L"KECCAK_224",L"KECCAK_256",L"KECCAK_384",L"KECCAK_512",L"SHAKE_128",L"SHAKE_256",
-                                               L"GHASH",L"RIPEMD_128",L"RIPEMD_160",L"RIPEMD_256",L"RIPEMD_320",L"POLY-1305"};
+                                            L"SHA512/224",L"SHA512/256",L"SHA3_224",L"SHA3_256",L"SHA3_384",L"SHA3_512",
+                                            L"KECCAK_224",L"KECCAK_256",L"KECCAK_384",L"KECCAK_512",L"SHAKE_128",L"SHAKE_256",
+                                            L"RIPEMD_128",L"RIPEMD_160",L"RIPEMD_256",L"RIPEMD_320",L"POLY-1305"};
 
 /* ------------------------------ */
 
@@ -107,8 +107,6 @@ int hash_size(int alg)
             return SHA512_224_SIZE;
         case HASH_SHA512_256:
             return SHA512_256_SIZE;
-        case HASH_GHASH:
-            return GHASH_SIZE;
         case HASH_RIPE_128:
             return RIPE128_SIZE;
         case HASH_RIPE_160:
@@ -264,10 +262,6 @@ int hash_init(hash_t *ctx,int alg,const void *key,int tam_key)
             shake_init(&ctx->a.sha3,128,key,tam_key);
             ret=SHAKE128_SIZE;
             break;
-        case HASH_GHASH:
-            ghash_init(&ctx->a.ghash,NULL);
-            ret=GHASH_SIZE;
-            break;
         case HASH_RIPE_128:
             ripe128_init(&ctx->a.ripe128);
             ret=RIPE128_SIZE;
@@ -350,9 +344,6 @@ void hash_update(hash_t *ctx,const void *data,size_t tam)
         case HASH_SHAKE_128:
         case HASH_SHAKE_256:
             /* Ignore updates in these cases */
-            break;
-        case HASH_GHASH:
-            ghash_update(&ctx->a.ghash,data,tam);
             break;
         case HASH_RIPE_128:
             ripe128_update(&ctx->a.ripe128,data,tam);
@@ -449,9 +440,6 @@ void hash_final(hash_t *ctx,void *hash)
         case HASH_SHAKE_256:
             shake_get(&ctx->a.sha3,hash,SHAKE256_SIZE);
             shake_clean(&ctx->a.sha3);
-            break;
-        case HASH_GHASH:
-            ghash_final(&ctx->a.ghash,hash);
             break;
         case HASH_RIPE_128:
             ripe128_final(&ctx->a.ripe128,hash);
@@ -838,5 +826,6 @@ int calc_hmac_file_and_namew(int alg,const void *clave,unsigned int tam_clave,co
     return do_hmac_file(alg,clave,tam_clave,fich,hash,tam,F_H_NAMETOO|F_H_WCHAR);
 }
 
-/* ------------------------------ */
+
+
 

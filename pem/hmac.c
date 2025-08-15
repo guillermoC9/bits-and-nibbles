@@ -28,28 +28,6 @@
 
 /* -------------------------------------------- */
 
-static char    *lst_hashc[HASH_NUM_HASHES]={"","MD2","MD5","SHA-1","SHA-224","SHA-256","SHA-384","SHA-512"};
-static wchar_t *lst_hashw[HASH_NUM_HASHES]={L"",L"MD2",L"MD5",L"SHA-1",L"SHA-224",L"SHA-256",L"SHA-384",L"SHA-512"};
-
-/* ------------------------------ */
-
-char *hash_name(int hash)
-{
-    if(hash > 0 && hash < HASH_NUM_HASHES)
-        return lst_hashc[hash];
-    return lst_hashc[0];
-}
-
-/* ------------------------------ */
-
-wchar_t *hash_namew(int hash)
-{
-    if(hash > 0 && hash < HASH_NUM_HASHES)
-        return lst_hashw[hash];
-    return lst_hashw[0];
-}
-/* -------------------------------------------- */
-
 int hash_init(hash_t *ctx,int alg)
 {
     int ret=0;
@@ -263,5 +241,187 @@ void hmac_final(hmac_t *ctx,void *hmac)
     hash_final(&ctx->h,hmac);
 
     memset(ctx,0,sizeof(hmac_t));
+}
+
+/* --------------------------------- *
+   Include specific headers for each
+   operating system.
+ * --------------------------------- */
+
+#ifdef FOR_WIN
+
+#include <windows.h>
+
+#else 
+
+#include <sys/time.h>
+
+#ifdef FOR_MAC
+
+#include <mach/mach_time.h>
+
+#endif
+
+#endif
+
+/* ------------------------------------------------------------- *
+    Return the high resolution tick counter of the CPU.
+
+    In linux/unix it has a 10 microsecond resolution, but is 
+    enough for its use here.
+ * ------------------------------------------------------------- */
+
+static u64_t cpu_ticks(void)
+{
+    u64_t ret;
+
+#if defined(FOR_WIN)
+	LARGE_INTEGER cont;
+
+    QueryPerformanceCounter(&cont);
+	ret = (u64_t) cont.QuadPart;
+
+#elif defined(FOR_MAC)
+
+    ret = (u64_t)mach_absolute_time();
+
+#else
+
+    struct timespec ts;
+
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	ret = (u64_t)ts.tv_sec;
+	ret*= 1000000000;
+	ret+= ts.tv_nsec;
+
+#endif
+
+    return ret;
+}
+
+/* -------------------------------------------- */
+
+unsigned int unpredictable_seed(void)
+{
+    unsigned int seed,tam,t;
+    u64_t a[5];
+    static u64_t sclk = 0;
+    char *b;
+
+    /*
+        Get the current count of cpu time 
+        using a system-dependant call so any 
+        try to reproduce this would be really 
+        difficult.
+    */
+
+    a[0]=cpu_ticks();
+
+     /*
+        Now we allocate up to 1023 bytes of
+        memory in order to hash the memory
+        address and its content more or
+        less quickly using DJB. The way in
+        which we do it should facilitate
+        for the function to take different 
+        execution time and thus affect the 
+        values returned by cpu_ticks(), as 
+        well as to give different addresses 
+        and content if somethign happens 
+        between calls to this function.
+    */
+
+    tam = (unsigned int)(a[0] & 0xff) | 0x300;
+    b = (char *)malloc(tam);
+    if(b)
+    {
+        a[1] = 5381;
+        for(t = 0;t < tam ; t++)
+        {
+            a[1] *= 33;
+            a[1] += b[t];
+        }
+        a[1]<<=32;
+        a[1] |= (u64_t)((size_t)b);
+        a[1] |= tam;
+        free(b);        
+    }
+    else
+    {
+        a[1] = ~a[0];
+    }
+
+    /*  
+        We initialize the sequence number
+        (the counter) if this is the 
+        first call. 
+
+        We do it here to make sure that
+        time is a bit more disturbed than 
+        if this was done at the start of 
+        the function.
+    */
+
+    if(!sclk)
+        sclk = cpu_ticks();
+    
+    /*
+        Feed the array with an amalgamation
+        of everything so we have some more
+        data to feed to the DJB hash.
+    */
+
+    a[2]=~sclk;
+    a[3]=++sclk;
+    a[4]=(a[0] ^ a[1] ^ a[2] ^ a[3]);
+
+    /* 
+        Hash everything using DJB in order
+        to build the final seed.
+    */
+
+    b = (char *)a;
+
+    for(seed=5381,t=0;t < sizeof(a);t++)
+        seed = (seed << 5) + seed + b[t];
+
+    return seed;
+}
+
+/* ------------------------------- */
+
+void hash_get_entropy(int hash,void *dest,size_t num)
+{
+    unsigned char *buf,tmp[MAX_HASH_SIZE];
+    size_t cnt = 0;
+    unsigned int left = 0, *seed;
+    hash_t ctx;
+    
+    if(hash > HASH_NONE && hash < HASH_NUM_HASHES)
+    {
+        buf  = (unsigned char *)dest;
+        seed = (unsigned int *)tmp;
+        while(cnt < num)
+        {
+            if(left == 0)
+            {                
+                left = hash_init(&ctx,hash);
+
+                seed[0] = unpredictable_seed();
+                seed[1] = unpredictable_seed();
+                seed[2] = unpredictable_seed();
+                seed[3] = unpredictable_seed();
+                seed[4] = unpredictable_seed();
+                seed[5] = unpredictable_seed();
+                seed[6] = unpredictable_seed();
+                seed[7] = unpredictable_seed();
+
+                hash_update(&ctx,tmp,32);
+                hash_final(&ctx,tmp);                
+            }
+            buf[cnt++] = tmp[--left];
+        }
+    }
 }
 

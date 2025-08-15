@@ -18,6 +18,8 @@
 #   Read the CC license at https://creativecommons.org/publicdomain/zero/1.0/
 #
 
+## Flags ##
+
 mkC_FLAGS=-Wall -O2 -o $@ -fPIC -fno-strict-aliasing
 
 mkCC_OBJ=gcc $(mkCC)  $(mkC_FLAGS) -c
@@ -30,24 +32,43 @@ dummy:
 cleanit:
 	rm -f *.o
 	rm -f *.txt	
-	rm -f test_rsa
+	rm -f test_pem
 
-test: test_rsa
+test: test_pem
 
-test_rsa: rsa.o hmac.o test_rsa.c
-	$(mkCC_EXE) test_rsa.c rsa.o hmac.o mpint.o primes.o random.o md2.o md5.o sha2.o sha1.o stuff.o
+libOBJS=stuff.o aes.o des.o cipher.o  md2.o md5.o \
+        sha1.o sha2.o hmac.o oid.o mpint.o asn1.o \
+        base64.o pem.o
 
-rsa.o: primes.o rsa.c rsa.h
-	$(mkCC_OBJ) rsa.c
+test_pem: pem.o test_pem.c
+	$(mkCC_EXE) test_pem.c $(libOBJS)
 
-primes.o: mpint.o random.o primes.c primes.h
-	$(mkCC_OBJ) primes.c
+pem.o: asn1.o base64.o cipher.o hmac.o pem.c pem.h
+	$(mkCC_OBJ) pem.c
 
-mpint.o: mpint.c mpint.h
+stuff.o: stuff.c stuff.h
+	$(mkCC_OBJ) stuff.c
+
+oid.o: stuff.o oid.c oid.h
+	$(mkCC_OBJ) oid.c
+
+asn1.o: mpint.o oid.o asn1.c asn1.h
+	$(mkCC_OBJ) asn1.c
+
+mpint.o: stuff.o mpint.c mpint.h
 	$(mkCC_OBJ) mpint.c
 
-random.o: hmac.o random.c random.h
-	$(mkCC_OBJ) random.c
+base64.o: stuff.o base64.c base64.h
+	$(mkCC_OBJ) base64.c
+
+cipher.o: aes.o des.o cipher.c cipher.h
+	$(mkCC_OBJ) cipher.c
+
+aes.o: stuff.o aes.c aes.h
+	$(mkCC_OBJ) aes.c
+
+des.o: des.c des.h
+	$(mkCC_OBJ) des.c
 
 hmac.o: md5.o sha2.o hmac.c hmac.h
 	$(mkCC_OBJ) hmac.c
@@ -64,5 +85,3 @@ sha1.o: stuff.o sha1.c sha1.h
 sha2.o: sha1.o sha2.c sha2.h
 	$(mkCC_OBJ) sha2.c
 
-stuff.o: stuff.c stuff.h
-	$(mkCC_OBJ) stuff.c

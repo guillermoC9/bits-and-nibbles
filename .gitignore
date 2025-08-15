@@ -4,18 +4,19 @@
 # Executables
 *.exe
 test
-test_chipiona
-test_entropy
-test_pdf
 test_checksum
-test_csv
-test_ticks
-test_hashes
+test_chipiona
 test_ciphers
-test_random
+test_csv
+test_entropy
+test_hashes
 test_mpint
+test_pdf
+test_pem
 test_primes
+test_random
 test_rsa
+test_ticks
 # Test output fil
 # Test output files
 *.txt

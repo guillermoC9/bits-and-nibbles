@@ -37,8 +37,7 @@ cleanit:
 test: test_hashes
 
 libHASHES=stuff.o md2.o md4.o md5.o sha1.o sha2.o sha3.o    \
-          ripe128.o ripe160.o ripe256.o ripe320.o poly1305.o \
-		  ghash.o
+          ripe128.o ripe160.o ripe256.o ripe320.o poly1305.o 
 
 test_hashes: hash.o  test_hashes.c
 	$(mkCC_EXE) test_hashes.c hash.o $(libHASHES)
@@ -82,6 +81,4 @@ ripe320.o: stuff.o ripe320.c ripe320.h
 poly1305.o: stuff.o poly1305.c poly1305.h
 	$(mkCC_OBJ) poly1305.c
 
-ghash.o: stuff.o ghash.c ghash.h
-	$(mkCC_OBJ) ghash.c
 

@@ -18,7 +18,7 @@ For example, it is widely advised not to use ```MD5``` because collissions have 
 
 The industry tend to 'forget' broken or pressumibly broken algorithms, but I think it is good to have them around for research. For example to study the integrity of old documents like certificates X509. Here I present a set of functions that  manage a good array of criptographic hash primitives all in the same way as they will be used separately: ```Init, update as many times as needed and finalize to obtain the hash```. All you need to do is choose the primitive on initialization time with needed parameters.
 
-The list of supported hash primitives is: MD2, MD4, MD5, SHA1, SHA2, SHA2, RIPE128, RIPE160, RIPE256, RIPE320, POLY1305 and GHASH.
+The list of supported hash primitives is: MD2, MD4, MD5, SHA1, SHA2, SHA2, RIPE128, RIPE160, RIPE256, RIPE320 and POLY1305.
 
 Also included here is the same mechanism to create HMACs with any of the same primitives. HMAC means **H**ash-based **M**essage **A**uthentication **C**ode, and as its name indicates, it is a code obtained by hashing a message together with some key, which allows not only to know that the message has not been tampered with, but also that it comes from whoever has set the key. Protocols like ```TLS``` use HMACs to operate. 
 

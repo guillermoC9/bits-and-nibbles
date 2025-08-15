@@ -30,16 +30,16 @@ dummy:
 cleanit:
 	del /f *.obj
 	del /f *.txt	
-	del /f test_ciphers.exe
+	del /f test_pem.exe
 
-test: test_ciphers.exe
+test: test_pem.exe
 
-libCIPHERS=stuff.obj 
+libOBJS=stuff.obj 
 
-test_ciphers: cipher.obj  test_ciphers.c
-	$(mkCC_EXE) test_ciphers.c cipher.obj $(libCIPHERS)
+test_pem: cipher.obj  test_pem.c
+	$(mkCC_EXE) test_pem.c cipher.obj $(libOBJS)
 
-cipher.obj $(libCIPHERS) cipher.c cipher.h
+cipher.obj $(libOBJS) cipher.c cipher.h
 	$(mkCC_OBJ) cipher.c
 
 stuff.obj stuff.c stuff.h
@@ -48,33 +48,7 @@ stuff.obj stuff.c stuff.h
 aes.obj: stuff.obj aes.c .h
 	$(mkCC_OBJ) aes.c
 
-aria.obj: stuff.obj aria.c aria.h
-	$(mkCC_OBJ) aria.c
-
-blowfish.obj: stuff.obj blowfish.c blowfish.h
-	$(mkCC_OBJ) blowfish.c
-
-camellia.obj: stuff.obj camellia.c camellia.h
-	$(mkCC_OBJ) camellia.c
-
-chacha.obj: stuff.obj chacha.c chacha.h
-	$(mkCC_OBJ) chacha.c
-
 des.obj: des.c des.h
 	$(mkCC_OBJ) des.c
 
-poly1305.obj: stuff.obj poly1305.c poly1305.h
-	$(mkCC_OBJ) poly1305.c
-
-rc4.obj: rc4.c rc4.h
-	$(mkCC_OBJ) rc4.c
-
-salsa20.obj: stuff.obj salsa20.c salsa20.h
-	$(mkCC_OBJ) salsa20.c
-
-twofish.obj: stuff.obj twofish.c twofish.h
-	$(mkCC_OBJ) twofish.c
-
-xtea.obj: stuff.obj xtea.c xtea.h
-	$(mkCC_OBJ) xtea.c
 

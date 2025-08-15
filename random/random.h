@@ -708,6 +708,29 @@ void  rand_bits(rand_t *rc,void *buf, int bits);
 char    *firestore_auto_id(char *string,size_t max);
 wchar_t *firestore_auto_idw(wchar_t *string,size_t max);
 
+
+/* -------------------------------------------- *
+    This function generates an unpredictable 
+    amount of data hashed with the specified
+    hash algorithm. 
+    
+                 *** WARNING ***
+
+    You may be tempted to use it as random data 
+    generator, but I discorage it if you are 
+    going to do something serious with the 
+    generated data. 
+    
+    Unless of course you have measured the risk,
+    or doing something like generating a random
+    IV.
+    
+    Random data generation is not a trivial 
+    business, specially for use in criptography.
+ * -------------------------------------------- */
+
+void hash_get_entropy(int hash,void *dest,size_t num);
+
 #ifdef __cplusplus
 };
 #endif

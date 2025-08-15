@@ -770,7 +770,7 @@ int rsa_decode(rsa_t *key,void *dest,unsigned int tam,int public,int pad)
      RSA DIGITAL SIGNATURES
  * -------------------------- */
 
-int rsa_sign(rsa_t *key,void *dest,unsigned int max,int alg,const void *datos,unsigned int tam)
+int rsa_sign(rsa_t *key,void *dest,unsigned int max,int alg,const void *datos,unsigned int tam,int pad)
 {
     int htam;    
     hash_t ctx;
@@ -797,7 +797,7 @@ int rsa_sign(rsa_t *key,void *dest,unsigned int max,int alg,const void *datos,un
     
     /* Now sign the hash */
 
-    return rsa_encode(key,dest,htam,FALSE,RSA_PAD_ONES,NULL);
+    return rsa_encode(key,dest,htam,FALSE,pad,NULL);
 }
 
 /* -------------------------- */

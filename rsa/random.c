@@ -1177,4 +1177,29 @@ wchar_t *firestore_auto_idw(wchar_t *string,size_t max)
     return string;
 }
 
+/* ------------------------------- */
+/* ------------------------------- */
 
+void hash_get_entropy(int hash,void *dest,size_t num)
+{
+    unsigned char *buf,tmp[MAX_HASH_SIZE];
+    size_t cnt = 0;
+    int left = 0;
+    hash_t ctx;
+    
+    if(hash > HASH_NONE && hash < HASH_NUM_HASHES)
+    {
+        buf  = (unsigned char *)dest;        
+        while(cnt < num)
+        {
+            if(left == 0)
+            {                
+                get_entropy(tmp,MAX_HASH_SIZE);
+                left = hash_init(&ctx,hash);                
+                hash_update(&ctx,tmp,MAX_HASH_SIZE);
+                hash_final(&ctx,tmp);                
+            }
+            buf[cnt++] = tmp[--left];
+        }
+    }
+}

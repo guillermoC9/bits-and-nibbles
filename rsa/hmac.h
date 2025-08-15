@@ -27,6 +27,7 @@
 #ifndef CRYTOGRAPHIC_HMAC
 #define CRYTOGRAPHIC_HMAC
 
+#include "md2.h"
 #include "md5.h"
 #include "sha1.h"
 #include "sha2.h"
@@ -39,6 +40,7 @@ enum
 
     /* MD */
 
+    HASH_MD2,
     HASH_MD5,
 
     /* SHA */
@@ -71,8 +73,9 @@ typedef struct
 
     union
     {
+        md2_t     md2;
         md5_t     md5;
-
+        
         sha1_t    sha1;
         sha224_t  sha224;
         sha256_t  sha256;
@@ -124,6 +127,18 @@ typedef struct
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* ------------------------------------------------ *
+   Given a hash algorithm id returns its name
+ * ------------------------------------------------ */
+
+char *hash_name(int hash);
+
+/* ------------------------------------------------ *
+   Same as before but it returns a wchar_t *
+ * ------------------------------------------------ */
+
+wchar_t *hash_namew(int hash);
 
 /* ------------------------------------------------ *
    The classical way of calculating hashes by

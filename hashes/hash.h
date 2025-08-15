@@ -38,7 +38,6 @@
 #include "ripe160.h"
 #include "ripe320.h"
 #include "poly1305.h"
-#include "ghash.h"
 
 /** Hash Algorithms IDs */
 
@@ -80,10 +79,6 @@ enum
 
     HASH_SHAKE_128,
     HASH_SHAKE_256,
-
-    /* Galois Hash */
-
-    HASH_GHASH,
 
     /* RIPEMD */
 
@@ -155,8 +150,6 @@ typedef struct
         sha384_t  sha384;
         sha512_t  sha512;
         sha3_t    sha3;
-
-        ghash_t   ghash;
 
         ripe128_t ripe128;
         ripe160_t ripe160;

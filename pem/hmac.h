@@ -27,6 +27,7 @@
 #ifndef CRYTOGRAPHIC_HMAC
 #define CRYTOGRAPHIC_HMAC
 
+#include "md2.h"
 #include "md5.h"
 #include "sha1.h"
 #include "sha2.h"
@@ -39,6 +40,7 @@ enum
 
     /* MD */
 
+    HASH_MD2,
     HASH_MD5,
 
     /* SHA */
@@ -71,8 +73,9 @@ typedef struct
 
     union
     {
+        md2_t     md2;
         md5_t     md5;
-
+        
         sha1_t    sha1;
         sha224_t  sha224;
         sha256_t  sha256;
@@ -126,18 +129,6 @@ extern "C" {
 #endif
 
 /* ------------------------------------------------ *
-   Given a hash algorithm id returns its name
- * ------------------------------------------------ */
-
-char *hash_name(int hash);
-
-/* ------------------------------------------------ *
-   Same as before but it returns a wchar_t *
- * ------------------------------------------------ */
-
-wchar_t *hash_namew(int hash);
-
-/* ------------------------------------------------ *
    The classical way of calculating hashes by
    initializing a context and update it with
    a series to call to the update function.
@@ -158,6 +149,29 @@ void hash_final(hash_t *ctx,void *hash);
 int  hmac_init(hmac_t *ctx,int alg,const void *key,size_t tam_key);
 void hmac_update(hmac_t *ctx,const void *datos,size_t tam);
 void hmac_final(hmac_t *ctx,void *hash);
+
+/* -------------------------------------------- *
+    This function generate an unpredictable 
+    amount of data hashed with the specified
+    hash algorithm. 
+    
+                 *** WARNING ***
+
+    You may be tempted to use it as random data 
+    generator, but I discorage it if you are 
+    going to do something serious with the 
+    generated data. 
+    
+    Unless of course you have measured the risk,
+    or doing something like generating a random
+    IV.
+    
+    Random data generation is not a trivial 
+    business, specially for use in criptography.
+ * -------------------------------------------- */
+
+
+void hash_get_entropy(int hash,void *dest,size_t num);
 
 #ifdef __cplusplus
 }

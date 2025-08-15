@@ -28,6 +28,29 @@
 
 /* -------------------------------------------- */
 
+static char    *lst_hashc[HASH_NUM_HASHES]={"","MD5","SHA-1","SHA-224","SHA-256","SHA-384","SHA-512"};
+static wchar_t *lst_hashw[HASH_NUM_HASHES]={L"",L"MD5",L"SHA-1",L"SHA-224",L"SHA-256",L"SHA-384",L"SHA-512"};
+
+/* ------------------------------ */
+
+char *hash_name(int hash)
+{
+    if(hash > 0 && hash < HASH_NUM_HASHES)
+        return lst_hashc[hash];
+    return lst_hashc[0];
+}
+
+/* ------------------------------ */
+
+wchar_t *hash_namew(int hash)
+{
+    if(hash > 0 && hash < HASH_NUM_HASHES)
+        return lst_hashw[hash];
+    return lst_hashw[0];
+}
+
+/* -------------------------------------------- */
+
 int hash_init(hash_t *ctx,int alg)
 {
     int ret=0;
