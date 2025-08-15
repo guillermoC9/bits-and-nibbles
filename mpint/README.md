@@ -3,7 +3,7 @@
 
 Big numbers are essential to many tasks, especially to criptography. Here we present a multi-precision integer library called mpint, which was originally written by  Michael J. Fromberger's, who donated it to the public domain in 2002. The original code can be found at https://fossies.org/linux/txr/mpi/mpi.h 
 
-I adapted the original code to my needs adding few bits and nibbles to it so I can use it for my criptography stuff like: prime numbers, RSA, ECC, etc. 
+I adapted the original code to my needs adding few bits and nibbles so I can use it for my criptography stuff like: prime numbers, RSA, ECC, etc. 
 
 I left this here alone in case all you are interested on is a multi-precision library implementation that works, even if I messed up a bit the function interface. :-(
 
