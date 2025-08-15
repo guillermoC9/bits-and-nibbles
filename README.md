@@ -16,6 +16,8 @@ I know this causes code duplication, but the idea here is to grab whatever you a
   Pseudo-random number generators for general purpose or criptography.
 - ### Primes:
   Generate quality prime numbers is really important. Let's do it taking advantage of our random stuff.
+- ### PEM:
+  PEM files are used to store all kind of criptographic documents like: certificates, public and provate keys, encription parameters and more.
 - ### RSA:
   The infamous Public Key algorithm that many people assume broken by *'Quantum computers'*, although none of them proved it completely broken. I think it still has few tricks up the sleeve.
 - ### mpint:
