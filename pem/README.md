@@ -7,7 +7,7 @@ Here we present a library that allow to read/write these files easily, although 
 
 Yeah, the content of PEM files is always enconded using ASN.1 and thus we include a library that handles all kind of ASN.1 elements, especially OID. OID stands for *Object IDentifier* and is a very important element in PEM files, ASN.1 encoding and specially X509 certificates. The term OID was actually created for the standard X500, the base of most internet services: Directory Services, which allow users to get information on resources. For example: LDAP. X500 OID fields are used extensively everywhere, like in X509 Certificates or PKCS in order to identify algorithms and signatures.
 
-The test program allows to show PEM files in ASN.1 notation format, even if they are encrypted. Thre is a bunch of them in the directory ```test``` that you can use to play around. The password for the encripted ones is **```test```**.
+The test program allows to show PEM files in ASN.1 notation format, even if they are encrypted. There is a bunch of them in the directory ```test``` that you can use to play around. The password for the encripted ones is **```test```**.
 
 ## To build it:
 
