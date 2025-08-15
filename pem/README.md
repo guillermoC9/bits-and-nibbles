@@ -1,5 +1,5 @@
 # PEM  
-## Privacy Enhanced Mail Files
+## Privacy Enhanced Mail files
 
 PEM files were originally described in RFC-1421 and where intended as a way to store encrypted electronic mail. Afterwards, when standards like: PKIX, PKCS and CMS appeared, the use of PEM was widespread as these standards used them to store certificates, keys etc, as well as the  tool ```openssl``` made really easy to produce them.
 
