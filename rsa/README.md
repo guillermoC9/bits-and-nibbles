@@ -1,9 +1,9 @@
 # RSA
 ## RSA public key criptography
 
-RSA -invented in 1977 by *Ron Rivest*, *Adi Shamir* and *Leo Adleman*- is an *asymmetric* encription algorithm famous for being the first public key criptographic system capable of encoding/decoding. Although ```Diffie-Hellman (DH)``` was the first public key criptosystem -invented in 1976 by Withfield Diffie and Martin Hellman-, its goal was to exchange a key, so until the arrival of ```ElGamal``` in 1985, ```DH``` was not to capable of encode/decode information.
+RSA -invented in 1977 by *Ron Rivest*, *Adi Shamir* and *Leo Adleman*- is an *asymmetric* encription algorithm capable of encoding/decoding information with two different keys. Contrary to what many people believe, it was not the first public key criptosystem, as ```Diffie-Hellman (DH)``` was invented in 1976 by Withfield Diffie and Martin Hellman. 
 
-RSA was a different approach to solve the same problem as ```DH```: **Key distribution**. This is the main problem of *symmetric* encription algorithms, as both sides need to have the same key in order to exchange information. We will not talk of ```DH``` here, but the way RSA works is to use two keys: one for encription and one for decription. That is: what one key encripts, only the other key can decript.
+RSA uses a different approach than ```DH``` to solve the big drawback of *symmetric* encription algorithms: **Key distribution**. In criptography, both sides need to have the same key in order to exchange information. ```DH``` solve the probelm by using a public key so both sides can produce the same key, while ```RSA``` uses two keys: one for encription and one for decription. Actually, the correct expression would be: what one key encripts, only the other key can decript.
 
 Therefore, by making a key public, anybody can use it to encript data, and only the holder of the private key can decrypt it. The process also works the other way round: what is encripted with the private, can only be decripted with the public. This later approach is the basis of digital signatures and X509 certificates, as a digital signature is nothing else than the hash of certain information, encripted with a private key. Then anywone can use the public key to decript the hash, and then check it matches with the hash of the information.
 
