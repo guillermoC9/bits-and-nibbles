@@ -26,28 +26,54 @@
 
 #include "hmac.h"
 
-/* -------------------------------------------- */
-
-static char    *lst_hashc[HASH_NUM_HASHES]={"","MD2","MD5","SHA-1","SHA-224","SHA-256","SHA-384","SHA-512"};
-static wchar_t *lst_hashw[HASH_NUM_HASHES]={L"",L"MD2",L"MD5",L"SHA-1",L"SHA-224",L"SHA-256",L"SHA-384",L"SHA-512"};
 
 /* ------------------------------ */
 
-char *hash_name(int hash)
+int hash_size(int alg)
 {
-    if(hash > 0 && hash < HASH_NUM_HASHES)
-        return lst_hashc[hash];
-    return lst_hashc[0];
+    switch(alg)
+    {
+        case HASH_MD2:
+            return MD2_SIZE;
+        case HASH_MD4:
+            return MD4_SIZE;
+        case HASH_MD5:
+            return MD5_SIZE;
+        case HASH_SHA1:
+            return SHA1_SIZE;
+        case HASH_SHA224:        
+            return SHA224_SIZE;
+        case HASH_SHA256:        
+            return SHA256_SIZE;
+        case HASH_SHA384:        
+            return SHA384_SIZE;
+        case HASH_SHA512:        
+            return SHA512_SIZE;        
+        default:
+            break;
+    }
+    return 0;
 }
 
 /* ------------------------------ */
 
-wchar_t *hash_namew(int hash)
+int calc_hash(int alg,const void *data,int tam,void *hash)
 {
-    if(hash > 0 && hash < HASH_NUM_HASHES)
-        return lst_hashw[hash];
-    return lst_hashw[0];
+    int ret;
+    hash_t ctx;
+
+    ret=hash_init(&ctx,alg);
+    if(ret)
+    {
+        hash_update(&ctx,data,tam);
+        hash_final(&ctx,hash);
+    }
+    return ret;
 }
+
+
+
+
 /* -------------------------------------------- */
 
 int hash_init(hash_t *ctx,int alg)
@@ -64,6 +90,9 @@ int hash_init(hash_t *ctx,int alg)
         case HASH_MD2:
             md2_init(&ctx->a.md2);
             ret=MD2_SIZE;
+        case HASH_MD4:
+            md4_init(&ctx->a.md4);
+            ret=MD4_SIZE;
         case HASH_MD5:
             md5_init(&ctx->a.md5);
             ret=MD5_SIZE;
@@ -104,6 +133,9 @@ void hash_update(hash_t *ctx,const void *data,size_t tam)
         case HASH_MD2:
             md2_update(&ctx->a.md2,data,tam);
             break;
+        case HASH_MD4:
+            md4_update(&ctx->a.md4,data,tam);
+            break;
         case HASH_MD5:
             md5_update(&ctx->a.md5,data,tam);
             break;
@@ -135,6 +167,9 @@ void hash_final(hash_t *ctx,void *hash)
     {
         case HASH_MD2:
             md2_final(&ctx->a.md2,hash);
+            break;
+        case HASH_MD4:
+            md4_final(&ctx->a.md4,hash);
             break;
         case HASH_MD5:
             md5_final(&ctx->a.md5,hash);
@@ -265,3 +300,140 @@ void hmac_final(hmac_t *ctx,void *hmac)
     memset(ctx,0,sizeof(hmac_t));
 }
 
+
+/* --------------------------------------- */
+/* --------------------------------------- */
+
+static int do_hash_file_content(hash_t *ctx,FILE *fp,u64_t *tam)
+{
+    u64_t tamf = 0;
+    unsigned char buf[512];
+    size_t readed;
+
+    while(!feof(fp))
+    {
+        readed = fread(buf,1,512,fp);
+        if(readed < 1)
+        {
+            if(ferror(fp))
+            {
+                fclose(fp);
+                return -2;
+            }
+
+            break;
+        }
+        hash_update(ctx,buf,readed);
+        tamf+=readed;
+    }
+    if(tam)
+      *tam = tamf;
+    return 0;
+}
+
+/* --------------------------------------- */
+
+static int do_hash_file(int alg,const void *fich,void *hash,u64_t *tam,int wide)
+{
+    hash_t ctx;
+    FILE *fp;
+    int ret;
+
+    ret=hash_init(&ctx,alg);
+    if(ret)
+    {
+        if(wide)
+            fp=fopenw((const wchar_t *)fich,"rb");
+        else
+            fp=fopen((const char *)fich,"rb");
+        if(!fp)
+            return -2;
+        if(do_hash_file_content(&ctx,fp,tam))
+            ret = -2;
+        fclose(fp);
+        hash_final(&ctx,hash);
+    }
+    return ret;
+}
+
+/* --------------------------------------- */
+
+int calc_hash_file(int alg,const char *fich,void *hash,u64_t *tam)
+{
+    return do_hash_file(alg,fich,hash,tam,FALSE);
+}
+
+/* --------------------------------------- */
+
+int calc_hash_filew(int alg,const wchar_t *fich,void *hash,u64_t *tam)
+{
+    return do_hash_file(alg,fich,hash,tam,TRUE);
+}
+
+/* --------------------------------------- */
+/* --------------------------------------- */
+
+static int do_hmac_file_content(hmac_t *ctx,FILE *fp,u64_t *tam)
+{
+    u64_t tamf = 0;
+    unsigned char buf[512];
+    size_t readed;
+
+    while(!feof(fp))
+    {
+        readed = fread(buf,1,512,fp);
+        if(readed < 1)
+        {
+            if(ferror(fp))
+            {
+                fclose(fp);
+                return -2;
+            }
+
+            break;
+        }
+        hmac_update(ctx,buf,readed);
+        tamf+=readed;
+    }
+    if(tam)
+      *tam = tamf;
+    return 0;
+}
+/* --------------------------------------- */
+
+static int do_hmac_file(int alg,const void *clave,unsigned int tam_clave,const void *fich,void *hash,u64_t *tam,int wide)
+{
+    hmac_t ctx;
+    FILE *fp;
+    int ret;
+
+    ret=hmac_init(&ctx,alg,clave,tam_clave);
+    if(ret)
+    {
+        if(wide)
+            fp=fopenw((const wchar_t *)fich,"rb");
+        else
+            fp=fopen((const char *)fich,"rb");
+        if(!fp)
+            return -2;
+        if(do_hmac_file_content(&ctx,fp,tam))
+            ret = -2;
+        fclose(fp);
+        hmac_final(&ctx,hash);
+    }
+    return ret;
+}
+
+/* --------------------------------------- */
+
+int calc_hmac_file(int alg,const void *clave,unsigned int tam_clave,const char *fich,void *hash,u64_t *tam)
+{
+    return do_hmac_file(alg,clave,tam_clave,fich,hash,tam,FALSE);
+}
+
+/* --------------------------------------- */
+
+int calc_hmac_filew(int alg,const void *clave,unsigned int tam_clave,const wchar_t *fich,void *hash,u64_t *tam)
+{
+    return do_hmac_file(alg,clave,tam_clave,fich,hash,tam,TRUE);
+}

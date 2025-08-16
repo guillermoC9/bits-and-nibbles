@@ -85,6 +85,7 @@
 #ifndef RANDOM_STUFF
 #define RANDOM_STUFF
 
+#include "ticks.h"
 #include "hmac.h"
 
 /* -------------------------------------------------- *

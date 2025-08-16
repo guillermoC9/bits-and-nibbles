@@ -82,7 +82,6 @@
 
 #ifdef FOR_WIN
 
-typedef __int64             ticks_t;
 typedef unsigned __int64    u64_t;
 
 /* Microsoft C has different names than the rest for useful functions */
@@ -93,52 +92,25 @@ typedef unsigned __int64    u64_t;
 
 #else 
 
-typedef long long           ticks_t;
 typedef unsigned long long  u64_t;
 
 #endif
 
-typedef ticks_t    mtime_t;    /* Milliseconds since 00:00:00 01/01/1970 */
-typedef ticks_t    utime_t;    /* Microseconds since 00:00:00 01/01/1970 */
-
 /* --------------------------------- *
-    Macros
+   Detect wchar_t's encoding 
  * --------------------------------- */
 
-#define TICKS_PER_USEC      10          /* Number of ticks in a microsecond */
-#define TICKS_PER_MSEC      10000       /* Number of ticks in a millisecond */
-#define TICKS_PER_SECOND    10000000    /* Number of ticks in a second */
-#define USECS_PER_SECOND    1000000     /* Number of microseconds in a second */
-#define MSECS_PER_SECOND    1000        /* Number of milliseconds in a second */
+#ifndef WCHAR_MAX
+#error "Humm, this compiler doesn't define WCHAR_MAX. We need the value to determine the encoding."
+#endif
 
-/* --------------------------------- *
-   Structure of a Stopwatch    
- * --------------------------------- */
+#if WCHAR_MAX < 0x110000
+#define WCHAR_UTF_16
+#endif
 
-typedef struct
-{
-    int      running;	/* FALSE = stop, TRUE = running */
-    ticks_t  start;		/* cpu time it started */
-    ticks_t  stop;      /* cpu time if stopped or last measure if running */
-} stopwatch_t;
+/* Unicode Replacement Char. */
 
-/*
-    Repetition of elements to initialize things, eg:
-
-    char string_100[101]={REPEAT_64('x'),REPEAT_32('o'),REPEAT_4('r'),0};
-
-*/
-
-#define REPEAT_2(_a)    _a,_a
-#define REPEAT_4(_a)    REPEAT_2(_a),REPEAT_2(_a)
-#define REPEAT_8(_a)    REPEAT_4(_a),REPEAT_4(_a)
-#define REPEAT_16(_a)   REPEAT_8(_a),REPEAT_8(_a)
-#define REPEAT_32(_a)   REPEAT_16(_a),REPEAT_16(_a)
-#define REPEAT_64(_a)   REPEAT_32(_a),REPEAT_32(_a)
-#define REPEAT_128(_a)  REPEAT_64(_a),REPEAT_64(_a)
-#define REPEAT_256(_a)  REPEAT_128(_a),REPEAT_128(_a)
-
-#define REPEAT_127(_a)  REPEAT_64(_a),REPEAT_32(_a),REPEAT_16(_a),REPEAT_8(_a),REPEAT_4(_a),REPEAT_2(_a),_a
+#define WCHAR_REPLACEMENT     0xfffd
 
 /* Functions*/
 
@@ -147,6 +119,13 @@ extern "C" {
 #endif
 
 /* -------------------------------------------------- *
+   Unicode fopen  (WARNING: second parameter is
+   char not wchar_t)
+ * -------------------------------------------------- */
+
+FILE *fopenw(const wchar_t *name,const char *perm);
+
+ /* -------------------------------------------------- *
    Same as memset() but instead of setting each byte 
    to 'c', it XOR, OR or AND c with each of the 'len'
    bytes of 'buf'.
@@ -168,8 +147,45 @@ void *memxor(void *b,int c,size_t len);
 
 void *mem_xor(void *dst,const void *src,size_t len);
 
- /* -------------------------------------------------- *
-   These functions are used to conert values from/to
+/* ---------------------------------------------------- *
+   Shift all the bits of a buffer one bit right or left
+ * ---------------------------------------------------- */
+
+#define S9_RSHIFT   0
+#define S9_LSHIFT   1
+
+void *mem_shift(void *buf,int len,int dir);
+
+/* -------------------------------------------------- *
+    Implementation of the GCM multiplication
+
+        z = GF(x,y).
+
+    Based on the implementation algorithm 1
+    on page 9 of the document:
+
+        The Galois/Counter Mode of Operation (GCM)
+        David A. McGrew & John Viega
+        NIST 2005
+
+    http://csrc.nist.rip/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-revised-spec.pdf
+
+    The maximum block size is 128 bytes (1024 bits),
+    so if you send a bigger block only the first 1024
+    bits would be used. This is a huge block, as most
+    GCM implementations like AES-GCM use 256 bits
+    maximum.
+
+    Note that z, x and y can ALL point to the
+    same memory
+ * -------------------------------------------------- */
+
+#define GCM_MAX_BLK_SIZE    128
+
+void gcm_mult(unsigned char *z, const unsigned char *x,const unsigned char *y,size_t block_size);
+
+/* -------------------------------------------------- *
+   These funcitons are used to conert values from/to
    varios sizes an endians.
 
    The format to recognize the functions are:
@@ -208,144 +224,182 @@ void  put_le64(void *buf,u64_t val);
 u64_t get_be64(const void *buf);
 void  put_be64(void *buf,u64_t val);
 
-/* -------------------------------------------------------- *
-    This function returns the tick counter from the CPU.
+/* -------------------------------------------------- *
+   Trims leading and trailing spaces from s
+ * -------------------------------------------------- */
 
-    As opposed to unix_ticks() or windows_ticks() this 
-    function does not return an specific point on time 
-    from an epoch, but it returns the CPU's high resolution
-    counter of cycles from an undeterminated point on time, 
-    scaled to 100-nanosecond.
+char *strtrim(char *s);
 
-    Usually this counter reset itself to 0 when the system
-    starts and in some cases even when the process starts.
+/* -------------------------------------------------- *
 
-    This is intended for measuring the time lapsed between 
-    two points on time because it is not affected by changes 
-    on the system clock, so the measurement will always be 
-    correct.
+    Convert 'tam' bytes from 'buf' to a hexadecimal
+    string and put it into 'dest' upto 'max' chars
+    adding 'sep' between them. if 'sep' is FALSE (0)
+    it will not add a separator.
 
-    This will illustrate the point:
+    It returns the amount of chars copied to 'dest'.
 
-        then1 = cpu_ticks();
-        then2 = cpu_ticks();
+    Note that if 'max' is smaller than the needed
+    it will just copy the ones that will fit on it.
+ * -------------------------------------------------- */
 
-    Let's assume system clock is moved 10 seconds backwards
-    after 1 second pass.
+int hex_to_char(char *dest,size_t max,const void *buf,size_t tam,char sep);
+int hex_to_wchar(wchar_t *dest,size_t max,const void *buf,size_t tam,char sep);
 
-        now1 = cpu_ticks();
-        now2 = cpu_ticks();
+/* -------------------------------------------------- *
+   Do the reverse of the above functions, that is
+   convert 'tam' chars into bytes upto and will
+   stop at 'max'.
 
-        lapse1 = (now1 - then1) / TICKS_PER_SECOND;
-        lapse2 = (now2 - then2) / TICKS_PER_SECOND;
+   The functions will ignore spaces and colons (:)
+   in 'buf', although it will stop before 'tam' if
+   another char if found that is not 'sep', which
+   should be something else than FALSE if another
+   separator was used.
 
-    At this point lapse1 would be -9 and lapse2 would
-    be 1, which is the correct number of seconds passed.
+   Send 'tam' as 0 to mean 'the whole of buf'
+ * -------------------------------------------------- */
 
-    That is why unix_ticks() or windows_ticks() should be 
-    used to store specific points on time, and cpu_ticks() 
-    to measure time lapses.
+size_t char_to_hex(void *dest,size_t max,const char *buf,size_t tam, char sep);
+size_t wchar_to_hex(void *dest,size_t max,const wchar_t *buf,size_t tam,wchar_t sep);
+
+/* --------------------------------------------------------------------- *
+
+	int wchar_to_ucs4(unsigned int *resp,const wchar_t *wch,size_t max);
+
+	Parameters:
+
+		'resp' - pointer to destination string
+		'wch'  - pointer to the wchar to convert
+		'max'  - maximum number of chars that can be read from 'wch'
+
+    This function converts a wide character (wchar_t) on an unicode
+    char encoded in UCS-4 (UTF-32) and returns how many wchar_t
+    elements it used from 'wch'. The reason why more than one could
+    be used is that the wchar_t string could be enconded in UTF-16.
+
+    Basically converts an unicode char from the BMP (one wchar_t element)
+    or an UTF-16 surrogate pair (two wchar_t elements) into an unicode
+    value in the range 0x000000 - 0x10FFFF, then returns one of these
+    values:
+
+    	0 - Which means that 'wch' points to end of a string
+    	    (NUL char = 0), so the function copies the NUL onto
+    	    'resp' and returns 0 so the caller knows is the end
+    	    of the string.
+
+    	1 - It used just one wchar_t from 'wch'
+
+    	2 - It used 2 wchar_t from 'wch' becuase they were a
+    	    UTF-16 surrogates pair.
+
+	If the function finds an incomplete UTF-16 surrogate sequence
+	-that is the first wchar_t is a surrogate code but the second isn't-,
+	the function puts WCHAR_REPLACEMENT in 'resp' and returns 1 so
+	the caller can keep processing chars.
+
+ * ------------------------------------------------------------------------ */
+
+
+int wchar_to_ucs4(unsigned int *resp,const wchar_t *wch,size_t max);
+
+/* ------------------------------------------------------ *
+
+	int s9_ucs4_to_wchar(wchar_t *resp,unsigned int ucs4);
+
+	parameters:
+
+		'resp' - pointer to response buffer
+		'ucs4' - unicode char to be converted
+
+	This function does the opposite of the previous
+	function, as it converts an unicode char in	the
+	UCS-4 (UTF-32) encoding to an wchar_t char encoded
+	using the systems encoding, and then returns one of
+	these values:
+
+	    0 - Same as previous, 'ucs4' is 0, so the char
+	        is copied over 'resp' and 0 returned.
+
+   		1 - One wchar_t written.
+
+   		2 - The encoding of wchar_t in the system is
+   		    UTF-16 and the char had to be encoded using
+   		    surrogates.
+
+	If the UCS-4 is incorrect (outside of the permitted
+	ranges), the func puts WCHAR_REPLACEMENT in 'resp'
+	and returns 1.
+
+	IMPORTANT: It is assumed that 'resp' can take 2
+	wchar_t chars.
 
  * ------------------------------------------------------ */
 
-ticks_t cpu_ticks(void);
-
-/* -------------------------------------------- *
-    This function generates an unpredictable
-    unsigned integer of up to 32 bits.
-
-    It is garanteed to return a different number
-    everytime you call it.
-
-    REMEMBER: 
-
-    The number is unpredictable -not random-,
-    and intended for feeding pseudo-random
-    generators with unpredictable entorpy
- * -------------------------------------------- */
-
-unsigned int unpredictable_seed(void);
-
-/* -------------------------------------------- *   
-    This function is the same as the previous
-    BUT it takes an unpredictable amount of 
-    time to execute.
- * -------------------------------------------- */
-
-unsigned int unpredictable_seed_non_linear(void);
-
-/* -------------------------------------------- *
-    These functions use the previous functions
-    to generate an unpredictable amount of data,
-    and in the  case of get_enmtropy_non_linear()
-    also takes an unpredictable amount of time to 
-    execute.
-
-                 *** WARNING ***
-
-    You may be tempted to use these functions 
-    as random data generators, but I discorage 
-    it if you are going to do something other
-    than feed pseud-random generators.
-
-    Unless of course you know pretty well what
-    you are doing and have measured the risk. 
-    
-    Random data generation is not a trivial 
-    business, specially for use in criptography.
-    Therefore choose a good pseudo-random 
-    generator for that, and may be use these 
-    functions to feed it with entropy if you
-    do not have a better source for it.
- * -------------------------------------------- */
-
-void get_entropy(void *dest,size_t len);
+int ucs4_to_wchar(wchar_t *resp,unsigned int ucs4);
 
 /* ------------------------------------------------------ *
-    This function initializes and start a stopwatch
-    (previous results are lost)
 
-    A stopwatch is intended for measuring lapses of
-    time, so it uses cpu ticks to not be affected by
-    changes on system time.
+   Another set of functions but using an 8 bits type and
+   codify in UTF-8, so they can return 0,1,2,3 or 4
+   depending on how many bytes the UTF-8 sequence had.
+
+    If the sequence is overlong (Eg: encode 0x80 in 3
+    bytes instead of 2) or the resulting UCS-4 char is
+    ourside the unicode ranges (over 0x10ffff or inside
+    the range 0xd800 - 0xdfff), s9_utf8_to_ucs4() will
+    write WCHAR_REPLACEMENT in 'resp' and return the
+    length of the sequence to be ignored (or 0 if the
+    sequende is longer than 'max')
+
+    IMPORTANT: s9_ucs4_to_utf8 assumes that 'resp' can take
+               upto 4 chars.
  * ------------------------------------------------------ */
 
-void stopwatch_start(stopwatch_t *sw);
+int utf8_to_ucs4(unsigned int *resp,const unsigned char *utf8,size_t max);
+int ucs4_to_utf8(unsigned char *resp,unsigned int val);
 
 /* ------------------------------------------------------ *
-    This function stops a stopwatch.
+   Convert an UTF-8 string to a wchar_t string and
+   returns the number of bytes used from 'utf8'.
 
-    After calling this function the elapsed time will
-    not change and correspond to when this function was
-    called.
-* ------------------------------------------------------ */
+    'max' is the capacity of 'wch' (including a NUL that
+    the function will always add).
 
-void stopwatch_stop(stopwatch_t *sw);
+    'num' is the number of bytes in 'utf8'.
 
-/* ------------------------------------------------------ *
-    This function resumes a stopwatch.
+	Erroneous, incomplete or overlong sequences are
+	replaced by WCHAR_REPLACEMENT, and the string parsed
+	as much as possible.
 
-    If a stopwatch is stopped, it is started again, but
-    discounting the elapsed ticks since it was stopped
-    until was started again by this funcion so the 
-    stopped time will not be counted as running.
+    If you do not know the exact size of 'utf8' but you
+    know it is NUL terminated, use 0 as the size to make
+    the function work until finding the NUL char.
+ * ------------------------------------------------------ */
 
-* ------------------------------------------------------ */
-
-void stopwatch_resume(stopwatch_t *sw);
+size_t utf8_to_wchar(wchar_t *wch,size_t max,const void *utf8,size_t num);
 
 /* ------------------------------------------------------ *
-    If the stopwatch is stopped, this function returns
-    the elapsed time in seconds since the stopwatch was
-    started until it was stopped.
 
-    If the stopwatch is running, it will return the time
-    in seconds since the last call to this function or
-    the function stopwatch_ticks() but it will not stop 
-    the stopwatch.
-* ------------------------------------------------------ */
+   Opposite to the previous, to the point that it returns
+   the number of bytes written in 'utf8', instead of the
+   number read as the previous function does. The reason
+   for this is that utf8 lenghts change depending on which
+   characteres does the string have.
 
-double stopwatch_elapsed(stopwatch_t *sw);
+    'max' is the capacity of 'utf8' including the NUL
+    that the function adds.
+
+    'num' is the number of bytes to convert from wch.
+
+    If you do not know the exact size of 'wch' but you
+    know it is NUL terminated, use 0 as the size to make
+    the function work until finding the NUL char.
+
+ * ------------------------------------------------------ */
+
+size_t wchar_to_utf8(unsigned char *utf8,size_t max,const wchar_t *wch,size_t num);
+
 
 #ifdef __cplusplus
 };

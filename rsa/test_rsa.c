@@ -498,7 +498,7 @@ void rsa_test_signature(void)
         printf("Test with Key 1\n");
         print_bytes("TXT ", sign_msg1, 25);
         print_bytes("SIGN", sign_val1, 64);
-        ret = rsa_sign(k1,tmp,128,HASH_MD2,sign_msg1,25,RSA_PAD_ONES);
+        ret = rsa_sign(k1,tmp,128,HASH_MD2,sign_msg1,25);
         if(ret < 1)
             printf("ERROR %d signing with MD2\n",ret);
         else    
@@ -517,7 +517,7 @@ void rsa_test_signature(void)
         printf("Test with Key 2\n");
         print_bytes("TXT ", sign_msg2, 4);
         print_bytes("SIGN", sign_val2, 64);
-        ret = rsa_sign(k2,tmp,128,HASH_SHA1,sign_msg2,4,RSA_PAD_ONES);
+        ret = rsa_sign(k2,tmp,128,HASH_SHA1,sign_msg2,4);
         if(ret < 1)
             printf("ERROR %d signing with MD2\n",ret);
         else    

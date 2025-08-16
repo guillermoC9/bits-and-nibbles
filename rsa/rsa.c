@@ -102,7 +102,7 @@ rsa_t *rsa_generate_keys(unsigned int bits,int prime,rand_t *rc)
         /*
            If a PRNG was not specified, use
            the random device for the system
-           or the TLS-PRF 1.2 
+           or the TLS-PRF variation by GAO
         */
 
         orc=rand_start(RAND_OS,RAND_TLS_SHA256);
@@ -112,7 +112,7 @@ rsa_t *rsa_generate_keys(unsigned int bits,int prime,rand_t *rc)
     }
 
     invent_firstbits(&pfirst, &qfirst,rc);
-
+    
     /*
      * We don't generate e; we just use a 'provided' one always     
      */
@@ -164,8 +164,8 @@ rsa_t *rsa_generate_keys(unsigned int bits,int prime,rand_t *rc)
          *
          * We also ensure p > q, by swapping them if not.
          *
-         * While we do this we use unpredictable_seed_non_linear() in 
-         * silly ways to make timing attacks more difficult
+         * While we do this we use unpredictable_seed_non_linear() in silly
+         * ways to make timing attacks more difficult
          */
 
         if(unpredictable_seed_non_linear()) /* Never returns 0 */
@@ -274,6 +274,599 @@ void rsa_destroy(rsa_t *key)
     }
 }
 
+/* RSAEncryption struct encoded in ASN.1/DER :
+
+ 30 0d -- Sequence of 13 bytes (0x0d)
+    06 09 -- OID of 9 bytes
+       2a 86 48 86 f7 0d 01 01 01 --  (1.2.840.113549.1.1.1)
+    05 00 -- NULL (no params)
+*/
+
+static unsigned char rsa_oid[15]=
+{
+    0x30,0x0d,0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x01,0x05,0x00
+};
+
+/* -------------------------- */
+
+asn1_t *rsa_public_to_asn1(rsa_t *key)
+{
+    int tam_ints,tam_bits,tam_seq,tam;
+    asn1_t *asn =NULL;
+
+    if(key)
+    {
+        asn1_t *mod_n,*exp_e;
+
+        mod_n = asn1_create_bignum(&(key->modulus));
+        exp_e = asn1_create_bignum(&(key->exponent));
+
+        if(mod_n && exp_e)
+        {
+            tam_ints=(mod_n->total + exp_e->total);
+
+            tam_seq=asn1_calc_len(ASN1_SEQ,tam_ints,NULL) + 1;
+
+            /* We use ASN1_BYTES count here instead
+               ASN1_BITS because they are going to
+               be a multiple of 8 and therefore there
+               is no need to do the conversion from bits
+               to bytes. ;-)
+            */
+
+            tam_bits=asn1_calc_len(ASN1_BYTES,tam_seq,NULL);
+
+            /* Add the RSAEncryption's  OID and seq */
+
+            asn = asn1_create(ASN1_SEQ,tam_bits + 15);
+
+            if(asn)
+            {
+                memcpy(asn->data,rsa_oid,15);
+                tam=15;
+
+                asn->data[tam++]=ASN1_BITS;
+                tam+=asn1_put_len(tam_seq,asn->data+tam);
+                asn->data[tam++]=0x00;
+
+                /* Sequence  */
+
+                asn->data[tam++]=ASN1_SEQ;
+                tam+=asn1_put_len(tam_ints,asn->data + tam);
+
+                /* Modulus N */
+
+                memcpy(asn->data + tam,mod_n->start,mod_n->total);
+                tam+=mod_n->total;
+
+                /* Exponent E */
+
+                memcpy(asn->data + tam,exp_e->start,exp_e->total);
+                tam+=exp_e->total;
+            }
+        }
+
+        asn1_free(mod_n);
+        asn1_free(exp_e);
+
+    }
+    return asn;
+}
+
+/* -------------------------- */
+
+asn1_t *rsa_private_to_asn1(rsa_t *key,int pkcs8)
+{
+    int num,tam_ints=0,tam_bits=0,tam_seq=0,tam=0,t;
+    asn1_t *asn=NULL,*tmp[8];
+
+    if(key)
+    {
+        mp_int_t p1,q1,dmp1,dmq1;
+
+        /*  PKCS-1 requires RSA private
+            key structures to have the values
+            'd mod p-1' and 'd mod q-1'
+            populated, so we do calculate
+            them only for storage, as we do
+            not use them at all.
+        */
+
+        if(mp_init_copy(&p1,key->p) != MP_OKAY)
+            return NULL;
+
+        mp_sub_d(&p1,1,&p1);
+
+        if(mp_init_copy(&q1,key->q) != MP_OKAY)
+        {
+            mp_clear(&p1);
+            return NULL;
+        }
+
+        mp_sub_d(&q1,1,&q1);
+
+        if(mp_init(&dmp1) != MP_OKAY)
+        {
+            mp_clear(&p1);
+            mp_clear(&q1);
+            return NULL;
+        }
+
+        if(mp_init(&dmq1) != MP_OKAY)
+        {
+            mp_clear(&dmp1);
+            mp_clear(&p1);
+            mp_clear(&q1);
+            return NULL;
+        }
+
+        if(mp_mod(key->private_exponent,&p1,&dmp1) != MP_OKAY ||
+           mp_mod(key->private_exponent,&q1,&dmq1) != MP_OKAY)
+        {
+            mp_clear(&dmp1);
+            mp_clear(&dmq1);
+            mp_clear(&p1);
+            mp_clear(&q1);
+            return NULL;
+        }
+
+        mp_clear(&p1);
+        mp_clear(&q1);
+
+        /* Go on and save the key */
+
+        tmp[0]=asn1_create_bignum(&(key->modulus));
+        tmp[1]=asn1_create_bignum(&(key->exponent));
+        tmp[2]=asn1_create_bignum(key->private_exponent);
+        tmp[3]=asn1_create_bignum(key->p);
+        tmp[4]=asn1_create_bignum(key->q);
+        tmp[5]=asn1_create_bignum(&dmp1);
+        tmp[6]=asn1_create_bignum(&dmq1);
+        tmp[7]=asn1_create_bignum(key->iqmp);
+
+        mp_clear(&dmp1);
+        mp_clear(&dmq1);
+
+        /* Calculate size */
+
+        for(num=t=0;t<8;t++)
+        {
+            if(tmp[t])
+            {
+                num++;
+                tam_ints+=tmp[t]->total;
+            }
+        }
+
+        /* Make sure they are all there */
+
+        if(num == 8)
+        {
+            /* Add version's size */
+
+            tam_ints += 3;
+
+            if(pkcs8)
+            {
+                /* Make sure we are compliant with PKCS-8 if needed */
+
+                tam_seq=asn1_calc_len(ASN1_SEQ,tam_ints,NULL) + 1;
+                tam_bits=asn1_calc_len(ASN1_BYTES,tam_seq,NULL);
+                tam = tam_bits + 18;
+            }
+            else
+            {
+                tam = tam_ints;
+            }
+
+            asn = asn1_create(ASN1_SEQ,tam);
+            if(asn)
+            {
+                tam = 0;
+                if(pkcs8)
+                {
+                    asn->data[tam++] = ASN1_INT;
+                    asn->data[tam++] = 1;
+                    asn->data[tam++] = 0;
+
+                    memcpy(asn->data + tam,rsa_oid,15);
+                    tam+=15;
+
+                    asn->data[tam++]=ASN1_BITS;
+                    tam+=asn1_put_len(tam_seq,asn->data+tam);
+                    asn->data[tam++]=0x00;
+
+                    asn->data[tam++]=ASN1_SEQ;
+                    tam+=asn1_put_len(tam_ints,asn->data + tam);
+                }
+
+                asn->data[tam++] = ASN1_INT;
+                asn->data[tam++] = 1;
+                asn->data[tam++] = 0;
+
+                for(t=0;t<8;t++)
+                {
+                    memcpy(asn->data + tam,tmp[t]->start,tmp[t]->total);
+                    tam+=tmp[t]->total;
+                }
+            }
+        }
+
+        for(t=0;t<8;t++)
+            asn1_free(tmp[t]);
+    }
+    return asn;
+}
+
+/* ---------------------- */
+
+static int do_rsa_load_pem(pem_file_t *pem,int public,const char *passcode,rsa_t **rsa)
+{
+    int ret = -3;
+    pem_elem_t *elem=NULL;
+
+    rsa_t *tmp;
+
+    if(pem)
+    {
+        if(public)
+        {
+            elem=pem_first_element(pem,PEM_PUBLIC_KEY);
+        }
+        else
+        {
+            elem=pem_first_element(pem,PEM_RSA_PRIVATE_KEY);
+            if(!elem)
+            {
+                elem=pem_first_element(pem,PEM_PRIVATE_KEY);
+                if(!elem)
+                    elem=pem_first_element(pem,PEM_ENC_PRIVATE_KEY);
+            }
+        }
+    }
+
+    if(elem)
+    {
+        ret = pem_decode_element(elem,passcode);
+
+        if(ret == 0 && (elem->flags & PEM_F_ASN1))
+        {
+            tmp=rsa_from_asn1(elem->data,elem->size);
+            if(tmp)
+            {
+                /* If the key does not verify we destroy it and fail */
+
+                if(rsa_verify_keys(tmp))
+                {
+                    *rsa=tmp;
+                     ret = 0;
+                }
+                else
+                {
+                    rsa_destroy(tmp);
+                    ret= -6;
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
+
+/* ---------------------- */
+
+int rsa_load_pem(const char *file,int public,const char *passcode,rsa_t **rsa)
+{
+    pem_file_t *pem;
+    int ret = -1;
+
+    if(rsa && file)
+    {
+       *rsa = NULL;
+
+        ret = pem_open(&pem,file);
+        if(ret == 0)
+        {
+            ret = do_rsa_load_pem(pem,public,passcode,rsa);
+            pem_close(pem);
+        }
+    }
+    return ret;
+}
+
+/* ---------------------- */
+
+int rsa_load_pemw(const wchar_t *file,int public,const char *passcode,rsa_t **rsa)
+{
+    pem_file_t *pem;
+    int ret = -1;
+
+    if(rsa && file)
+    {
+       *rsa = NULL;
+
+        ret = pem_openw(&pem,file);
+        if(ret == 0)
+        {
+            ret = do_rsa_load_pem(pem,public,passcode,rsa);
+            pem_close(pem);
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+int rsa_public_to_pem(rsa_t *key,FILE *fp)
+{
+    asn1_t *asn;
+    int ret = -1;
+
+    if(key && fp)
+    {
+        asn = rsa_public_to_asn1(key);
+        if(asn)
+        {
+            ret=pem_save_element(fp,PEM_PUBLIC_KEY,asn->start,asn->total,NULL,0);
+            asn1_free(asn);
+        }
+        else
+        {
+            ret = -2;
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+int rsa_private_to_pem(rsa_t *key,const char *passcode,int alg,FILE *fp)
+{
+    asn1_t *asn;
+    int ret = -1;
+
+    if(key && fp)
+    {
+        asn = rsa_private_to_asn1(key,FALSE);
+        if(asn)
+        {
+            ret=pem_save_element(fp,PEM_RSA_PRIVATE_KEY,asn->start,asn->total,passcode,alg);
+            asn1_free(asn);
+        }
+        else
+        {
+            ret = -2;
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+int rsa_save_pem(const char *file,rsa_t *key,int priv,const char *passcode,int alg)
+{
+    int ret = -1;
+    FILE *fp;
+
+    if(key && file)
+    {
+        ret=-3;
+        fp=fopen(file,"wb");
+        if(fp)
+        {
+            if(priv)
+                ret = rsa_private_to_pem(key,passcode,alg,fp);
+            else
+                ret = rsa_public_to_pem(key,fp);
+            fflush(fp);
+            fclose(fp);
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+int rsa_save_pemw(const wchar_t *file,rsa_t *key,int priv,const char *passcode,int alg)
+{
+    int ret = -1;
+    FILE *fp;
+
+    if(key && file)
+    {
+        ret=-3;
+        fp=fopenw(file,"wb");
+        if(fp)
+        {
+            if(priv)
+                ret = rsa_private_to_pem(key,passcode,alg,fp);
+            else
+                ret = rsa_public_to_pem(key,fp);
+            fflush(fp);
+            fclose(fp);
+        }
+    }
+    return ret;
+}
+
+/* -------------------------- */
+
+rsa_t *rsa_from_seq_asn1(const void *bytes,int tam)
+{
+    asn1_seq_t seq,pub,pri;
+    asn1_t asn;
+    rsa_t *ret = NULL;
+
+    if(!asn1_seq_read(&seq,bytes,tam))
+    {
+        if(seq.num == 2 && seq.lst[0].type == ASN1_SEQ && seq.lst[1].type==ASN1_BITS)
+        {
+            /* Public RSA PKCS-8 */
+            
+            if(!asn1_seq_read(&pub,seq.lst[0].data,seq.lst[0].len))
+            {
+                ret = rsa_public_key_from_asn1(&seq,&pub);
+                asn1_seq_free(&pub);                
+            }
+        }
+        else if(seq.num == 3 && seq.lst[2].type == ASN1_INT && seq.lst[1].type == ASN1_SEQ && seq.lst[2].type == ASN1_BITS)
+        {
+            /* Private RSA PKCS-8 */
+
+            if(asn1_read(&asn,seq.lst[2].data,seq.lst[2].len) > 0 && asn.type == ASN1_SEQ)
+            {
+                if(!asn1_seq_read(&pri,asn.data,asn.len) && pri.num > 8)
+                {
+                    ret = rsa_private_key_from_asn1(&pri);
+                    asn1_seq_free(&pri);
+                }
+                asn1_free(&asn);
+            }
+        }
+        else if(seq.num > 8)
+        {
+            /* Clave Privada RSA PKCS-1 */
+
+            ret = rsa_private_key_from_asn1(&seq);
+        }
+        asn1_seq_free(&seq);
+    }
+    return ret;
+}
+
+/* -------------------------- */
+
+rsa_t *rsa_from_asn1(const void *bytes,int tam)
+{
+    asn1_t asn;
+
+    if(asn1_read(&asn,bytes,tam) < 1 || asn.type != ASN1_SEQ)
+        return NULL;
+    return rsa_from_seq_asn1(asn.data,asn.len);
+}
+
+/* -------------------------- */
+
+/* Clave Privada RSA PKCS-1 */
+            
+rsa_t *rsa_private_key_from_asn1(asn1_seq_t *seq)
+{    
+    rsa_t *ret = NULL;
+    int t, total = 0;
+
+    /* Make sure private key struct is right, 
+       where outer is seq and inner is pub:
+
+       SEQUENCE (seq) {
+            INTEGER ... (version)
+            INTEGER ... (n)
+            INTEGER ... (e)
+            INTEGER ... (d)
+            INTEGER ... (p)
+            INTEGER ... (q)
+            INTEGER ... (d mod p-1)            
+            INTEGER ... (d mod q-1)            
+            INTEGER ... (inverse of q mod p)
+        }
+    */
+
+    for(t=0;t<seq->num;t++)
+    {
+        if(seq->lst[t].type==ASN1_INT)
+            total++;
+    }
+
+    if(total > 8) 
+    {
+        ret=(rsa_t *)calloc(sizeof(rsa_t),1);
+        if(ret)
+        {
+            /* We ignore the version */
+
+            mp_init(&(ret->modulus));
+            mp_init(&(ret->exponent));
+            ret->private_exponent = mp_create();
+            ret->p = mp_create();
+            ret->q = mp_create();
+            ret->iqmp = mp_create();            
+
+            asn1_to_bignum(&(ret->modulus),&(seq->lst[1]));
+            asn1_to_bignum(&(ret->exponent),&(seq->lst[2]));
+            asn1_to_bignum(ret->private_exponent,&(seq->lst[3]));
+            asn1_to_bignum(ret->p,&(seq->lst[4]));
+            asn1_to_bignum(ret->q,&(seq->lst[5]));
+            asn1_to_bignum(ret->iqmp,&(seq->lst[8]));
+
+            ret->bits = mp_count_bits(&(ret->modulus));
+            ret->bytes= (ret->bits + 7) / 8;
+
+            if(!rsa_verify_keys(ret))
+            {
+                rsa_destroy(ret);
+                ret = NULL;
+            }
+        }
+    }
+    return ret;
+}
+
+/* -------------------------- */
+
+rsa_t *rsa_public_key_from_asn1(asn1_seq_t *seq,asn1_seq_t *pub)
+{
+    asn1_seq_t param;
+    asn1_t asn;
+    rsa_t *key = NULL;
+
+    /* Make sure public key struct is right, 
+       where outer is seq and inner is pub:
+
+       SEQUENCE (seq) {
+            SEQUENCE (pub) {
+                OBJECT IDENTIFIER 1.2.840.10040.4.1
+                NULL
+            }
+            BITS ...
+        }
+    */
+
+    if(seq->lst[0].type==ASN1_SEQ && seq->lst[1].type==ASN1_BITS && pub->lst[0].type ==ASN1_OID)
+    {
+        if(pub->lst[0].len > 8 && !memcmp(pub->lst[0].data,rsa_oid + 4,9))
+        {
+            if(asn1_read(&asn,seq->lst[1].data + 1,seq->lst[1].len - 1) > 0 && asn.type == ASN1_SEQ)
+            {
+                if(!asn1_seq_read(&param,asn.data,asn.len) && param.num > 1)
+                {
+                    key = (rsa_t *)calloc(sizeof(rsa_t),1);
+                    if(key)
+                    {
+                        if(mp_init_set_bytes(&(key->modulus),param.lst[0].len,param.lst[0].data) == MP_OKAY)
+                        {
+                            if(mp_init_set_bytes(&(key->exponent),param.lst[1].len,param.lst[1].data) == MP_OKAY)
+                            {
+                                key->bits = mp_count_bits(&(key->modulus));
+                                key->bytes= (key->bits + 7) / 8;
+
+                                asn1_seq_free(&param);                        
+                                asn1_free(&asn);    
+                                return key;
+                            }
+                        }
+                        rsa_destroy(key);
+                        key = NULL;
+                    }
+                    asn1_seq_free(&param);                        
+                }
+                asn1_free(&asn);             
+            }
+        }
+    }
+    return key;
+}
+
+
 /* -------------------------- */
 
 rsa_t *rsa_from_bytes(int bits,const void *mod_n,int mlen,const void *exp_e,int elen,const void *priv,int plen)
@@ -359,23 +952,18 @@ int rsa_verify_keys(rsa_t *key)
     /* Make sure p > q */
 
     if (!key->p || !key->q || mp_cmp(key->p, key->q) <= 0)
-    {
-        /* rsa_verify_keys(): p is not bigger than q */
         return FALSE;
-    }
-
-    /* Now make sure that modulus is = p * q (disturbing time)*/
+    
+    /* Now make sure that modulus is = p * q */
 
     if(mp_init(&tmp) != MP_OKAY && unpredictable_seed_non_linear())
-    {
-        /* rsa_verify_keys(): mp_init() failed. Bad mem? */
         return FALSE;
-    }
+    
 
     ret = mp_mul(key->p, key->q,&tmp);
     if(ret != MP_OKAY || mp_cmp(&tmp, &(key->modulus)))
     {
-        /* rsa_verify_keys(): m is not p * q */
+        /* m is not p * q */
         mp_clear(&tmp);
         return FALSE;
     }
@@ -385,7 +973,7 @@ int rsa_verify_keys(rsa_t *key)
     ret = mp_copy(key->p,&tmp);
     if(ret != MP_OKAY || mp_init(&ed) != MP_OKAY)
     {
-        /* rsa_verify_keys(): mp_copy() or mp_init() failed. Bad mem? */
+        /* mp_copy() or mp_init() failed. Bad mem? */
         mp_clear(&tmp);
         return FALSE;
     }
@@ -407,20 +995,20 @@ int rsa_verify_keys(rsa_t *key)
                 ret = mp_mulmod(key->iqmp,key->q,key->p,&ed);
                 if(ret != MP_OKAY || mp_cmp_d(&ed,1))
                 {
-                    /* rsa_verify_keys(): mp_multmod(iqmp,p) failed */
+                    /* mp_multmod(iqmp,p) failed  */
                     ret = MP_BADARG;
                 }
             }
             else
             {
-                /* rsa_verify_keys(): mp_multmod(e,p) failed */
+                /* mp_multmod(e,p) failed  */
                 ret = MP_UNDEF;
             }
         }
     }
     else
     {
-        /* rsa_verify_keys(): e * d not congruent with 1 */
+        /* e * d not congruent with 1  */
         ret = MP_BADARG;
     }
 
@@ -594,9 +1182,6 @@ int rsa_encode(rsa_t *key,void *dest,unsigned int tam,int public,int pad,rand_t 
     int padlen,ret;
     unsigned char *ptr;
 
-    if (!key || !dest)
-        return -1;
-
     /* Make sure there are enough padding space */
 
     if (key->bytes < tam + 11)
@@ -632,6 +1217,7 @@ int rsa_encode(rsa_t *key,void *dest,unsigned int tam,int public,int pad,rand_t 
                 rand_bytes_no_zeros(rc,ptr,padlen);
                 break;
             }
+            break;
         default:
             return -1;
     }
@@ -645,22 +1231,23 @@ int rsa_encode(rsa_t *key,void *dest,unsigned int tam,int public,int pad,rand_t 
     /* Make the data a big number */
 
     ret = mp_init_set_bytes(&res,key->bytes,dest);
-    if(ret != MP_OKAY)
-        return -2;
-
-    /* Execute RSA operation, using blinding if we are encoding with the private key */
-
-    if(public && unpredictable_seed_non_linear() > 0)
-        ret = mp_exptmod(&res,&(key->exponent),&(key->modulus),&res);
-    else
-        ret=rsa_blind(&res,key,&res);
 
     if(ret == MP_OKAY)
-        ret = mp_copy_bytes(&res,dest,key->bytes);
+    {
+        /* Execute RSA operation, using blinding if we are encoding with the private key */
 
-    mp_clear(&res);
+        if(public && unpredictable_seed_non_linear() > 0)
+            ret = mp_exptmod(&res,&(key->exponent),&(key->modulus),&res);
+        else
+            ret=rsa_blind(&res,key,&res);
 
-    return (ret == MP_OKAY) ? key->bytes : -4;
+        if(ret == MP_OKAY)
+            ret = mp_copy_bytes(&res,dest,key->bytes);
+
+        mp_clear(&res);
+    }
+
+    return (ret == MP_OKAY) ? key->bytes : -1;
 }
 
 
@@ -672,132 +1259,460 @@ int rsa_decode(rsa_t *key,void *dest,unsigned int tam,int public,int pad)
     mp_int_t res;
     int ret;
 
-    if (!key || !dest)
-        return -1;
-
     if (key->bytes != tam)
         return -3;
 
     ret = mp_init_set_bytes(&res,key->bytes,dest);
-    if(ret != MP_OKAY)
-        return -2;
-
-    /* perform the operation using blinding if we use the private key */
-
-    if(public && unpredictable_seed_non_linear() > 0)
-        ret = mp_exptmod(&res,&(key->exponent),&(key->modulus),&res);
-    else
-        ret = rsa_blind(&res,key,&res);
 
     if(ret == MP_OKAY)
     {
-        unsigned char *ptr,*orig;
-        unsigned int len;
+        /* perform the operation using blinding if we use the private key */
 
-        ptr = (unsigned char *)mp_get_bytes(&res,&len);
+        if(public && unpredictable_seed_non_linear() > 0)
+            ret = mp_exptmod(&res,&(key->exponent),&(key->modulus),&res);
+        else
+            ret = rsa_blind(&res,key,&res);
 
-        if(ptr)
+        if(ret == MP_OKAY)
         {
-            orig = ptr;
+            unsigned char *ptr,*orig;
+            unsigned int len;
 
-            /*
-                Like RSA padding always starts by a 0, and
-                mp_get_bytes() ignores leading zeroes, the
-                decoded buffer should be a byte less than
-                the actual RSA bytes and the first byte
-                should be the padding type sent. If these
-                assumptions are incorrect, the buffer is
-                not correctly decoded.
-            */
+            ptr = (unsigned char *)mp_get_bytes(&res,&len);
 
-            if(len == (key->bytes - 1) &&  pad == (int) *ptr)
+            if(ptr)
             {
-                ptr++;
-                len--;
+                orig = ptr;
 
-                switch(pad)
-                {
-                    case RSA_PAD_ZEROES:
-                        while(len > 0 && *ptr==0)
-                        {
-                            ptr++;
-                            len--;
-                        }
-                        break;
-                    case RSA_PAD_ONES:
-                        while(len > 1 && *ptr==0xff)
-                        {
-                            ptr++;
-                            len--;
-                        }
-                        if(*ptr++)
-                            ret = MP_RANGE;
-                        len--;
-                        break;
-                    case RSA_PAD_RANDOM:
-                        while(len > 1 && *ptr)
-                        {
-                            ptr++;
-                            len--;
-                        }
-                        if(*ptr++)
-                            ret = MP_RANGE;
-                        else
-                            len--;
-                        break;
-                    default:
-                        ret = MP_RANGE;
-                        break;
-                }
+                /*
+                    Like RSA padding always starts by a 0, and
+                    mp_get_bytes() ignores leading zeroes, the
+                    decded buffer should be a byte less than
+                    the actual RSA bytes and the first byte
+                    should be the padding type sent. If these
+                    assumptions are incorrect, the buffer is
+                    not correctly decoded.
+                */
 
-                if(ret == MP_OKAY)
+                if(len == (key->bytes - 1) &&  pad == (int) *ptr)
                 {
-                    memcpy(dest,ptr,len);
-                    free(orig);
-                    mp_clear(&res);
-                    return (int)len;
+                    ptr++;
+                    len--;
+
+                    switch(pad)
+                    {
+                        case RSA_PAD_ZEROES:
+                            while(len > 0 && *ptr==0)
+                            {
+                                ptr++;
+                                len--;
+                            }
+                            break;
+                        case RSA_PAD_ONES:
+                            while(len > 1 && *ptr==0xff)
+                            {
+                                ptr++;
+                                len--;
+                            }
+                            if(*ptr++)
+                                ret = -4;
+                            len--;
+                            break;
+                        case RSA_PAD_RANDOM:
+                            while(len > 1 && *ptr)
+                            {
+                                ptr++;
+                                len--;
+                            }
+                            if(*ptr++)
+                                ret = -4;
+                            else
+                                len--;
+                            break;
+                        default:
+                            ret = -4;
+                            break;
+                    }
+
+                    if(ret == MP_OKAY)
+                    {
+                        memcpy(dest,ptr,len);
+                        free(orig);
+                        mp_clear(&res);
+                        return (int)len;
+                    }
                 }
+                free(orig);
             }
-            free(orig);
         }
+        mp_clear(&res);
     }
-    mp_clear(&res);
 
-    return -4;
+    return -1;
 }
 
 /* -------------------------- *
      RSA DIGITAL SIGNATURES
  * -------------------------- */
 
-int rsa_sign(rsa_t *key,void *dest,unsigned int max,int alg,const void *datos,unsigned int tam,int pad)
+static struct _firma_
 {
-    int htam;    
-    hash_t ctx;
+    int alg,hash;
+    char *oid;
+    char *name;
+    wchar_t *namew;
+    unsigned char asn[11];
+}
+alg_firma[] =
+{
+    /* Algoritmos de Hash usados en las firmas */
 
-    /* make sure we have a private key  and a destination */
+    {MD2_RSA_DIGEST,HASH_MD2,"1.2.840.113549.2.2", "md2Digest",L"md2Digest",{0x06,0x08,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x02,0x02,0x00}},
+    {MD4_RSA_DIGEST,HASH_MD4,"1.2.840.113549.2.4", "md4Digest",L"md4Digest",{0x06,0x08,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x02,0x04,0x00}},
+    {MD5_RSA_DIGEST,HASH_MD5,"1.2.840.113549.2.5", "md5Digest",L"md5Digest",{0x06,0x08,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x02,0x05,0x00}},
+    {SHA1_RSA_DIGEST,HASH_SHA1,"1.3.14.3.2.26", "sha1Digest",L"sha1Digest",{0x06,0x05,0x2B,0x0E,0x03,0x02,0x1A,0x00,0x00,0x00,0x00}},
 
-    if(!key || !key->private_exponent || !dest)
-        return -1;
+    {SHA224_RSA_DIGEST,HASH_SHA224,"2.16.840.1.101.3.4.2.4","sha224Digest",L"sha224Digest",{0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x04}},
+    {SHA256_RSA_DIGEST,HASH_SHA256,"2.16.840.1.101.3.4.2.1","sha256Digest",L"sha256Digest",{0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x01}},
+    {SHA384_RSA_DIGEST,HASH_SHA384,"2.16.840.1.101.3.4.2.2","sha384Digest",L"sha384Digest",{0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x02}},
+    {SHA512_RSA_DIGEST,HASH_SHA512,"2.16.840.1.101.3.4.2.3","sha512Digest",L"sha512Digest",{0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x02,0x03}},
 
-    /* Now ensure there is enough space for the signature block */
+    {MD2_RSA_ENC,HASH_MD2,"1.2.840.113549.1.1.2", "md2WithRSAEncryption",L"md2WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x02}},
+    {MD4_RSA_ENC,HASH_MD4,"1.2.840.113549.1.1.3", "md4WithRSAEncryption",L"md4WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x03}},
+    {MD5_RSA_ENC,HASH_MD5,"1.2.840.113549.1.1.4", "md5WithRSAEncryption",L"md5WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x04}},
+    {SHA1_RSA_ENC,HASH_SHA1,"1.2.840.113549.1.1.5", "sha1WithRSAEncryption",L"sha1WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x05}},
+
+    {SHA224_RSA_ENC,HASH_SHA224,"1.2.840.113549.1.1.14", "sha224WithRSAEncryption",L"sha224WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x0e}},
+    {SHA256_RSA_ENC,HASH_SHA256,"1.2.840.113549.1.1.11", "sha256WithRSAEncryption",L"sha256WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x0b}},
+    {SHA384_RSA_ENC,HASH_SHA384,"1.2.840.113549.1.1.12", "sha384WithRSAEncryption",L"sha384WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x0c}},
+    {SHA512_RSA_ENC,HASH_SHA512,"1.2.840.113549.1.1.13", "sha512WithRSAEncryption",L"sha512WithRSAEncryption",{0x06,0x09,0x2a,0x86,0x48,0x86,0xf7,0x0d,0x01,0x01,0x0d}},
+
+    /* Otros identificadores de los mismos algoritmos */
+
+    {MD4_RSA,HASH_MD4,"1.3.14.3.2.2","md4WithRSA",L"md4WithRSA",{0x06,0x05,0x2B,0x0E,0x03,0x02,0x02,0x00,0x00,0x00,0x00}},
+    {MD5_RSA,HASH_MD5,"1.3.14.3.2.3","md5WithRSA",L"md5WithRSA",{0x06,0x05,0x2B,0x0E,0x03,0x02,0x03,0x00,0x00,0x00,0x00}},
+    
+    {MD2_RSA_SIGN,HASH_MD2,"1.3.14.3.2.24",  "md2WithRSASignature",L"md2WithRSASignature",{0x06,0x05,0x2B,0x0E,0x03,0x02,0x18,0x00,0x00,0x00,0x00}},
+    {MD5_RSA_SIGN,HASH_MD5,"1.3.14.3.2.25",  "md5WithRSASignature",L"md5WithRSASignature",{0x06,0x05,0x2B,0x0E,0x03,0x02,0x19,0x00,0x00,0x00,0x00}},
+    {SHA1_RSA_SIGN,HASH_SHA1,"1.3.14.3.2.29", "sha1WithRSASignature",L"sha1WithRSASignature",{0x06,0x05,0x2B,0x0E,0x03,0x02,0x1D,0x00,0x00,0x00,0x00}},
+
+    /* Este siempre último */
+
+    {NPI_SIGN_ALG,HASH_NONE,NULL,NULL,NULL,{0}},
+};
+
+
+/* --------------------------------------------- */
+
+int rsa_sign_alg(int alg)
+{
+    int t;
+
+    for(t=0;alg_firma[t].oid;t++)
+    {
+        if(alg_firma[t].alg == alg)
+            return alg;
+    }
+
+    return NPI_SIGN_ALG;
+}
+
+/* --------------------------------------------- */
+
+int rsa_sign_algorithm(const char *oid)
+{
+    int t;
+
+    if(oid)
+    {
+        for(t=0;alg_firma[t].oid;t++)
+        {
+            if(!strcmp(oid,alg_firma[t].oid))
+                return alg_firma[t].alg;
+        }
+    }
+    return NPI_SIGN_ALG;
+}
+
+/* -------------------------- */
+
+int rsa_sign_alg_from_namew(const wchar_t *name)
+{
+    int t;
+
+    if(name)
+    {
+        for(t=0;alg_firma[t].name;t++)
+        {
+            if(!wcscmp(name,alg_firma[t].namew))
+                return alg_firma[t].alg;
+        }
+    }
+    return NPI_SIGN_ALG;
+}
+
+/* -------------------------- */
+
+int rsa_sign_alg_from_name(const char *name)
+{
+    int t;
+
+    if(name)
+    {
+        for(t=0;alg_firma[t].name;t++)
+        {
+            if(!strcmp(name,alg_firma[t].name))
+                return alg_firma[t].alg;
+        }
+    }
+    return NPI_SIGN_ALG;
+}
+
+
+/* -------------------------- */
+
+char *rsa_sign_oid(int which)
+{
+    int t;
+
+    for(t=0;alg_firma[t].oid;t++)
+    {
+        if(which == alg_firma[t].alg)
+            return alg_firma[t].oid;
+    }
+    return NULL;
+}
+
+/* -------------------------- */
+
+char *rsa_sign_name(int which)
+{
+    int t;
+
+    for(t=0;alg_firma[t].oid;t++)
+    {
+        if(which == alg_firma[t].alg)
+            return alg_firma[t].name;
+    }
+    return NULL;
+}
+
+/* -------------------------- */
+
+wchar_t *rsa_sign_namew(int which)
+{
+    int t;
+
+    for(t=0;alg_firma[t].oid;t++)
+    {
+        if(which == alg_firma[t].alg)
+            return alg_firma[t].namew;
+    }
+    return NULL;
+}
+
+/* -------------------------- */
+
+int rsa_sign_oid_asn1(int which,void *dest,unsigned int max)
+{
+    unsigned int t,tmp;
+
+    for(t=0;alg_firma[t].oid;t++)
+    {
+        if(which == alg_firma[t].alg)
+        {
+            tmp = alg_firma[t].asn[1] + 2;
+            if(max < tmp)
+                return 0;
+            if(dest)
+                memcpy(dest,alg_firma[t].asn,tmp);
+            return tmp;
+        }
+    }
+    return 0;
+}
+
+/* -------------------------- */
+
+int rsa_sign_algorithm_asn1(const void *oid,unsigned int tam)
+{
+    unsigned int t,tmp;
+
+    for(t=0;alg_firma[t].oid;t++)
+    {
+        tmp = alg_firma[t].asn[1];
+        if(tam == tmp && !memcmp(oid,alg_firma[t].asn + 2,tam))
+            return alg_firma[t].alg;
+    }
+    return NPI_SIGN_ALG;
+}
+
+/* -------------------------- */
+
+int rsa_signing_hash(int which)
+{
+    int t;
+
+    for(t=0;alg_firma[t].oid;t++)
+    {
+        if(which == alg_firma[t].alg)
+            return alg_firma[t].hash;
+    }
+    return HASH_NONE;
+}
+
+/* -------------------------- */
+
+/*
+    Una firma digital no es otra cosa que el hash de unos datos, precedido
+    por una cabecera en ASN.1/DER que describe el algoritmo usado para
+    calcular el hash y el algoritmo de key pública posteriormente usado
+    para encriptar la firma con la key privada usando el sistema de padding
+    de PKCS-1 versión 2.0.
+
+    Ejemplos de secuencias de firma digital antes de ser encriptadas con
+    la key privada:
+
+    MD5_RSA_DIGEST:
+
+        01  -- Bloque PKCS-1 tipo 1
+
+        ff
+        ...     -- Numero arbitrario de bits a 1 (depende de la longitud de bloque)
+        ff
+
+        00  -- Final del padding
+
+        30 20 -- Secuencia de 32 bytes (0x20)
+
+          30 0c -- Sub-secuencia de 12 bytes (0x0c)
+
+             06 08 -- OID de 8 bytes de largo
+
+                2a 86 48 86 f7 0d 02 05 --  (1.2.840.113549.2.5)
+
+             05 00 -- NULL
+
+          04 10 -- Una cadena de 16 bytes (0x10)
+
+             16 bytes del hash MD5
+
+
+    SHA1_RSA_DIGEST:
+
+        01  -- Bloque PKCS-1 tipo 1
+
+        ff
+        ...     -- Numero arbitrario de bits a 1 (depende de la longitud de bloque)
+        ff
+
+        00  -- Final del padding
+
+        30 21 -- Secuencia de 33 bytes
+
+          30 09 -- Sub-Secuencia de 9 bytes
+
+             06 05 -- OID de 5 bytes de largo
+
+               2B 0E 03 02 1A -- (1.3.14.3.2.26)
+
+             05 00 -- NULL
+
+          04 14 -- Una cadena de 20 bytes (0x14)
+
+             20 bytes del hash SHA1
+*/
+
+int rsa_sign(rsa_t *key,void *dest,unsigned int max,int alg,const void *datos,unsigned int tam)
+{
+    int atam,htam,total,que_hash,digest;
+    unsigned char *ptr,hash[MAX_HASH_SIZE],oid[25];
+
+    /* Nos aseguramos de que hay sitio para el bloque una vez encriptado */
 
     if(max < key->bytes)
-        return -3;   
-
-    /* Calculate the hash of the block */
-
-    htam = hash_init(&ctx,alg);
-    if(htam == 0)
-        return -4;
-    else if(htam > (key->bytes - 11))
         return -3;
-    hash_update(&ctx,datos,tam);
-    hash_final(&ctx,dest);
-    
-    /* Now sign the hash */
 
-    return rsa_encode(key,dest,htam,FALSE,pad,NULL);
+    /* También de que la key privada esta disponible */
+
+    if(!key->private_exponent)
+        return -3;
+
+    /* Obtenemos el algoritmo de hash */
+
+    que_hash = rsa_signing_hash(alg);
+
+    switch(que_hash)
+    {
+        case HASH_MD2:
+            digest=MD2_RSA_DIGEST;
+            break;
+        case HASH_MD4:
+            digest=MD4_RSA_DIGEST;
+            break;
+        case HASH_MD5:
+            digest=MD5_RSA_DIGEST;
+            break;
+        case HASH_SHA1:
+            digest=SHA1_RSA_DIGEST;
+            break;
+        case HASH_SHA224:
+            digest=SHA224_RSA_DIGEST;
+            break;
+        case HASH_SHA256:
+            digest=SHA256_RSA_DIGEST;
+            break;
+        case HASH_SHA384:
+            digest=SHA384_RSA_DIGEST;
+            break;
+        case HASH_SHA512:
+            digest=SHA512_RSA_DIGEST;
+            break;
+        default:
+            return -4;
+    }
+
+    /* Calculamos el hash del bloque de datos y guardamos su tamaño */
+
+    htam = calc_hash(que_hash,datos,tam,hash);
+
+    /* Ahora Obtenemos el OID de algoritmo de hash */
+
+    atam=rsa_sign_oid_asn1(digest,oid,25);
+
+    /* Ahora calculamos el tamaño de todo */
+
+    total = 4 + atam + 2 + htam + 2;
+
+    /* Secuencias */
+
+    ptr = (unsigned char *)dest;
+
+   *ptr++=ASN1_SEQ;
+   *ptr++=(unsigned char) total - 2;
+
+
+   *ptr++=ASN1_SEQ;
+   *ptr++=(unsigned char) atam + 2;
+
+    /* OID */
+
+    memcpy(ptr,oid,atam);
+    ptr+=atam;
+
+    /* NULL */
+
+   *ptr++=ASN1_NULL;
+   *ptr++=0;
+
+    /* Hash */
+
+   *ptr++=ASN1_BYTES;
+   *ptr++=(unsigned char) htam;
+
+    memcpy(ptr,hash,htam);
+
+    return rsa_encode(key,dest,total,FALSE,RSA_PAD_ONES,NULL);
 }
 
 /* -------------------------- */
@@ -808,25 +1723,22 @@ int rsa_read_sign(rsa_t *key,void *hash,unsigned int max,const void *orig,unsign
     int ret=0;
     unsigned char *ptr;
     void *dest;
+    asn1_seq_t seq;
+    asn1_t asn;
     unsigned int count;
 
-    /* make sure we have a public key  and a destination */
-
-    if(!key || !hash || !orig)
-        return -1;
-
-    /* Conver the original signature in a number */
+    /* Desencriptar los datos convirtiendolos a BN */
 
     if(mp_init_set_bytes(&res,tam,orig) != MP_OKAY)
         return -1;
 
-    /* Apply RSA equation */
+    /* Aplicamos la ecuación RSA */
 
     ret = mp_exptmod(&res,&(key->exponent),&(key->modulus),&res);
     if(ret!= MP_OKAY)
     {
         mp_clear(&res);
-        return -4;
+        return ret;
     }
 
     /* Convert result to bytes */
@@ -840,7 +1752,7 @@ int rsa_read_sign(rsa_t *key,void *hash,unsigned int max,const void *orig,unsign
 
     ptr=(unsigned char *)dest;
 
-    /* Signature's padding type must be all bits one */
+    /* Signature's padding type is all bits one */
 
     if(*ptr++ != RSA_PAD_ONES)
     {
@@ -850,7 +1762,7 @@ int rsa_read_sign(rsa_t *key,void *hash,unsigned int max,const void *orig,unsign
 
     /* So make sure all padding bits are one, i.e. all are 0xff */
 
-    ret = tam - 1;
+    ret=tam - 1;
     while(*ptr==0xff && ret > 0)
     {
         ptr++;
@@ -860,196 +1772,229 @@ int rsa_read_sign(rsa_t *key,void *hash,unsigned int max,const void *orig,unsign
     if(*ptr++)
     {
         free(dest);
-        return -4;
+        return -3;
     }
 
     ret--;
 
-    if(ret > max)
+    /* Comprobamos la firma */
+
+    if(asn1_read(&asn,ptr,ret) < 1 || asn.type != ASN1_SEQ)
     {
         free(dest);
         return -3;
     }
 
-    /* Copy signature */
+    /* Leemos la secuencia que contiene el algoritmo y la firma */
 
-    memcpy(hash,ptr,ret);
-    free(dest);
-
-    return ret;
-}
-
-/* -------------------------- */
-
-int rsa_check_sign(rsa_t *key,const void *sign,unsigned int tam,int alg,const void *buf,unsigned int len)
-{
-    int tam1,tam2;
-    hash_t ctx;
-    unsigned char hash1[MAX_HASH_SIZE];
-    unsigned char hash2[MAX_HASH_SIZE];
-    
-    /* make sure parameters are correct */
-
-    if(!key || !buf)
-        return -1;
-
-    /* Now ensure there is enough space for the signature block */
-
-    if(key->bytes != tam)
-        return -3;   
-    
-    /* Calculate hash */
-
-    tam1 = hash_init(&ctx,alg);
-    if(tam1 == 0)
-        return -4;
-    hash_update(&ctx,buf,len);
-    hash_final(&ctx,hash1);
-
-    tam2 = rsa_read_sign(key,hash2,MAX_HASH_SIZE,sign,tam);
-    if(tam2 < 1)
-        return tam2;
-    if(tam2 == tam1 && !memcmp(hash1,hash2,tam1))
-        return 0;
-    return -4;
-}
-
-/* -------------------------- */
-
-static int do_hash_file(int alg,const void *fich,void *hash,int wide)
-{
-    hash_t ctx;
-    FILE *fp;
-    int ret,cnt;
-    const char *file;
-    char tmp[1384] = {0};
-
-    ret=hash_init(&ctx,alg);
-    if(ret > 0)
+    if(asn1_seq_read(&seq,asn.data,asn.len) || seq.lst[0].type!=ASN1_SEQ || seq.lst[1].type!=ASN1_BYTES)
     {
-        if(wide)
-        {
-            if(wcstombs(tmp,(const wchar_t *)fich,1383)==(size_t)-1)
-                return -1;
-            file = (const char *)tmp;
-        }
-        else 
-        {
-            file = (const char *)fich;
-        }        
-        fp=fopen(file,"rb");
-        if(!fp)
-            return -3;
-
-        while(!feof(fp))
-        {
-            cnt = fread(tmp,1,1380,fp);
-            if(cnt < 1)
-            {
-                if(ferror(fp))
-                {
-                    fclose(fp);
-                    return -3;
-                }
-                continue;
-            }
-            hash_update(&ctx,tmp,cnt);
-        }                    
-        fclose(fp);        
-        hash_final(&ctx,hash);
+        asn1_seq_free(&seq);
+        free(dest);
+        return -3;
     }
+
+    /* Buscamos el algoritmo */
+
+    if(asn1_read(&asn,seq.lst[0].data,seq.lst[0].len) < 1 || asn.type != ASN1_OID)
+    {
+        asn1_seq_free(&seq);
+        free(dest);
+        return -3;
+    }
+
+    ret = -3;
+
+    switch(rsa_sign_algorithm_asn1(asn.data,asn.len))
+    {
+        case MD2_RSA_ENC:
+        case MD2_RSA_DIGEST:
+        case MD2_RSA_SIGN:
+            if(seq.lst[1].len==MD2_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < MD2_SIZE) ? max : MD2_SIZE);
+                ret=HASH_MD2;
+            }
+            break;
+        case MD4_RSA:
+        case MD4_RSA_ENC:
+        case MD4_RSA_DIGEST:
+            if(seq.lst[1].len==MD4_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < MD4_SIZE) ? max : MD4_SIZE);
+                ret=HASH_MD4;
+            }
+            break;
+        case MD5_RSA_ENC:
+        case MD5_RSA_DIGEST:
+        case MD5_RSA:
+        case MD5_RSA_SIGN:
+            if(seq.lst[1].len==MD5_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < MD5_SIZE) ? max : MD5_SIZE);
+                ret=HASH_MD5;
+            }
+            break;
+        case SHA1_RSA_DIGEST:
+        case SHA1_RSA_SIGN:
+        case SHA1_RSA_ENC:
+            if(seq.lst[1].len==SHA1_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < SHA1_SIZE) ? max : SHA1_SIZE);
+                ret=HASH_SHA1;
+            }
+            break;
+        case SHA224_RSA_DIGEST:        
+            if(seq.lst[1].len==SHA224_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < SHA224_SIZE) ? max : SHA224_SIZE);
+                ret=HASH_SHA256;
+            }
+            break;
+        case SHA256_RSA_ENC:
+        case SHA256_RSA_DIGEST:        
+            if(seq.lst[1].len==SHA256_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < SHA256_SIZE) ? max : SHA256_SIZE);
+                ret=HASH_SHA256;
+            }
+            break;
+        case SHA384_RSA_ENC:
+        case SHA384_RSA_DIGEST:        
+            if(seq.lst[1].len==SHA384_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < SHA384_SIZE) ? max : SHA384_SIZE);
+                ret=HASH_SHA384;
+            }
+            break;
+        case SHA512_RSA_ENC:
+        case SHA512_RSA_DIGEST:        
+            if(seq.lst[1].len==SHA512_SIZE)
+            {
+                memcpy(hash,seq.lst[1].data,(max < SHA512_SIZE) ? max : SHA512_SIZE);
+                ret=HASH_SHA512;
+            }
+            break;
+        default:    /* Esto no deberia pasar */
+            ret = -777;
+            break;
+    }
+    asn1_seq_free(&seq);
+    free(dest);
     return ret;
 }
 
-
 /* -------------------------- */
 
-int rsa_sign_file(rsa_t *key,void *dest,unsigned int max,int alg,const char *fich)
+int rsa_calc_file_digest(rsa_t *key,void *dest,unsigned int max,int alg,const wchar_t *fich)
 {
     int htam;
 
-    /* make sure we have a private key  and a destination */
-
-    if(!key || !key->private_exponent || !dest)
-        return -1;
-
-    /* Now ensure there is enough space for the signature block */
+    /* Nos aseguramos de que hay sitio para el bloque una vez encriptado */
 
     if(max < key->bytes)
-        return -3;   
-    
-    /* Calculate file hash */
+        return -3;
 
-    htam = do_hash_file(alg,fich,dest,FALSE);
+    /* También de que la key privada esta disponible */
+
+    if(!key->private_exponent)
+        return -3;
+
+    /* Calculamos el hash del file */
+
+    htam = calc_hash_filew(alg,fich,dest,NULL);
     if(htam < 0)
         return htam;
-    return rsa_encode(key,dest,htam,FALSE,RSA_PAD_ONES,NULL);
+    return rsa_encode(key,dest,htam,FALSE,1,NULL);
 }
 
 /* -------------------------- */
 
-int rsa_sign_filew(rsa_t *key,void *dest,unsigned int max,int alg,const wchar_t *fich)
+int rsa_check_file_digest(rsa_t *key,const void *orig,unsigned int tam,int alg,const wchar_t *fich)
 {
-    int htam;
+    mp_int_t res;
+    int ret=0,tamh;
+    unsigned char *ptr,hash[MAX_HASH_SIZE];
+    void *dest;
+    unsigned int count;
 
-    /* make sure we have a private key  and a destination */
+    /* Asegurarnos que el hash es valido */
 
-    if(!key || !key->private_exponent || !dest)
+    tamh=hash_size(alg);
+    if(!tamh)
+        return -5;
+
+    /* Desencriptar los datos convirtiendolos a BN */
+
+    if(mp_init_set_bytes(&res,tam,orig) != MP_OKAY)
         return -1;
 
-    /* Now ensure there is enough space for the signature block */
+    /* Aplicamos la ecuación RSA */
 
-    if(max < key->bytes)
-        return -3;   
-    
-    /* Calculate file hash */
+    if( mp_exptmod(&res,&(key->exponent),&(key->modulus),&res) == MP_OKAY)
+    {
+        /* Convertimos el resultado a bytes */
 
+        dest = mp_get_bytes(&res,&count);
 
-    htam = do_hash_file(alg,fich,dest,TRUE);
-    if(htam < 0)
-        return htam;
-    return rsa_encode(key,dest,htam,FALSE,RSA_PAD_ONES,NULL);
-}
+        mp_clear(&res);
 
-/* -------------------------- */
+        if(dest==NULL)
+            return -2;
 
-int rsa_check_file_sign(rsa_t *key,const void *orig,unsigned int tam,int alg,const char *fich)
-{
-    int tam1,tam2;
-    unsigned char hash1[MAX_HASH_SIZE],hash2[MAX_HASH_SIZE];    
-        
-    tam1=do_hash_file(alg,fich,hash1,FALSE);
-    if(tam1 < 1)
-        return tam1;
+        ptr=(unsigned char *)dest;
 
-    tam2 = rsa_decode(key,hash2,MAX_HASH_SIZE,TRUE,RSA_PAD_ONES);
-    if(tam2 < 1)
-        return tam2;
+        /* El tipo de bloque en la firma es 1 */
 
-    if(tam1 == tam2 && !memcmp(hash1,hash2,tam1))
-        return 0;
+        if(*ptr++!=0x01)
+        {
+            free(dest);
+            return -3;
+        }
 
-    return -4;
-}
+        /* Ahora nos aseguramos de que el padding está compuesto de 0xff */
 
-/* -------------------------- */
+        ret=tam - 1;
+        while(*ptr==0xff && ret > 0)
+        {
+            ptr++;
+            ret--;
+        }
+        if(*ptr++)
+        {
+            free(dest);
+            return -3;
+        }
 
-int rsa_check_file_signw(rsa_t *key,const void *orig,unsigned int tam,int alg,const wchar_t *fich)
-{
-int tam1,tam2;
-    unsigned char hash1[MAX_HASH_SIZE],hash2[MAX_HASH_SIZE];    
-        
-    tam1=do_hash_file(alg,fich,hash1,FALSE);
-    if(tam1 < 1)
-        return tam1;
+        ret--;
 
-    tam2 = rsa_decode(key,hash2,MAX_HASH_SIZE,FALSE,RSA_PAD_ONES);
-    if(tam2 < 1)
-        return tam2;
+        /* Comprobamos la firma */
 
-    if(tam1 == tam2 && !memcmp(hash1,hash2,tam1))
-        return 0;
+        if(ret != tamh)
+        {
+            free(dest);
+            return -3;
+        }
 
+        ret = calc_hash_filew(alg,fich,hash,NULL);
+        if(ret==tamh)
+        {
+            if(memcmp(hash,ptr,tamh))
+                ret = -4;
+            else
+                ret = 0;
+        }
+        else if( ret > 0)
+        {
+            ret = -4;
+        }
+        free(dest);
+        return ret;
+    }
+    else
+    {
+        mp_clear(&res);
+    }
     return -4;
 }
 

@@ -40,74 +40,19 @@
 #ifndef MIKE_FROMBERGER_MPI
 #define MIKE_FROMBERGER_MPI
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#include "stuff.h"
 #include <math.h>
-
-#ifndef FALSE
-
-#define FALSE   0
-#define TRUE    1
-
-#endif
-
-
-/* --------------------------------- *
-   Make sure unsigned int is 32 bits
- * --------------------------------- */
-
- #if UINT_MAX !=  0xffffffffu
-#error "unsigned int is expected to have at least 32 bits"
-#endif
-
-/* ---------------------------------------------- *
-   Detect target operating system. If not Mac or 
-   Windows, asume Linux or UNIX (BSD, AIX,...)   
- * ---------------------------------------------- */
-
-#if defined(__APPLE__)
-
-#define FOR_MAC     /* This is for Macintosh */
-
-#elif defined(_WIN32)
-
-#define FOR_WIN     /* This is for Windows */
-
-#else 
-
-#define FOR_NIX      /* This is for Unix-like */
-
-#endif
 
 /* --------------------------------- *
    We need fixed types for some suff 
  * --------------------------------- */
 
- typedef unsigned int  mp_digit_t;
-
-#ifdef FOR_WIN
-
-typedef unsigned __int64    mpword_t;
-
-/* Microsoft C has different names than the rest for useful functions */
-
-#define snprintf        _snprintf
-#define strcasecmp      _stricmp
-#define strncasecmp     _strnicmp
-
-#else 
-
-typedef unsigned long long  mp_word_t;
-
-#endif
+typedef unsigned int  mp_digit_t;
+typedef u64_t         mp_word_t;
 
 #define MP_DIGIT_BYTES  4
 #define MP_DIGIT_BITS   32
 #define MP_DIGIT_LOG    31
-
 
 /* Multiprecision integer */
 

@@ -30,10 +30,11 @@ cleanit:
 	cd csv;      nmake /f gcc.mak cleanit; cd ..	
 	cd entropy;  nmake /f gcc.mak cleanit; cd ..
 	cd hashes;   nmake /f gcc.mak cleanit; cd ..
-	cd pdf;      nmake /f gcc.mak cleanit; cd ..	
-	cd random;   nmake /f gcc.mak cleanit; cd ..
-	cd primes;   nmake /f gcc.mak cleanit; cd ..
 	cd mpint;    nmake /f gcc.mak cleanit; cd ..
+	cd pdf;      nmake /f gcc.mak cleanit; cd ..		
+	cd pem;      nmake /f gcc.mak cleanit; cd ..
+	cd primes;   nmake /f gcc.mak cleanit; cd ..	
+	cd random;   nmake /f gcc.mak cleanit; cd ..
 	cd rsa;      nmake /f gcc.mak cleanit; cd ..	
 	cd time;     nmake /f gcc.mak cleanit; cd ..	
 	
@@ -45,10 +46,11 @@ buildit:
 	cd csv;      nmake /f gcc.mak test; cd ..
 	cd entropy;  nmake /f gcc.mak test; cd ..
 	cd hashes;   nmake /f gcc.mak test; cd ..
-	cd pdf;      nmake /f gcc.mak test; cd ..
-	cd random;   nmake /f gcc.mak test; cd ..
-	cd primes;   nmake /f gcc.mak test; cd ..
 	cd mpint;    nmake /f gcc.mak test; cd ..
+	cd pdf;      nmake /f gcc.mak test; cd ..
+	cd pem;      nmake /f gcc.mak test; cd ..
+	cd primes;   nmake /f gcc.mak test; cd ..	
+	cd random;   nmake /f gcc.mak test; cd ..	
 	cd rsa;      nmake /f gcc.mak test; cd ..
 	cd time;     nmake /f gcc.mak test; cd ..
 

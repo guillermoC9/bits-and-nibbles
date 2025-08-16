@@ -28,6 +28,7 @@
 #define CRYTOGRAPHIC_HMAC
 
 #include "md2.h"
+#include "md4.h"
 #include "md5.h"
 #include "sha1.h"
 #include "sha2.h"
@@ -41,6 +42,7 @@ enum
     /* MD */
 
     HASH_MD2,
+    HASH_MD4,
     HASH_MD5,
 
     /* SHA */
@@ -74,6 +76,7 @@ typedef struct
     union
     {
         md2_t     md2;
+        md4_t     md4;
         md5_t     md5;
         
         sha1_t    sha1;
@@ -129,16 +132,38 @@ extern "C" {
 #endif
 
 /* ------------------------------------------------ *
-   Given a hash algorithm id returns its name
+   Return the result size of a hash algorithm
  * ------------------------------------------------ */
 
-char *hash_name(int hash);
+int hash_size(int alg);
 
 /* ------------------------------------------------ *
-   Same as before but it returns a wchar_t *
+   Calculates the hash of 'tam' bytes from 'data'
+   and copy the result in 'hash' which is suppossed
+   to have enough space to hold it.
+
+   Returns the size of the result or 0 if the
+   algorithm  'alg' is not recognized.
  * ------------------------------------------------ */
 
-wchar_t *hash_namew(int hash);
+int calc_hash(int alg,const void *data,int tam,void *hash);
+
+/* ------------------------------------------------ *
+   Calculates the hash of the file 'fich' and copy
+   the result in 'hash' which is suppossed
+   to have enough space to hold it.
+
+   Optionally you can obtain the size of the file
+   in 'tam'.
+
+   Returns the size of the result or 0 if the
+   algorithm  'alg' is not recognized.
+
+   return negative if cannot read the file
+ * ------------------------------------------------ */
+
+int calc_hash_file(int alg,const char *fich,void *hash,u64_t *tam);
+int calc_hash_filew(int alg,const wchar_t *fich,void *hash,u64_t *tam);
 
 /* ------------------------------------------------ *
    The classical way of calculating hashes by
@@ -155,12 +180,48 @@ void hash_final(hash_t *ctx,void *hash);
 
 /* ------------------------------------------------ *
    Calculate the HMAC (RFC-2104 ,RFC-6234 and
+   RFC-4868) of 'tam' bytes from 'data' and copies
+   the result onto 'hash', which is suppossed to
+   have enough space to hold it.
+
+   Returns the size of the result or 0 if there
+   was an error like the algorithm  'alg' is not
+   recognized or a parameter is wrong.
+
+   As explained before, if you use poly1305 the
+   code doesn't follow the RFCs but uses the
+   algorithm directly.
+ * ------------------------------------------------ */
+
+int calc_hmac(int alg,const void *key,int tam_key,const void *datos,int tam,void *hash);
+
+/* ------------------------------------------------ *
+   Calculate the HMAC (RFC-2104 ,RFC-6234 and
    RFC-4868)
  * ------------------------------------------------ */
 
 int  hmac_init(hmac_t *ctx,int alg,const void *key,size_t tam_key);
 void hmac_update(hmac_t *ctx,const void *datos,size_t tam);
 void hmac_final(hmac_t *ctx,void *hash);
+
+/* ------------------------------------------------ *
+   Calculates the hmac of the file 'fich' using
+   'key' for the hmac and copies the result in
+   'hash', which is suppossed to have enough space
+   to hold it.
+
+   Optionally you can obtain the size of the file
+   in 'tam'.
+
+   Returns the size of the result or 0 if the
+   algorithm  'alg' is not recognized.
+
+   return negative if cannot read the file
+ * ------------------------------------------------ */
+
+
+int calc_hmac_file(int alg,const void *key,unsigned int tam_key,const char *fich,void *hash,u64_t *tam);
+int calc_hmac_filew(int alg,const void *key,unsigned int tam_key,const wchar_t *fich,void *hash,u64_t *tam);
 
 #ifdef __cplusplus
 }
