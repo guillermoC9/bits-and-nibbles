@@ -11,7 +11,7 @@ This latter use of public/private keys is the actual culprit of Quantum computer
 
 Oh no! ***bye bye to identity***.
 
-I personally think that the use of RSA alone to identify things was not a good choice, as it was inventend to solve a different problem: the key distribution. RSA security in this aspect -it has others in which it can still shine- did really rely in secrecy, as the factorization just helps to unveil the secret of what is the private key.
+I personally think that the use of RSA alone to identify things was not a good choice, as it was invented to solve a different problem: the key distribution. RSA security in this aspect -it has others in which it can still shine- did really rely in secrecy, as the factorization just helps to unveil the secret of what is the private key.
 
 I think the identity solution actually should go along the lines of the Spanish identity cards, where your identity is public, but it identify you as you, with several biometric elements that cannot be misrepresented, as well as a digital identity that you can reset and refresh anytime if you feel it has been compromised. Anyway, that is for another day.
 
