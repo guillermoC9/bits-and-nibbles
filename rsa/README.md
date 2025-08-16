@@ -7,15 +7,15 @@ RSA -invented in 1977 by *Ron Rivest*, *Adi Shamir* and *Leo Adleman*- is an *as
 
 Therefore, by making a key public, anybody can use it to encript data, and only the holder of the private key can decript it. The process also works the other way round: what is encripted with the private, can only be decripted with the public. This later approach is the basis of digital signatures and X509 certificates, as a digital signature is nothing else than the hash of certain information, encripted with a private key. Then anywone can use the public key to decript the hash, and then check it matches with the hash of the information.
 
-This latter use of public/private keys is the actual culprit of Quantum computers being able to destroy the world of criptography. The security of RSA is based in two things: the difficulty of factorize a large *semiprime* -a number which is the product of two large primes- and the secrecy of the private key. Quantum computers can kill these two things at once by using a now infamous -but brilliant- algorithm called Shor's, which can factorize numbers extremely fast, and thus calculate a private key from its public key *very* quickly.
+This latter use of public/private keys is the actual culprit of Quantum computers being able to destroy the world of criptography. The security of ```RSA``` is based in two things: the difficulty of factorize a large *semiprime* -a number which is the product of two large primes- and the secrecy of the private key. Quantum computers can kill these two things at once by using a now infamous -but brilliant- algorithm called Shor's, which can factorize numbers extremely fast, and thus calculate a private key from its public key *very* quickly.
 
 Oh no! ***bye bye to identity***.
 
-I personally think that the use of RSA alone to identify things was not a good choice, as it was invented to solve a different problem: the key distribution. RSA security in this aspect -it has others in which it can still shine- did really rely in secrecy, as the factorization just helps to unveil the secret of what is the private key.
+I personally think that the use of ```RSA``` alone to identify things was not a good choice, as it was invented to solve a different problem: the key distribution. ```RSA``` security in this aspect -it has others in which it can still shine- did really rely in secrecy, as the factorization just helps to unveil the secret of what is the private key.
 
 I think the identity solution actually should go along the lines of the Spanish identity cards, where your identity is public, but it identify you as you, with several biometric elements that cannot be misrepresented, as well as a digital identity that you can reset and refresh anytime if you feel it has been compromised. Anyway, that is for another day.
 
-Here we present a library for handling RSA: Key generation, encription, decription, signatures, etc. Note that signatures are for PKCS and not PSS, but it can be easily implemented. Most of the credit should be for Simon Tatham, as this code took base on SSHRSAG.c SSHRSA.c that came with Putty v0.60, and even if it is largely changed and complemented, the core thing for key generation and encoding/decoding is still his. ;-)
+Here we present a library for handling RSA: Key generation, encription, decription, signatures, etc. Note that signatures are for PKCS and not PSS, but it can be easily implemented. Most of the credit should be for Simon Tatham, as this code took base on ```SSHRSAG.c``` and ```SSHRSA.c``` that came with ```Putty v0.60```, and even if it is largely changed and complemented, the core thing for key generation and encoding/decoding is still his. ;-)
 
 ## To build it:
 
