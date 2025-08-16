@@ -90,9 +90,11 @@ int hash_init(hash_t *ctx,int alg)
         case HASH_MD2:
             md2_init(&ctx->a.md2);
             ret=MD2_SIZE;
+            break;
         case HASH_MD4:
             md4_init(&ctx->a.md4);
             ret=MD4_SIZE;
+            break;
         case HASH_MD5:
             md5_init(&ctx->a.md5);
             ret=MD5_SIZE;

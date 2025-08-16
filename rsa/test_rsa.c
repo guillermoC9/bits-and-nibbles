@@ -430,12 +430,12 @@ static void test_rsa_rnd(int cual,int seed)
 rsa_t *create_key_sign_test1(void)
 {
     char *mod="0a66791dc6988168de7ab77419bb7fb0c001c62710270075142942e19a8d8c51"
-                    "d053b3e3782a1de5dc5af4ebe99468170114a1dfe67cdc9a9af55d655620bbab";
+              "d053b3e3782a1de5dc5af4ebe99468170114a1dfe67cdc9a9af55d655620bbab";
 
     char *exp="010001";
 
     char *pri="0123c5b61ba36edb1d3679904199a89ea80c09b9122e1400c09adcf7784676d0"
-                    "1d23356a7d44d6bd8bd50e94bfc723fa87d8862b75177691c11d757692df8881";
+              "1d23356a7d44d6bd8bd50e94bfc723fa87d8862b75177691c11d757692df8881";
 
     return rsa_from_chars(mod, exp, pri);
 }
@@ -445,12 +445,12 @@ rsa_t *create_key_sign_test1(void)
 rsa_t *create_key_sign_test2(void)
 {
     char *mod="a885b6f851a8079ab8a281db0297148511ee0d8c07c0d4ae6d6fed461488e0d4"
-                    "1e3ff8f281b06a3240b5007a5c2ab4fb6be8af88f119db998368dddc9710abed";
+              "1e3ff8f281b06a3240b5007a5c2ab4fb6be8af88f119db998368dddc9710abed";
 
     char *exp="010001";
 
     char *pri="2b259d2ca3df851ee891f6f4678bddfd9a131c95d3305c63d2723b4a5b9c960f"
-                    "5ec8bb7dcddbebd8b6a38767d64ad451e9383e0891e4ee7506100481f2b49323";
+              "5ec8bb7dcddbebd8b6a38767d64ad451e9383e0891e4ee7506100481f2b49323";
 
     return rsa_from_chars(mod, exp, pri);
 }
@@ -498,7 +498,7 @@ void rsa_test_signature(void)
         printf("Test with Key 1\n");
         print_bytes("TXT ", sign_msg1, 25);
         print_bytes("SIGN", sign_val1, 64);
-        ret = rsa_sign(k1,tmp,128,HASH_MD2,sign_msg1,25);
+        ret = rsa_sign(k1,tmp,128,MD2_RSA_ENC,sign_msg1,25);
         if(ret < 1)
             printf("ERROR %d signing with MD2\n",ret);
         else    
@@ -517,7 +517,7 @@ void rsa_test_signature(void)
         printf("Test with Key 2\n");
         print_bytes("TXT ", sign_msg2, 4);
         print_bytes("SIGN", sign_val2, 64);
-        ret = rsa_sign(k2,tmp,128,HASH_SHA1,sign_msg2,4);
+        ret = rsa_sign(k2,tmp,128,SHA1_RSA_ENC,sign_msg2,4);
         if(ret < 1)
             printf("ERROR %d signing with MD2\n",ret);
         else    
