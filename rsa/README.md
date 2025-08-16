@@ -15,7 +15,7 @@ I personally think that the use of ```RSA``` alone to identify things was not a 
 
 I think the identity solution actually should go along the lines of the Spanish identity cards, where your identity is public, but it identify you as you, with several biometric elements that cannot be misrepresented, as well as a digital identity that you can reset and refresh anytime if you feel it has been compromised. Anyway, that is for another day.
 
-Here we present a library for handling RSA: Key generation, encription, decription, signatures, etc. Note that signatures are for PKCS and not PSS, but it can be easily implemented. Most of the credit should be for Simon Tatham, as this code took base on ```SSHRSAG.c``` and ```SSHRSA.c``` that came with ```Putty v0.60```, and even if it is largely changed and complemented, the core thing for key generation and encoding/decoding is still his. ;-)
+Here we present a library for handling ```RSA```: Key generation, encription, decription, signatures, etc. Note that signatures are for ```PKCS``` and not ```PSS```, but it can be easily implemented. Most of the credit should be for Simon Tatham, as this code took base on ```SSHRSAG.c``` and ```SSHRSA.c``` that came with ```Putty v0.60```, and even if it is largely changed and complemented, the core thing for key generation and encoding/decoding is still his. ;-)
 
 ## To build it:
 
