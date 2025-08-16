@@ -17,13 +17,13 @@ The pseudo-random generators here are quite interesting actually, you can even f
 The complete list is: 
 ``` 
 
-    RAND_GM             George Marsaglia's Mother. 'param' is a seed 
-    RAND_MT             Mersenne Twister. 'param' is a seed 
-    RAND_GX             George Marsaglia's Xorshift128. 'param' is a seed 
+    RAND_GM             George Marsaglia's Mother.
+    RAND_MT             Mersenne Twister.  
+    RAND_GX             George Marsaglia's Xorshift128.  
     RAND_TLS_MD5_SHA1   MD5+SHA1 based PRF (Default for TLSv1.0 and TLSv1.1)
     RAND_TLS_SHA256     SHA256 based PRF (Default for TLSv1.2)
     RAND_TLS_SHA384     SHA384 base PRF (Especified by connection since TLSv1.2)
-    RAND_OS             OSSYS generator. 'param' is fallback algorithm if not present
+    RAND_OS             Operating System generator. 
 ```
 
 There is also an implementation in C of the ```AutoId:newId()``` JavaScript function from the Firestore library.
