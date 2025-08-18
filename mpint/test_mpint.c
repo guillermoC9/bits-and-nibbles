@@ -70,8 +70,14 @@ void test_10_pow_3009_pi(void)
         printf("Let's square it see how big it is now...\n");
         mp_sqr(&big_pi,&big_piSQ);
         mp_toradix(&big_piSQ,(unsigned char *)number,10);
-        mp_show_decimal("big_pi * 10^3009 =",&big_pi);                
+        mp_show_decimal("big_pi ^ 2 =",&big_piSQ);                
         printf("This is a huge number of %lu digits and %d bits\n\n",strlen(number),mp_count_bits(&big_piSQ));
+        mp_set_zero(&big_pi);
+        printf("Let's do the square root (we should get big_pi again)...\n");
+        mp_sqrt(&big_piSQ,&big_pi);
+        mp_show_decimal("sqrt(big_pi^2)  =",&big_pi);
+        mp_toradix(&big_pi,(unsigned char *)number,10);
+        printf("The square root of big_pi^2 is %lu digits and %d bits\n\n",strlen(number),mp_count_bits(&big_pi));        
         mp_clear(&big_piSQ);
         mp_clear(&big_pi);
     }
