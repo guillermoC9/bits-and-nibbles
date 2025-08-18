@@ -14,7 +14,7 @@ In criptography primes are very important because until the arrival of Quantum c
 
 Here we present a prime library that includes multi-precision support. This uses the random tasks separation concept discussed on [**Random**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/random) in this same repository to generate quality prime numbers. Although the random stuff in here is less complete -no TLS PRF support for example- is good enough for the examples. You can easily add the support by using the other version of random.
 
-Look at the test program because it is quite complete to ilustrate the power of this small library. Most of the credit should be for Simon Tatham, as this code took base on SSHPRIME.c that came with Putty v0.60, and even if it is largely changed, the core thing: **generate a quality prime**, is still his. 
+Look at the test program because it is quite complete to ilustrate the power of this small library. Most of the credit should be for Simon Tatham, as this code took base on ```SSHPRIME.c``` that came with Putty v0.60, and even if it is largely changed, the core thing: **generate a quality prime**, is still his. 
 
 I personally think one of the 'beauties' of his code is how it implements the Rabin-Miller test. Note that I merely changed his implementation from his own big numbers to use [**mpint**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/mpint) and moved it to a pretentious function called ```is_prime()```.
 
