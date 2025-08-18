@@ -43,30 +43,30 @@ Do the same that for build it but use *cleanit* instead of *test* as the target.
 
 ## Example output from the test program:
 
+```
+$ ./test_primes
 
+TEST PRIMES
 
-    $ ./test_primes
+use:	test_primes alg [seed] [bits]
 
-    TEST PRIMES
+Test different random prime numbers using 'alg' algorithm.
+'seed' is a number used to seed the algorithm. Unless is 0, which
+makes the algorithm to be seeded with an umpredictable number.
+'bits' is the number of bits of the primes (default 768)
 
-    use:	test_primes alg [seed] [bits]
+Algorithms:
 
-    Test different random prime numbers using 'alg' algorithm.
-    'seed' is a number used to seed the algorithm. Unless is 0, which
-    makes the algorithm to be seeded with an umpredictable number.
-    'bits' is the number of bits of the primes (default 768)
+    1 = Mother of George Marsaglia (RAND_GM)
+    2 = Mersenne Twister of Matsumoto & Nishimura (RAND_MT)
+	3 = Xorshift of George Marsaglia (RAND_GX)
+	4 = OSSYS of Kenneth MacKay (RAND_OS)
 
-    Algorithms:
+$ ./test_primes 3 1234 2048
 
-	    1 = Mother of George Marsaglia (RAND_GM)
-    	2 = Mersenne Twister of Matsumoto & Nishimura (RAND_MT)
-	    3 = Xorshift of George Marsaglia (RAND_GX)
-	    4 = OSSYS of Kenneth MacKay (RAND_OS)
-
-    $ ./test_primes 3 1234 2048
-
-    Some random bignums of various bits size:
-    For 667 bits   = 0x63dd04cc46d4d93889355366566c1c058d3832971d7d99ed995f046ca7a0d3775e8f00edde1f74c03580b21825006dc0da7529ca81c1ac672479cee6f7df8fd090f4c5834803b047f602b64e85dd749153f9d9a
+Some random bignums of various bits size:
+	For 667 bits   =
+	0x63dd04cc46d4d93889355366566c1c058d3832971d7d99ed995f046ca7a0d3775e8f00edde1f74c03580b21825006dc0da7529ca81c1ac672479cee6f7df8fd090f4c5834803b047f602b64e85dd749153f9d9a
     In reality has 667 bits
 
     For 1024 bits  =     	0x823ee0ae522d0f17ae13d6d211a43db648d9b3d92e84df48be61850011dce24f9e2eb3c28092aaa655a8183be6ae8d26a9c6fb887fd50e4e69e3d7df5c54ab3e8079c41450ade62fdeba79495fbe8009c722aea62ffdb906907fdd4a8170509e6be251e0b4961e6a9ef30bf7c7af05c88b709c2e5ba6fb060f42429466504c609c9fa816d74d8dc5ef3c43238db3e4dc66dcd003ed9d5d4cb886e7c375e8cdfd217028f20979f1b6b05a638b253bb58ccc46984eac841d1b44bce2677b32dbf12125a9391a33a1459d7dbbb31cb9f8685b2bdaf319af09eeb906283d09c2b8a4c4833e22819de70e143352447e815ee71e0049d2a978d28bf4a9aefb0c7e59ae
@@ -289,7 +289,7 @@ big_pi + 2813   = 31415926535897932384626433832795028841971693993751058209749445
 End of primes test
 
                      
-``
+```
 
 
 
