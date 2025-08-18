@@ -43,7 +43,7 @@ Do the same that for build it but use *cleanit* instead of *test* as the target.
 
 ## Example output from the test program:
 
-```
+>```
 
 $ ./test_primes
 
