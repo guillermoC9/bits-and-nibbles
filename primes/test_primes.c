@@ -57,9 +57,10 @@ const char *pi_x_10_power_3009 =
 
 void test_10_pow_3009_pi(rand_t *rc)
 {
-    mp_int_t big_pi,cpy;
-    int times = 1,ret;
+    mp_int_t big_pi;
+    int ret;
     stopwatch_t sw;
+    char number[16384];
 
     printf("\n*** BIG PI TEST ***\n");
     ret = mp_init_set_string(&big_pi,pi_x_10_power_3009,10);
@@ -75,9 +76,9 @@ void test_10_pow_3009_pi(rand_t *rc)
         stopwatch_start(&sw);
         ret = is_prime(&big_pi,rc);
         stopwatch_stop(&sw);
-        printf("Is big_pi + 2183 prime? %s. It has %d bits after %d tries in %.6f seconds)\n",(ret) ? "YES" : "NO",mp_count_bits(&big_pi),times,stopwatch_elapsed(&sw));        
-        mp_show_decimal("big_pi + 2813   =",&big_pi);
-        mp_clear(&cpy);
+        mp_toradix(&big_pi,(unsigned char *)number,10);
+        printf("Is big_pi + 2183 prime? %s. It has %lu digits (%d bits) after %.6f seconds)\n",(ret) ? "YES" : "NO",strlen(number),mp_count_bits(&big_pi),stopwatch_elapsed(&sw));        
+        mp_show_decimal("big_pi + 2813   =",&big_pi);        
         mp_clear(&big_pi);
     }
 }

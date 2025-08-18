@@ -22,7 +22,9 @@ It is pretentious because -maybe you are not familiar with this- there is not a 
 
 Fortunately for us, the Rabin-Miller test implemented by Simon does find most of them, and in the case of it failing, the false prime should be good enough anyway, as its only weakness would be that its product would be easier to factorize. But being huge and having Mr Shor's stuff around, it may not be in a bigger danger than a real prime would be.
 
-A good site to play around with primes is [**Big Primes**](https://bigprimes.org/). 
+A good site to play around with primes is [**Big Primes**](https://bigprimes.org/). Note that they can only manage primes upto 2,000 digits (around 6,644 bits). 
+
+We handle much bigger sizes. In the test example, Big PI -a number used by DJ Berstein in a presentation about Post Quantum RSA- is 3,010 digits (9,998 bits), although we handle bigger on the [**mpint**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/mpint) example, where we square it and jumps to 6,019 digits and 19,995 bits.
 
 ## To build it:
 

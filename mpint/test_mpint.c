@@ -56,8 +56,9 @@ const char *pi_x_10_power_3009 =
 
 void test_10_pow_3009_pi(void)
 {
-    mp_int_t big_pi;
+    mp_int_t big_pi,big_piSQ;
     int ret;
+    char number[16384];
 
     ret = mp_init_set_string(&big_pi,pi_x_10_power_3009,10);
     printf("\nThe result of settign the big_pi is %d\n",ret);
@@ -65,6 +66,13 @@ void test_10_pow_3009_pi(void)
     {
         mp_show_decimal("big_pi * 10^3009 =",&big_pi);
         printf("This is a huge number of %lu digits and %d bits\n\n",strlen(pi_x_10_power_3009),mp_count_bits(&big_pi));        
+        mp_init(&big_piSQ);
+        printf("Let's square it see how big it is now...\n");
+        mp_sqr(&big_pi,&big_piSQ);
+        mp_toradix(&big_piSQ,(unsigned char *)number,10);
+        mp_show_decimal("big_pi * 10^3009 =",&big_pi);                
+        printf("This is a huge number of %lu digits and %d bits\n\n",strlen(number),mp_count_bits(&big_piSQ));
+        mp_clear(&big_piSQ);
         mp_clear(&big_pi);
     }
 }
