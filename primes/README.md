@@ -43,7 +43,7 @@ Do the same that for build it but use *cleanit* instead of *test* as the target.
 
 ## Example output from the test program:
 
-`
+``
 
 $ ./test_primes
 
@@ -290,7 +290,7 @@ big_pi + 2813   = 31415926535897932384626433832795028841971693993751058209749445
 End of primes test
 
                      
-`
+``
 
 
 
