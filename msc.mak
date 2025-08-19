@@ -28,6 +28,7 @@ cleanit:
 	cd chipiona; nmake /f gcc.mak cleanit; cd ..
 	cd ciphers;  nmake /f gcc.mak cleanit; cd ..
 	cd csv;      nmake /f gcc.mak cleanit; cd ..	
+	cd ecc;      nmake /f gcc.mak cleanit; cd ..
 	cd entropy;  nmake /f gcc.mak cleanit; cd ..
 	cd hashes;   nmake /f gcc.mak cleanit; cd ..
 	cd mpint;    nmake /f gcc.mak cleanit; cd ..
@@ -44,6 +45,7 @@ buildit:
 	cd chipiona; nmake /f gcc.mak test; cd ..
 	cd ciphers;  nmake /f gcc.mak test; cd ..
 	cd csv;      nmake /f gcc.mak test; cd ..
+	cd ecc;      nmake /f gcc.mak test; cd ..
 	cd entropy;  nmake /f gcc.mak test; cd ..
 	cd hashes;   nmake /f gcc.mak test; cd ..
 	cd mpint;    nmake /f gcc.mak test; cd ..

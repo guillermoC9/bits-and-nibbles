@@ -20,6 +20,8 @@ I know this causes code duplication, but the idea here is to grab whatever you a
   PEM files are used to store all kind of criptographic documents like: certificates, public and provate keys, encription parameters and more.
 - ### RSA:
   The infamous Public Key algorithm that many people assume broken by *Quantum computers*, although is not proved completely broken for all sizes and neither for all uses. I think it still has few tricks up the sleeve.
+- ### ECC:
+  The supposed enhancement for Public Key Criptography, but which is as vulmnerable to *Quantum computers* as RSA or DH is. As with RSA, I think it still has few tricks up the sleeve.
 - ### mpint:
   Multi-precision number support.
 - ### Time (time & ticks):

@@ -8,6 +8,7 @@ test_checksum
 test_chipiona
 test_ciphers
 test_csv
+test_ecc
 test_entropy
 test_hashes
 test_mpint
