@@ -1,7 +1,7 @@
 # ECC
 ## Elliptic Curve Criptography
 
-Before pictures were much bigger than the whole of Windows 95 (~30 Mb), people was really concerned about the size of ```RSA``` keys and the computational performance of the algorithm. So, they did something about it and divised a new criptography technique based on elliptic curves over finite -Galois- Fields, a very interesting part of computational geometry.  
+Before pictures were much bigger than the whole of Windows 95 (~30 Mb), people was really concerned about the size of ```RSA``` keys and the computational performance of the algorithm. So, they did something about it and divised a new criptography technique based on elliptic curves over finite -Galois- fields, a very interesting part of computational geometry.  
 
 Elliptic Curve Criptography bore a much smaller keys to -theoretically- do the same of bigger key algorithms. For example, an ```ECC``` key of 256 bits equalled the security of a counterpart with a 2048 bits key, that is less computational effort and smaller data sizes for the same benefit. 
 
