@@ -7,7 +7,7 @@ Elliptic Curve Criptography bore a much smaller keys to -theoretically- do the s
 
 Now, I said *theoretically* there because in reality ```ECC``` functions do not do **exactly the same** of the other algorithms, as they do not encode/decode data like ```RSA``` or ```AES``` do -if we ignore Elgamal at the moment-, but they can be used to produce signatures or perform key agreement, which is ideal to create smaller certificates and TLS handshakes.
 
-There are many ```ECC``` algorithms, but here we present a small library that uses our typical one-stop shop to supports the most common curves around, all of them prime curves:
+There are many ```ECC``` algorithms, but here we present a small library that uses our typical one-stop shop approach to support the most common curves around, all of them prime curves:
 
     - Secp: secp192k1, secp192r1, secp256r1, secp256k1, secp384r1, secp521r1
     - Brainpool:  brainpool192r1, brainpool224r1, brainpool256r1 , brainpool320r1, brainpool384r1, brainpool512r1
