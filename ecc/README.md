@@ -5,7 +5,7 @@ Before pictures were much bigger than the whole of Windows 95 (~30 Mb), people w
 
 Elliptic Curve Criptography bore a much smaller keys to -theoretically- do the same of bigger key algorithms. For example, an ```ECC``` key of 256 bits equalled the security of a counterpart with a 2048 bits key, that is less computational effort and smaller data sizes for the same benefit. 
 
-Now, I said *theoretically* there because in reality ```ECC``` functions do not do **completly the same** of the other algorithms, as they do not encode/decode data like ```RSA``` or ```AES``` do -if we ignore Elgamal at the moment-, but they can be used to produce signatures or perform key agreement, which is ideal to create smaller certificates and TLS handshakes.
+Now, I said *theoretically* there because in reality ```ECC``` functions do not do **exactly the same** of the other algorithms, as they do not encode/decode data like ```RSA``` or ```AES``` do -if we ignore Elgamal at the moment-, but they can be used to produce signatures or perform key agreement, which is ideal to create smaller certificates and TLS handshakes.
 
 There are many ```ECC``` algorithms, but here we present a small library that uses our typical one-stop shop to supports the most common curves around, all of them prime curves:
 
