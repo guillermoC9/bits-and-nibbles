@@ -44,7 +44,7 @@ Using the original key in this way does not risk it, as the key itself is never 
 
 An important thing to note, is that this use of the data as key for the next data, effectively makes this cipher a CBC cipher as well, but without the risk of pad oracle attacks as there is no need for padding. Not even in the MD5 function. ;-)
 
-For this very reason, the cipher doesn't reset the data pointer position in the MD5 buffer after finalizing the MD5 hash for each block of 16 bytes. This is important because the bit counter is added to the MD5 after the block is processed, which usually results in the MD5 buffer being left with some data, which in turn will be completed with the next data to cipher, in order to generate a new key after applying the S-BOX+MD5 function.
+For this very reason, the cipher doesn't reset the data pointer position in the MD5 buffer after finalizing the MD5 hash for each block of 16 bytes. This is important because the bit counter is added to the MD5 after the block is processed -avoiding 0 values & pad-, which usually results in the MD5 buffer being left with some data, which in turn will be completed with the next data to cipher, in order to generate a new key after applying the S-BOX+MD5 function.
 
 The pseudo-random function used to build the s-boxes is Mother from George Marsaglia, and the code for it is derived from public domain code he published himself when he was alive. 
 
