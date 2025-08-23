@@ -90,7 +90,7 @@
 
 #ifdef FOR_WIN
 
-typedef unsigned __int64    mpword_t;
+typedef unsigned __int64    mp_word_t;
 
 /* Microsoft C has different names than the rest for useful functions */
 

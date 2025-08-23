@@ -34,18 +34,19 @@ cleanit:
 
 test: test_ciphers.exe
 
-libCIPHERS=stuff.obj 
+libCIPHERS=stuff.obj aes.obj aria.obj blowfish.obj camellia.obj chacha.obj \
+           des.obj poly1305.obj rc4.obj salsa20.obj twofish.obj xtea.obj
 
-test_ciphers: cipher.obj  test_ciphers.c
+test_ciphers.exe: cipher.obj test_ciphers.c
 	$(mkCC_EXE) test_ciphers.c cipher.obj $(libCIPHERS)
 
-cipher.obj $(libCIPHERS) cipher.c cipher.h
+cipher.obj: $(libCIPHERS) cipher.c cipher.h
 	$(mkCC_OBJ) cipher.c
 
-stuff.obj stuff.c stuff.h
+stuff.obj: stuff.c stuff.h
 	$(mkCC_OBJ) stuff.c
 
-aes.obj: stuff.obj aes.c .h
+aes.obj: stuff.obj aes.c aes.h
 	$(mkCC_OBJ) aes.c
 
 aria.obj: stuff.obj aria.c aria.h
@@ -77,4 +78,3 @@ twofish.obj: stuff.obj twofish.c twofish.h
 
 xtea.obj: stuff.obj xtea.c xtea.h
 	$(mkCC_OBJ) xtea.c
-

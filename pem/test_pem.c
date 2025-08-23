@@ -25,6 +25,51 @@
 */
 
 #include "pem.h"
+
+#ifdef _WIN32
+
+#include <windows.h>
+
+size_t read_pass(char *passwd, size_t max)
+{
+    size_t len = 0;
+    if(passwd)
+    {
+        if(max > 1)
+        {
+            HANDLE hStdin; 
+            DWORD mode = 0;
+
+            hStdin = GetStdHandle(STD_INPUT_HANDLE); 
+            if(hStdin)
+            {
+                int ch;
+
+                GetConsoleMode(hStdin, &mode);
+                SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));
+
+                /* Read the password. */
+
+                max--;
+                while(len < max)
+                {
+                    ch = fgetc(stdin);
+                    if(ch=='\n' || ch=='\r')
+                        break;
+                    passwd[len++]=(char)ch;
+                }
+
+                GetConsoleMode(hStdin, &mode);
+                SetConsoleMode(hStdin, mode | ENABLE_ECHO_INPUT);
+            }
+        }
+        passwd[len]=0;
+    }
+    return len;
+}
+
+#else
+
 #include <termios.h>
 
 size_t read_pass(char *passwd, size_t max)
@@ -63,6 +108,8 @@ size_t read_pass(char *passwd, size_t max)
     }
     return len;
 }
+
+#endif            
 
 /* -------------------------------------- */
 

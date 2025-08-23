@@ -34,8 +34,17 @@ cleanit:
 
 test: test_primes.exe
 
+test_primes.exe: primes.obj test_primes.c
+	$(mkCC_EXE) test_primes.c mpint.obj primes.obj random.obj stuff.obj
+
+primes.obj: mpint.obj random.obj primes.c primes.h
+	$(mkCC_OBJ) primes.c
+
 mpint.obj: mpint.c mpint.h
 	$(mkCC_OBJ) mpint.c
 
-test_primes.exe: mpint.obj test_primes.c 
-	$(mkCC_EXE) test_primes.c mpint.obj 
+random.obj: stuff.obj random.c random.h
+	$(mkCC_OBJ) random.c
+
+stuff.obj: stuff.c stuff.h
+	$(mkCC_OBJ) stuff.c

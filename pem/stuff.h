@@ -244,6 +244,18 @@ void  put_be64(void *buf,u64_t val);
 
 char *strtrim(char *s);
 
+/* -------------------------------------------------- *
+   strlcpy() is a better version of strncpy() as
+   always adds the NUL. Like is only for Mac, we add
+   a version for the other OS
+ * -------------------------------------------------- */
+
+ #ifndef FOR_MAC
+
+size_t strlcpy(char *s1, const char *s2, size_t max);
+
+#endif
+
 /* ------------------------------------------------------ *
    Divide a time_t onto a struct point_on_time_t 'pot'.
 
@@ -465,7 +477,6 @@ size_t utf8_to_wchar(wchar_t *wch,size_t max,const void *utf8,size_t num);
  * ------------------------------------------------------ */
 
 size_t wchar_to_utf8(unsigned char *utf8,size_t max,const wchar_t *wch,size_t num);
-
 
 #ifdef __cplusplus
 };

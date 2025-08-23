@@ -578,6 +578,8 @@ typedef struct
 
 #ifdef FOR_WIN
 
+#include <windows.h>
+
 typedef NTSTATUS (WINAPI *BCryptGenRandom_func_t) (BCRYPT_ALG_HANDLE hAlgorithm,PUCHAR pbBuffer,ULONG cbBuffer,ULONG dwFlags);
 typedef BOOLEAN  (WINAPI *RtlGenRandom_func_t) (PVOID RandomBuffer,ULONG RandomBufferLength);
 
@@ -642,12 +644,10 @@ static void ossys_generate(ossys_rand_t *rc)
         if(bcrypt_gen_random)
         {
             rc->which = OSSYS_BCRYPT_RAND;
-            trace_debug(L"ossys_generate(): using BCryptGenRandom()");
         }
         else if(rtl_gen_random)
         {
             rc->which = OSSYS_RTL_RAND;
-            trace_debug(L"ossys_generate(): using RtlGenRandom()");
         }
     }
 

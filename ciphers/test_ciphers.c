@@ -366,7 +366,7 @@ void test_aes_ctr0(void)
 
 void test_aes_ctr1(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[32], test[32];
     unsigned char k[16] =
     {
@@ -423,7 +423,7 @@ void test_aes_ctr1(void)
 
 void test_aes_ctr2(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[36], test[36];
     unsigned char k[16] =
     {
@@ -483,7 +483,7 @@ void test_aes_ctr2(void)
 
 void test_aes_ctr3(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[16], test[16];
     unsigned char k[24] =
     {
@@ -539,7 +539,7 @@ void test_aes_ctr3(void)
 
 void test_aes_ctr4(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[32], test[32];
     unsigned char k[24] =
     {
@@ -599,7 +599,7 @@ void test_aes_ctr4(void)
 
 void test_aes_ctr5(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[36], test[36];
     unsigned char k[24] =
     {
@@ -661,7 +661,7 @@ void test_aes_ctr5(void)
 
 void test_aes_ctr6(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[16], test[16];
     unsigned char k[32] =
     {
@@ -718,7 +718,7 @@ void test_aes_ctr6(void)
 
 void test_aes_ctr7(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[32], test[32];
     unsigned char k[32] =
     {
@@ -778,7 +778,7 @@ void test_aes_ctr7(void)
 
 void test_aes_ctr8(void)
 {
-    cipher_t  aes1, aes2;;
+    cipher_t  aes1, aes2;
     unsigned char final[36], test[36];
     unsigned char k[32] =
     {

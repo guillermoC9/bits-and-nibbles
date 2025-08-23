@@ -34,49 +34,49 @@ cleanit:
 
 test: test_hashes.exe
 
-libHASHES=string.obj md2.obj md4.obj md5.obj sha1.obj sha2.obj sha3.obj \
+libHASHES=stuff.obj md2.obj md4.obj md5.obj sha1.obj sha2.obj sha3.obj \
           ripe128.obj ripe160.obj ripe256.obj ripe320.obj poly1305.obj
 
-test_hashes: hash.obj  test_hashes.c
+test_hashes.exe: hash.obj  test_hashes.c
 	$(mkCC_EXE) test_hashes.c hash.obj $(libHASHES)
 
-hash.obj $(libHASHES) hash.c hash.h
+hash.obj: $(libHASHES) hash.c hash.h
 	$(mkCC_OBJ) hash.c
 
-string.obj string.c string.h
-	$(mkCC_OBJ) string.c
+stuff.obj: stuff.c stuff.h
+	$(mkCC_OBJ) stuff.c
 
-md2.obj string.obj md2.c md2.h
+md2.obj: stuff.obj md2.c md2.h
 	$(mkCC_OBJ) md2.c
 
-md4.obj string.obj md4.c md4.h
+md4.obj: stuff.obj md4.c md4.h
 	$(mkCC_OBJ) md4.c
 
-md5.obj string.obj md5.c md5.h
+md5.obj: stuff.obj md5.c md5.h
 	$(mkCC_OBJ) md5.c
 
-sha1.obj string.obj sha1.c sha1.h
+sha1.obj: stuff.obj sha1.c sha1.h
 	$(mkCC_OBJ) sha1.c
 
-sha2.obj sha1.obj sha2.c sha2.h
+sha2.obj: sha1.obj sha2.c sha2.h
 	$(mkCC_OBJ) sha2.c
 
-sha3.obj sha2.obj sha3.c sha3.h
+sha3.obj: sha2.obj sha3.c sha3.h
 	$(mkCC_OBJ) sha3.c
 
-ripe128.obj string.obj ripe128.c ripe128.h
+ripe128.obj: stuff.obj ripe128.c ripe128.h
 	$(mkCC_OBJ) ripe128.c
 
-ripe160.obj string.obj ripe160.c ripe160.h
+ripe160.obj: stuff.obj ripe160.c ripe160.h
 	$(mkCC_OBJ) ripe160.c
 
-ripe256.obj string.obj ripe256.c ripe256.h
+ripe256.obj: stuff.obj ripe256.c ripe256.h
 	$(mkCC_OBJ) ripe256.c
 
-ripe320.obj string.obj ripe320.c ripe320.h
+ripe320.obj: stuff.obj ripe320.c ripe320.h
 	$(mkCC_OBJ) ripe320.c
 
-poly1305.obj string.obj poly1305.c poly1305.h
+poly1305.obj: stuff.obj poly1305.c poly1305.h
 	$(mkCC_OBJ) poly1305.c
 
 

@@ -48,6 +48,10 @@
    #define TRUE    1
 #endif
 
+#if defined(_WIN32)
+   typedef long off_t; 
+#endif
+
 /* --------------------------------- *
    Make sure unsigned int is at 
    least 32 bits long 

@@ -495,9 +495,9 @@ size_t wchar_to_hex(void *dest,size_t max,const wchar_t *buf,size_t tam,wchar_t 
 /* --------------------------------------------------- */
 
 void time_to_pot(time_t ts,point_on_time_t *pot,int local)
-{
-    struct tm *rt,td;
-#ifdef FOR_WIN   
+{    
+    struct tm *rt;
+#ifdef FOR_WIN       
     /* 
        Microsoft C for Windows uses local thread
        memory for localtime() and gmtime(), so
@@ -507,6 +507,7 @@ void time_to_pot(time_t ts,point_on_time_t *pot,int local)
     */
     rt=(local) ? localtime(&ts) : gmtime(&ts);    
 #else
+    struct tm td;
     /* 
         In other systems we just use the reentrant 
         version 
@@ -516,15 +517,15 @@ void time_to_pot(time_t ts,point_on_time_t *pot,int local)
     if(rt)    
     {        
         pot->local=(local) ? TRUE : FALSE;
-        pot->day=td.tm_mday;
-        pot->mon=td.tm_mon + 1;
-        pot->year=td.tm_year + 1900;
-        pot->hour=td.tm_hour;
-        pot->min=td.tm_min;
-        pot->sec=(td.tm_sec % 60);
+        pot->day=rt->tm_mday;
+        pot->mon=rt->tm_mon + 1;
+        pot->year=rt->tm_year + 1900;
+        pot->hour=rt->tm_hour;
+        pot->min=rt->tm_min;
+        pot->sec=(rt->tm_sec % 60);
         pot->msec=0;
         pot->usec=0;
-        pot->wday=td.tm_wday;        
+        pot->wday=rt->tm_wday;        
         pot->leap = ((pot->year % 4 == 0 && pot->year % 100) || pot->year % 400 == 0);
     }
 }
@@ -539,12 +540,13 @@ time_t time_from_pot(point_on_time_t *pot)
         return 0;
 
     memset(&td,0,sizeof(td));
-    td.tm_mday=(pot->day > 0) ? pot->day : 0;
-    td.tm_mon=(pot->mon > 0) ? (pot->mon - 1) : 0;
-    td.tm_year=(pot->year > 0) ? (pot->year - 1900) : 0;
-    td.tm_hour=(pot->hour% 24);
+    td.tm_mday=(pot->day > 0 && pot->day < 32) ? pot->day : 1;
+    td.tm_mon=(pot->mon > 0 && pot->mon < 13) ? (pot->mon  - 1) : 1;
+    td.tm_year=(pot->year > 1900 && pot->year < 20001) ? (pot->year - 1900) : 70;
+    td.tm_hour=(pot->hour % 24);
     td.tm_min=(pot->min % 60);
     td.tm_sec=(pot->sec % 60);
+    
     if(pot->local)
         return mktime(&td);
 #ifdef FOR_WIN
@@ -854,3 +856,25 @@ size_t wchar_to_utf8(unsigned char *utf8,size_t max,const wchar_t *wch,size_t to
    *utf8 = 0;
     return ret;
 }
+
+#ifndef FOR_MAC
+
+/* ------------------------------- */
+
+size_t strlcpy(char *s1, const char *s2, size_t max)
+{
+    size_t t=0;
+
+    if(max > 0)
+    {
+        while(s2[t] && --max > 0)
+        {
+            s1[t] = s2[t];
+            t++;
+        }
+        s1[t]=0;
+    }
+    return t;
+}
+
+#endif

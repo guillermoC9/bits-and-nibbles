@@ -231,6 +231,18 @@ void  put_be64(void *buf,u64_t val);
 char *strtrim(char *s);
 
 /* -------------------------------------------------- *
+   strlcpy() is a better version of strncpy() as
+   always adds the NUL. Like is only for Mac, we add
+   a version for the other OS
+ * -------------------------------------------------- */
+
+ #ifndef FOR_MAC
+
+size_t strlcpy(char *s1, const char *s2, size_t max);
+
+#endif
+
+/* -------------------------------------------------- *
 
     Convert 'tam' bytes from 'buf' to a hexadecimal
     string and put it into 'dest' upto 'max' chars

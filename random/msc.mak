@@ -34,7 +34,22 @@ cleanit:
 test: test_random.exe	
 
 test_random.exe: random.obj test_random.c
-	$(mkCC_EXE) test_random.c random.obj
+	$(mkCC_EXE) test_random.c random.obj hmac.obj md5.obj sha2.obj sha1.obj stuff.obj 
 
-random.obj: random.c random.h
+random.obj: hmac.obj random.c random.h
 	$(mkCC_OBJ) random.c
+
+hmac.obj: md5.obj sha2.obj hmac.c hmac.h
+	$(mkCC_OBJ) hmac.c
+
+md5.obj: stuff.obj md5.c md5.h
+	$(mkCC_OBJ) md5.c
+
+sha1.obj: stuff.obj sha1.c sha1.h
+	$(mkCC_OBJ) sha1.c
+
+sha2.obj: sha1.obj sha2.c sha2.h
+	$(mkCC_OBJ) sha2.c
+
+stuff.obj: stuff.c stuff.h
+	$(mkCC_OBJ) stuff.c

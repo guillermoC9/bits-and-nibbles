@@ -89,6 +89,8 @@ typedef unsigned __int64    u64_t;
 #define snprintf        _snprintf
 #define strcasecmp      _stricmp
 #define strncasecmp     _strnicmp
+#define wcscasecmp      _wcsicmp
+#define wcsncasecmp     _wcsnicmp
 
 #else 
 

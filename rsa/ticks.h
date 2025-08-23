@@ -74,6 +74,12 @@
 
 #define FOR_WIN     /* This is for Windows */
 
+/* Microsoft C has different names than the rest for useful functions */
+
+#define snprintf        _snprintf
+#define strcasecmp      _stricmp
+#define strncasecmp     _strnicmp
+
 #else 
 
 #define FOR_NIX      /* This is for Unix-like */

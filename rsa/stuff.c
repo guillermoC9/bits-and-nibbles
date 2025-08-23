@@ -776,3 +776,26 @@ size_t wchar_to_utf8(unsigned char *utf8,size_t max,const wchar_t *wch,size_t to
    *utf8 = 0;
     return ret;
 }
+
+
+#ifndef FOR_MAC
+
+/* ------------------------------- */
+
+size_t strlcpy(char *s1, const char *s2, size_t max)
+{
+    size_t t=0;
+
+    if(max > 0)
+    {
+        while(s2[t] && --max > 0)
+        {
+            s1[t] = s2[t];
+            t++;
+        }
+        s1[t]=0;
+    }
+    return t;
+}
+
+#endif

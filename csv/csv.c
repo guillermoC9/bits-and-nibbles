@@ -735,11 +735,14 @@ int csv_openw(csv_t *csv,int hdr,const wchar_t *filename)
     
         if(csv->fp)
             return CSV_EEXIST;
+    printf("Aqui 1\n");
         if( wcstombs(tmp,filename,1383) > 0)
         {
             csv->fp = fopen(tmp,"r");
+printf("Aqui 2\n");            
             if(csv->fp)
                 return csv_do_opening(csv,hdr);
+printf("Aqui 3\n");                
         }
         return CSV_EOPEN;
     }
