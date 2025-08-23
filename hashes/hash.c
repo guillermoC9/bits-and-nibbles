@@ -418,10 +418,10 @@ void hash_final(hash_t *ctx,void *hash)
             sha512_final(&ctx->a.sha512,hash);
             break;
         case HASH_SHA512_224:
-            sha512_final(&ctx->a.sha512,hash);
+            sha512_224_final(&ctx->a.sha512,hash);
             break;
         case HASH_SHA512_256:
-            sha512_final(&ctx->a.sha512,hash);
+            sha512_256_final(&ctx->a.sha512,hash);
             break;
         case HASH_SHA3_224:
         case HASH_SHA3_256:
