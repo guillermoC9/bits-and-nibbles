@@ -39,6 +39,7 @@
 #include <wchar.h>
 #include <time.h>
 #include <locale.h>
+#include <wctype.h>
 
 #ifndef FALSE
 

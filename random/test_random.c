@@ -408,5 +408,5 @@ int main(int argc,char **argv)
     else
         test_random(alg,seed,total);
 
-        return 0;
+    return 0;
 }

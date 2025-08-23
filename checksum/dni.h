@@ -36,6 +36,7 @@
 
 #include <ctype.h>
 #include <wctype.h>
+#include <stddef.h>
 
 #ifndef FALSE
 #define FALSE   0

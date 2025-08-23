@@ -52,6 +52,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <wctype.h>
+#include <stddef.h>
 
 #ifndef FALSE
 
@@ -76,6 +78,8 @@
 #else 
 
 #define FOR_NIX      /* This is for Unix-like */
+
+#include <sys/time.h>
 
 #endif
 

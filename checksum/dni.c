@@ -44,8 +44,8 @@ static int get_control_letter(const void *num,int wide,int *last)
     static const char *letter="TRWAGMYFPDXBNJZSQVHLCKE";
     unsigned int dni = 0;
     int val,alpha;
-    const wchar_t *wc;
-    const char *ch;
+    const wchar_t *wc = NULL;
+    const char *ch = NULL;
     
     if(num)
     {

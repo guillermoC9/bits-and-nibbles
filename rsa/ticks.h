@@ -84,6 +84,8 @@
 
 #define FOR_NIX      /* This is for Unix-like */
 
+#include <sys/time.h>
+
 #endif
 
 /* --------------------------------- *

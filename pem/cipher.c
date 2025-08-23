@@ -605,7 +605,7 @@ size_t cipher_encode(cipher_t *ctx,void *dest,const void *orig,size_t tam)
     size_t topad,blk,rem,t,ret = 0;
     unsigned char *sblk,*dblk,pad,*pblk;
     unsigned char cbc[CIPHER_MAX_BLOCK_SIZE];
-    unsigned long *xd,*xs,*xi;            
+    unsigned long *xd = NULL,*xs = NULL,*xi = NULL;            
 
     if (ctx && dest && orig)
     {
@@ -721,7 +721,7 @@ size_t cipher_decode(cipher_t *ctx,void *dest,const void *orig,size_t tam)
     size_t blk,ret = 0, t;
     unsigned char *sblk,*dblk,*pblk=NULL;
     unsigned char cbc[CIPHER_MAX_BLOCK_SIZE];
-    unsigned long *xd,*xi;            
+    unsigned long *xd = NULL,*xi = NULL;            
 
     if (ctx && dest && orig)
     {

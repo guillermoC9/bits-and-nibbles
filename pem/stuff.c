@@ -835,7 +835,7 @@ size_t wchar_to_utf8(unsigned char *utf8,size_t max,const wchar_t *wch,size_t to
     if(total == 0)
         total = wcslen(wch);
 
-	max--;
+    max--;
 
 	while(ret < max && total > 0)
 	{
