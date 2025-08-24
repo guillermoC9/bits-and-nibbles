@@ -688,11 +688,12 @@ void test_shake(void)
     shake_t ctx;
     unsigned char tmp[SHA512_SIZE];
     char final[BUF_SIZE_SHA512];
+    hash_t hct;
 
 
     printf("**** Test SHAKE 128 ****\n\n");
 
-    shake_init(&ctx,128,"",0);
+    shake_init_hkdf(&ctx,128,"",0);
     shake_get(&ctx, tmp,SHA256_SIZE);
     hex_to_char(final, BUF_SIZE_SHA512, tmp, SHA256_SIZE, FALSE);
     printf("Contens=\"\"\n");
@@ -702,7 +703,7 @@ void test_shake(void)
 
     printf("**** Test SHAKE 256 ****\n\n");
 
-    shake_init(&ctx,256,"",0);
+    shake_init_hkdf(&ctx,256,"",0);
     shake_get(&ctx, tmp,SHA512_SIZE);
     hex_to_char(final, BUF_SIZE_SHA512, tmp, SHA512_SIZE, FALSE);
     printf("Contens=\"\"\n");
@@ -712,23 +713,25 @@ void test_shake(void)
 
     printf("**** Test SHAKE 128 ****\n\n");
 
-    shake_init(&ctx,128,"The quick brown fox jumps over the lazy dog",43);
-    shake_get(&ctx, tmp,SHA256_SIZE);
+
+    hash_init(&hct,HASH_SHAKE_128,"The quick brown fox jumps over the lazy dog",43);
+    hash_final_hkdf(&hct, tmp,SHA256_SIZE);
     hex_to_char(final, BUF_SIZE_SHA512, tmp, SHA256_SIZE, FALSE);
     printf("Contens=\"The quick brown fox jumps over the lazy dog\"\n");
     printf("Result =%s\n", final);
     printf("Must Be=f4202e3c5852f9182a0430fd8144f0a74b95e7417ecae17db0f8cfeed0e3e66e\n\n");
-    shake_clean(&ctx);
 
     printf("**** Test SHAKE 128 ****\n\n");
 
-    shake_init(&ctx,128,"The quick brown fox jumps over the lazy dof",43);
-    shake_get(&ctx, tmp,SHA256_SIZE);
+    hash_init(&hct,HASH_SHAKE_128,NULL,0);
+    hash_update(&hct,"The quick brown fox jumps over the lazy dof",43);
+    hash_final_hkdf(&hct, tmp,SHA256_SIZE);
+
     hex_to_char(final, BUF_SIZE_SHA512, tmp, SHA256_SIZE, FALSE);
     printf("Contens=\"The quick brown fox jumps over the lazy dof\"\n");
     printf("Result =%s\n", final);
     printf("Must Be=853f4538be0db9621a6cea659a06c1107b1f83f02b13d18297bd39d7411cf10c\n\n");
-    shake_clean(&ctx);
+
 }
 
 

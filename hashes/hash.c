@@ -255,11 +255,15 @@ int hash_init(hash_t *ctx,int alg,const void *key,int tam_key)
             ret=SHA512_SIZE;
             break;
         case HASH_SHAKE_256:
-            shake_init(&ctx->a.sha3,256,key,tam_key);
+            shake_init(&ctx->a.sha3,256);
+            if(key && tam_key > 0)
+                shake_update(&ctx->a.sha3,key,tam_key);
             ret=SHAKE256_SIZE;
             break;
         case HASH_SHAKE_128:
-            shake_init(&ctx->a.sha3,128,key,tam_key);
+            shake_init(&ctx->a.sha3,128);
+            if(key && tam_key > 0)
+                shake_update(&ctx->a.sha3,key,tam_key);
             ret=SHAKE128_SIZE;
             break;
         case HASH_RIPE_128:
@@ -343,7 +347,8 @@ void hash_update(hash_t *ctx,const void *data,size_t tam)
             break;
         case HASH_SHAKE_128:
         case HASH_SHAKE_256:
-            /* Ignore updates in these cases */
+            shake_update(&ctx->a.sha3,data,tam);
+            break;
             break;
         case HASH_RIPE_128:
             ripe128_update(&ctx->a.ripe128,data,tam);
@@ -434,11 +439,8 @@ void hash_final(hash_t *ctx,void *hash)
             sha3_final(&ctx->a.sha3,hash);
             break;
         case HASH_SHAKE_128:
-            shake_get(&ctx->a.sha3,hash,SHAKE128_SIZE);
-            shake_clean(&ctx->a.sha3);
-            break;
         case HASH_SHAKE_256:
-            shake_get(&ctx->a.sha3,hash,SHAKE256_SIZE);
+            shake_final(&ctx->a.sha3,hash);            
             shake_clean(&ctx->a.sha3);
             break;
         case HASH_RIPE_128:
@@ -463,6 +465,31 @@ void hash_final(hash_t *ctx,void *hash)
     /* Limpiar evidencia */
 
     memset(ctx,0,sizeof(hash_t));
+}
+
+/* -------------------------------------------- */
+
+void hash_final_hkdf(hash_t *ctx,void *hash,size_t len)
+{
+    switch(ctx->alg)
+    {
+        case HASH_SHAKE_128:
+        case HASH_SHAKE_256:
+            shake_final(&ctx->a.sha3,NULL);            
+            shake_get(&ctx->a.sha3,hash,len);
+            memset(ctx,0,sizeof(hash_t));
+            break;
+        default:
+            if(len > 0)
+            {
+                unsigned char tmp[MAX_HASH_SIZE] = {0};
+
+                hash_final(ctx,tmp);
+
+                memcpy(hash,tmp,(len < MAX_HASH_SIZE) ? len : MAX_HASH_SIZE);
+            }
+            break;
+    }
 }
 
 

@@ -97,17 +97,26 @@ int  keccak_init(sha3_t *ctx,int bits);
 typedef sha3_t           shake_t;
 
 /* -------------------------------------------------- *
-   SHAKE criptographic entropy generator.
+   SHAKE criptographic hash
+ * -------------------------------------------------- */
+
+int  shake_init(sha3_t *ctx,int bits);
+void shake_update(sha3_t *ctx,const void *key,size_t len);
+void shake_final(sha3_t *ctx,void *hash);
+
+/* -------------------------------------------------- *
+   Init a SHAKE criptographic key derivation fuction.
 
    bits = 128 or 256
    key  = key of the shake
    len  = lenght of key
  * -------------------------------------------------- */
 
-int  shake_init(sha3_t *ctx,int bits,const void *key,size_t len);
+ int shake_init_hkdf(sha3_t *ctx,int bits,const void *key,size_t len);
 
 /* -------------------------------------------------- *
-   Gets 'len' bytes of SHAKE criptographic entropy.
+   Gets 'len' bytes of SHAKE criptographic entropy
+   after a shake_hkdf() or shake_final()
  * -------------------------------------------------- */
 
 void shake_get(sha3_t *ctx,void *buf, size_t tam);

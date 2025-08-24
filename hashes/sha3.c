@@ -257,28 +257,41 @@ void sha3_partial(sha3_t *ctx,void *hash)
 
 /* ------------------------------- */
 
-int shake_init(sha3_t *ctx,int bits,const void *key,size_t len)
+int shake_init(sha3_t *ctx,int bits)
 {
-    memset(ctx, 0, sizeof(sha3_t));
-
-    switch(bits)
+    if(ctx)
     {
-        case 128:
-            ctx->tam_digest = SHAKE128_SIZE;
-           	break;
-        case 256:
-        	ctx->tam_digest = SHAKE256_SIZE;
-            break;
-        default:
-            return FALSE;
+        memset(ctx, 0, sizeof(sha3_t));
+
+        switch(bits)
+        {
+            case 128:
+                ctx->tam_digest = SHAKE128_SIZE;
+                break;
+            case 256:
+                ctx->tam_digest = SHAKE256_SIZE;
+                break;
+            default:
+                return FALSE;
+        }
+
+        ctx->num = 200 - (2 * ctx->tam_digest);
+        return ctx->tam_digest;
     }
 
-	ctx->num = 200 - (2 * ctx->tam_digest);
+    return 0;
+}
 
+
+/* ------------------------------- */
+
+void shake_update(sha3_t *ctx,const void *key,size_t len)
+{    
 	if(key && len > 0)
 	{
 	    const unsigned char *datos = (unsigned char *)key;
         size_t i;
+    
         for(i = 0; i < len; i++)
         {
     	    ctx->buf[ctx->idx++] ^= datos[i];
@@ -289,12 +302,36 @@ int shake_init(sha3_t *ctx,int bits,const void *key,size_t len)
             }
         }
     }
+}
 
-    ctx->buf[ctx->idx] ^=  0x1f;
-    ctx->buf[ctx->num - 1] ^= 0x80;
-    SHA3_Transform(ctx);
-    ctx->idx = 0;
-    return TRUE;
+/* ------------------------------- */
+
+void shake_final(sha3_t *ctx,void *hash)
+{
+    if(ctx)
+    {
+        ctx->buf[ctx->idx] ^=  0x1f;
+        ctx->buf[ctx->num - 1] ^= 0x80;
+        SHA3_Transform(ctx);
+        ctx->idx = 0;        
+
+        if(hash)
+            shake_get(ctx,hash,ctx->tam_digest);
+
+    }    
+}
+
+/* ------------------------------- */
+
+int shake_init_hkdf(sha3_t *ctx,int bits,const void *key,size_t len)
+{
+    if(shake_init(ctx,bits) > 0)
+    {
+        shake_update(ctx,key,len);
+        shake_final(ctx,NULL);
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /* ------------------------------- */

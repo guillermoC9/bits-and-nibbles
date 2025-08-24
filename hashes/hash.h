@@ -107,28 +107,34 @@ enum
 /* ----------------------------------------------------- *
     Hash calculation with support for all algorithms
 
-    IMPORTANT: Poly1305 is not really a hash algorithm
-               but a HMAC Function, so calls to
-               hash_init() must include a key of
-               POLY1305_SIZE bytes (16). Thus the result
-               from has_final() is actually an HMAC
-               rather than a hash.
+    IMPORTANT: 
+    
+      Poly1305 is not really a hash algorithm but 
+      a HMAC Function, so calls to hash_init() must 
+      include a key of POLY1305_SIZE bytes (16). 
+      Thus the result from has_final() is actually 
+      an HMAC rather than a hash.
 
-               Shake128/256 are neither hash algorithms,
-               they are Hash Derived Key Functions, so
-               calls to hash_init() should include a
-               key (not actually compulsory like when
-               using POLY1305), calls to the function
-               hash_update() are ignored, and the
-               hash resulting from hash_final() would
-               be a 16/32 bytes key rather than a hash.
+      Shake128/256 are neither hash algorithms,
+      they are HMAC Key Derived Functions, so
+      calls to hash_init() may include a key (not 
+      actually compulsory like when using POLY1305) 
+      to save a call to  hash_update(), and the
+      hash resulting from hash_final() would
+      be a 16/32 bytes key rather than a hash.
 
-               It may seem stupid to allow these two
-               algorithms to be used in here if they are
-               not pure hash algorithms, but allowing them
-               here ease to use them from anywhere
-               else like hmac_...() functions, as the
-               caller know how to handle the differences.
+      If you need a bigger key, you can call 
+      hash_final_hkdf() instead, which allows
+      an amount of bytes to be returned instead
+      the 16/32 of the digest size ;-)
+
+      It may seem stupid to allow these two
+      algorithms to be used in here if they are
+      not pure hash algorithms, but allowing them
+      here ease to use them from anywhere
+      else like hmac_...() functions, or for
+      ed448 signature algorithms, as the caller 
+      know how to handle the differences.
 
  * ----------------------------------------------------- */
 
@@ -314,8 +320,17 @@ int  hash_init(hash_t *ctx,int alg,const void *key,int tam_key);
 void hash_update(hash_t *ctx,const void *datos,size_t tam);
 void hash_final(hash_t *ctx,void *hash);
 
+/* Use this final for HKDF liek shake-128 or shake-256 */
+
+void hash_final_hkdf(hash_t *ctx,void *hash,size_t len);
+
+/* ------------------------------------------------ *
+    Functiosn ot update using strings
+ * ------------------------------------------------ */
+
 void hash_update_str(hash_t *ctx,const char *str);
 void hash_update_wcs(hash_t *ctx,const wchar_t *str);
+
 
 /* ------------------------------------------------ *
    no-destructive version of hash_final(),
