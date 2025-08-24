@@ -167,7 +167,7 @@ void test_curve_25519(void)
     print_bytes("      Private",alice_pri,CURVE_25519_POINT_BYTES);
     printf("      Must Be = 77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a\n\n");
     print_bytes("       Public",alice_pub,ret);
-    printf("      Must Be = 03a0e1a5c720fa1adad858c05b7e02cab912f59bf95abe4fe0db47c234dd2b2c21\n\n");
+    printf("      Must Be = a0e1a5c720fa1adad858c05b7e02cab912f59bf95abe4fe0db47c234dd2b2c21\n\n");
 
 
     bob = ecc_dh_start_from_bytes(curve,NULL,0,bob_pri,CURVE_25519_POINT_BYTES);
@@ -176,7 +176,7 @@ void test_curve_25519(void)
     print_bytes("      Private",bob_pri,CURVE_25519_POINT_BYTES);
     printf("      Must Be = 5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb\n\n");
     print_bytes("       Public",bob_pub,ret);
-    printf("      Must Be = 0387b3ccf50ce25da6ab7053e68c6eb5f7ea0969b51df6b84c60cdd7be15798404\n\n");
+    printf("      Must Be = 87b3ccf50ce25da6ab7053e68c6eb5f7ea0969b51df6b84c60cdd7be15798404\n\n");
 
     ecc_dh_end(alice,bob_pub,ret,alice_key);
     ecc_dh_end(bob,alice_pub,ret,bob_key);
@@ -274,7 +274,7 @@ void test_curve_448(void)
     printf("      Must Be = 9a8f4925d1519f5775cf46b04b5800d4ee9ee8bae8bc5565d498c28dd9c9baf574a9419744897391006382a6f127ab1d9ac2d8c0a598726b\n\n");
 
     print_bytes("       Public",alice_pub,ret);
-    printf("      Must Be = 03f9e60c4f68e01bc3c913c53f6d52efa73d49ef91a519e83266aa9d6f9af2091663efbdf79a01597c446cc2fbeb32da9b663273651cb00170\n\n");
+    printf("      Must Be = f9e60c4f68e01bc3c913c53f6d52efa73d49ef91a519e83266aa9d6f9af2091663efbdf79a01597c446cc2fbeb32da9b663273651cb00170\n\n");
 
 
     bob = ecc_dh_start_from_bytes(curve,NULL,0,bob_pri,CURVE_448_POINT_BYTES);
@@ -283,7 +283,7 @@ void test_curve_448(void)
     print_bytes("      Private",bob_pri,CURVE_448_POINT_BYTES);
     printf("      Must Be = 1c306a7ac2a0e2e0990b294470cba339e6453772b075811d8fad0d1d6927c120bb5ee8972b0d3e21374c9c921b09d1b0366f10b65173992d\n\n");
     print_bytes("       Public",bob_pub,ret);
-    printf("      Must Be = 0338475a2a6de13fcca293e78150a3b0144b504543e5196c4710186fe05e0863854224184a5a02d20d6ed51da965389ba69300164d367102e8\n\n");
+    printf("      Must Be = 38475a2a6de13fcca293e78150a3b0144b504543e5196c4710186fe05e0863854224184a5a02d20d6ed51da965389ba69300164d367102e8\n\n");
 
 
     ecc_dh_end(alice,bob_pub,ret,alice_key);

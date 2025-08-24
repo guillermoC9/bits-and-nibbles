@@ -45,7 +45,7 @@ test: test_ecc.exe
 test_ecc.exe: ecc.obj test_ecc.c
 	$(mkCC_EXE) test_ecc.c ecc.obj $(libOBJS)
 
-ecc.obj: curves.obj pem.obj mpint.o ecc.c ecc.h
+ecc.obj: curves.obj pem.obj mpint.obj ecc.c ecc.h
 	$(mkCC_OBJ) ecc.c
 
 pem.obj: random.obj asn1.obj base64.obj cipher.obj pem.c pem.h
@@ -63,7 +63,7 @@ curve25519.obj: mpint.obj curve25519.c curve25519.h
 curve448.obj: mpint.obj curve448.c curve448.h
 	$(mkCC_OBJ) curve448.c
 
-oid.obj: stuff.o oid.c oid.h
+oid.obj: stuff.obj oid.c oid.h
 	$(mkCC_OBJ) oid.c
 
 asn1.obj: mpint.obj oid.obj asn1.c asn1.h
@@ -75,7 +75,7 @@ base64.obj: stuff.obj base64.c base64.h
 cipher.obj: aes.obj des.obj cipher.c cipher.h
 	$(mkCC_OBJ) cipher.c
 
-aes.obj: stuff.o aes.c aes.h
+aes.obj: stuff.obj aes.c aes.h
 	$(mkCC_OBJ) aes.c
 
 des.obj: des.c des.h
