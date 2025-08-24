@@ -1,7 +1,9 @@
 # Hashes and HMACs
 ## Criptographic Hashing
 
-I personally think that hashes are the second most useful thing ever brought by computers, being the first one the spreadsheet. Hashes have one main function: **The identificaction of information**, and from there derive many other applications. They work by compressing information into a -hopefully- unique hash code that identifies the compressed data and can be used for many things: sorting and searching, data integrity, tampering or corruption detection, provenance, digital fingerprints, signatures and many other. But the two main uses are: **clasification** and **protection** of information.
+I personally think that hashes are the second most useful thing ever brought by computers, being the first one the spreadsheet. 
+
+Hashes have one main function: **The identificaction of information**, and from there derive many other applications. They work by compressing information into a -hopefully- unique hash code that identifies the compressed data and can be used for many things: sorting and searching, data integrity, tampering or corruption detection, provenance, digital fingerprints, signatures and many other. But the two main uses are: **clasification** and **protection** of information.
 
 The clasification of information was the first use of hashes, which was invented to index the information in files and tables, known as *hash tables*. From there, criptographers created the second version of them: criptographic hashes, as they saw then as a way to protect information. It is important to understand the differences on the way to use both hashes, as what are big problems on criptographic hashes: collisions and preimage, are actually the reasons to use indexing hashes. 
 
