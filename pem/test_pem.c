@@ -179,22 +179,70 @@ static void pem_to_text(char *filename)
     pem_close(pm);
 }
 
+
+/* -------------------------------------- */
+
+static void raw_to_text(char *filename)
+{
+    void *dat;    
+    size_t len;   
+    FILE *fp;
+
+    fp=fopen(filename,"rb");
+    if(fp == NULL)    
+    {
+        printf("Cannot open: %s\n",filename);
+        return;
+    }    
+
+    fseek(fp,0,SEEK_END);
+    len=ftell(fp);
+    fseek(fp,0,SEEK_SET);
+    dat=calloc(len+1,1);
+    if(dat)
+    {
+        if(fread(dat,len,1,fp)==1)
+        {
+            printf("\n*** READING RAW %s ***\n",filename);
+            asn1_to_text(stdout,0,dat,len);
+        }
+        else
+        {
+            printf("Cannot load: %s\n",filename);
+        }        
+        free(dat);            
+    }
+    fclose(fp);
+}
+
+
 /* -------------------------------------- */
 
 int main(int argc, char **argv)
 {
-    int t;
+    int t,raw = FALSE;
 
     if(argc < 1)
     {
-        printf("\nusage: test_pem file1 [file2] [file3]\n\n"
-               "    fileX       PEM file encapsulating ASN.1 to show\n\n"                     
+        printf("\nusage: test_pem [-r] file1 [file2 file3 ...]\n\n"               
+               "    fileX       PEM file encapsulating ASN.1 to show\n"                     
+               "    -r          Files are raw ASN.1 not PEM files\n\n"
               );   
     }
     else
     {
         for(t=1;t<argc;t++)
-            pem_to_text(argv[t]);
+        {
+            if(argv[t][0]=='-')
+            {
+                if(argv[t][1]=='r')
+                    raw = TRUE;
+            }
+            else if(raw)
+                raw_to_text(argv[t]);
+            else
+                pem_to_text(argv[t]);
+        }
     }
 
     return 0;
