@@ -7,7 +7,7 @@ Here we present a library that allow to read/write these files easily, although 
 
 Yeah, the content of PEM files is always enconded using ASN.1 and thus we include a library that handles all kind of ASN.1 elements, especially OID. OID stands for *Object IDentifier* and is a very important element in PEM files, ASN.1 encoding and specially X509 certificates. The term OID was actually created for the standard X500, the base of most internet services: Directory Services, which allow users to get information on resources. For example: LDAP. X500 OID fields are used extensively everywhere, like in X509 Certificates or PKCS in order to identify algorithms and signatures.
 
-The test program allows to show PEM files in ASN.1 notation format, even if they are encrypted. There is a bunch of them in the directory ```test``` that you can use to play around. The password for the encripted ones is **```test```**.
+The test program allows to show PEM files in ASN.1 notation format, even if they are encrypted. There is a bunch of them in the directory ```pem``` that you can use to play around. The password for the encripted ones is **```test```**.
 
 For those intereseted in understanding ASN.1, there is a lot of explanatory comments about it in ```asn1.h``` and ```ans1.c```. 
 
@@ -31,7 +31,7 @@ Do the same that for build it but use *cleanit* instead of *test* as the target.
 ## Example output from the test program:
 
 ```
-$ cd test
+$ cd pem
 $ ../test_pem test_priv.pem 
 
 *** READING PEM test_priv.pem ***
@@ -488,25 +488,6 @@ SEQUENCE {
             19 9e 92 3a
     INTEGER 01 0d 1d 41 a5 48 9c e5 99 62 0c 3a 7d f8 fc 1e 49 11 76 7f 38 04 f3 89 46 fa 3d 14 65 cb 29 73
             f7 e8 dd 61
-}
-
-$ ../test_pem dsaparam.pem 
-
-*** READING PEM dsaparam.pem ***
-
------ DSA PARAMETERS -----
-
-SEQUENCE {
-    INTEGER 00 87 e2 5b 39 04 70 60 45 f4 cf 76 c1 89 45 cc b9 cc 59 37 6f 2a fe 54 0b d0 0d bf 6e 1e 13 53
-            04 31 45 52 a2 a0 8a 3c 63 d8 ca fe 25 6a 6c 41 f8 32 ad f9 ac 76 ec 6d a5 be 07 85 68 2e 62 6d
-            f4 52 ad 38 ff 08 f3 76 81 80 d9 e5 5a a4 a7 bb b0 16 85 56 1e 71 66 ab b2 80 27 15 b9 10 f7 56
-            90 fc 10 d2 a2 5d 1a f5 91 2c 3e dc 97 82 af 26 10 d7 e1 2e a7 57 44 f7 2f cb 4a 0b ca c9 b2 51
-            05
-    INTEGER 00 ac 2e 96 b2 39 2b d6 c5 bc df 8f 65 4d dc ec 59 23 82 c1 57
-    INTEGER 12 dd 94 85 7c 77 20 ae 24 a9 b4 43 72 c9 dc 7c 4d 14 f5 4a 93 aa 72 e5 62 0d 13 f3 de 93 53 23
-            fa b8 46 65 1f d5 d0 60 2d f8 4a 6b 8a 9d ea cf d4 8d 9c e9 04 6d ba 78 5a 3f 43 e0 44 21 ad 46
-            03 48 f7 56 03 28 f4 9d f5 aa 9f 2e de b5 4e 51 44 f7 62 09 6d 5c 8e 1c 07 73 0a dd af b8 ad 90
-            ff df 6d d2 fe 45 de 63 4d a5 8d 02 9d 4d f4 24 57 8c f9 8d 4f 1a dd 5f 62 e2 90 44 25 4f d4 e8
 }
 
 $ ../test_pem dsapriv3des.pem 
