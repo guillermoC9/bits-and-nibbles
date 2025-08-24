@@ -203,7 +203,7 @@ static void raw_to_text(char *filename)
     {
         if(fread(dat,len,1,fp)==1)
         {
-            printf("\n*** READING RAW %s ***\n",filename);
+            printf("\n*** READING RAW %s ***\n\n",filename);
             asn1_to_text(stdout,0,dat,len);
         }
         else
