@@ -447,7 +447,49 @@ int ecc_private_to_pem(ecc_key_t *key,const char *passcode,int alg,FILE *fp);
 int ecc_save_pem(const char *file,ecc_key_t *key,int priv,const char *passcode,int alg);
 int ecc_save_pemw(const wchar_t *file,ecc_key_t *key,int priv,const char *passcode,int alg);
 
-/** ECDSA Stuff */
+/* -------------------------------------------------- *
+
+   ECDSA Stuff  (includes EdDSA-25519 & EdDSA-448)
+
+ * -------------------------------------------------- */
+
+/* -------------------------------------------------- *
+    Convert a ECDSA signature to a ASN.1 sequence of
+    bytes, or optionally to a bit string if 'bits' is
+    TRUE
+
+    free with asn1_free()
+ * -------------------------------------------------- */
+
+ asn1_t *ecdsa_sign_to_asn1(ecdsa_sign_t *sign,int bits);
+
+ /* -------------------------------------------------- *
+    Builds a DSA Signature result from a byte buffer
+    encoded in ASN.1/DER
+
+    It accepts this format:
+
+        dsaSignatureValue:: = SEQUENCE
+        {
+            modulus r       INTEGER
+            modulus s       INTEGER
+        }
+ * -------------------------------------------------- */
+
+int ecdsa_sign_from_asn1(ecdsa_sign_t *sign,const void *data,int tam);
+
+
+ /* -------------------------------------------------- *
+     initialize the data from a signature result
+  * -------------------------------------------------- */
+ 
+ void ecdsa_init_sign(ecdsa_sign_t *sign);
+ 
+ /* -------------------------------------------------- *
+     Destroy the data from a signature result
+  * -------------------------------------------------- */
+ 
+ void ecdsa_destroy_sign(ecdsa_sign_t *sign);
 
 /* -------------------------------------------------- *
    Sign a buffer of dlen bytes and return the
@@ -476,6 +518,10 @@ int ecdsa_verify_sign(ecc_key_t *key, int alg, const void *data, int dlen, ecdsa
  * -------------------------------------------------- */
 
 int ecdsa_verify_hash(ecc_key_t *key,const void *hash,int hlen,ecdsa_sign_t *sign);
+
+/* ----------------------------------------------------- *
+    ECDH - Elliptic Curve Diffe-Hellman stuff    
+ * ----------------------------------------------------- */
 
 /* ----------------------------------------------------- *
    Creates an Elliptic Curve Diffie-Hellman key

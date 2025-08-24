@@ -225,6 +225,28 @@ void  put_le64(void *buf,u64_t val);
 u64_t get_be64(const void *buf);
 void  put_be64(void *buf,u64_t val);
 
+
+
+/* -------------------------------------------------- *
+   Read a whole file in memory
+
+   It returns a pointer to the file in memory and
+   if 'tam' is not NULL it puts the size of the 
+   file (i.e. the size of the allocated buffer).
+
+   Use free() on the returned buffer to free it
+ * -------------------------------------------------- */
+
+ void *read_whole_file(const char *file,size_t *tam);
+ void *read_whole_filew(const wchar_t *file,size_t *tam);
+
+ /* -------------------------------------------------- *
+   Save memory into a single file
+ * -------------------------------------------------- */
+
+ int save_whole_file(const char *file,const void *datos,size_t tam);
+ int save_whole_filew(const wchar_t *file,const void *datos,size_t tam);
+ 
 /* -------------------------------------------------- *
    Trims leading and trailing spaces from s
  * -------------------------------------------------- */

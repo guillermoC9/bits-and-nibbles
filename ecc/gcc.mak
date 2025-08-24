@@ -30,6 +30,8 @@ dummy:
 cleanit:
 	rm -f *.o
 	rm -f *.txt	
+	rm -f *.pem	
+	rm -f *.bin	
 	rm -f test_ecc
 
 libOBJS=stuff.o md2.o md5.o sha1.o sha2.o sha3.o hmac.o random.o \

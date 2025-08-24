@@ -30,6 +30,8 @@ dummy:
 cleanit:
 	del /f *.obj
 	del /f *.txt	
+	del /f *.pem
+	del /f *.bin		
 	del /f test_ecc.exe
 
 test: test_ecc.exe

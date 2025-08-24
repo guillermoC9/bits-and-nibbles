@@ -280,6 +280,119 @@ void put_be64(void *bufo,u64_t val)
     }
 }
 
+/* -------------------------------------- */
+
+static void *read_whole(FILE *fp,size_t *tam)
+{
+    void *ret = NULL;
+
+    if(fp)
+    {
+        size_t pos;
+
+        fseek(fp,0,SEEK_END);
+        pos=ftell(fp);
+        fseek(fp,0,SEEK_SET);
+        ret=calloc(pos+1,1);
+        if(ret)
+        {
+            if(fread(ret,pos,1,fp)==1)
+            {
+                if(tam)
+                   *tam=pos;
+            }
+            else
+            {
+                free(ret);
+                ret=NULL;
+            }
+        }
+    }
+    return ret;
+}
+
+/* -------------------------------------- */
+
+void *read_whole_file(const char *file,size_t *tam)
+{
+    void *ret = NULL;
+
+    if(file)
+    {
+        FILE *fp=fopen(file,"rb");
+        if(fp)
+        {
+            ret = read_whole(fp,tam);
+            fclose(fp);
+        }
+    }
+    return ret;
+}
+
+/* -------------------------------------- */
+
+void *read_whole_filew(const wchar_t *file,size_t *tam)
+{
+    void *ret = NULL;    
+    
+    if(file)
+    {
+        FILE *fp = fopenw(file,"rb");
+        if(fp)
+        {
+            ret = read_whole(fp,tam);
+            fclose(fp);
+        }
+    }
+    return ret;
+}
+
+
+/* --------------------------------------- */
+
+int save_whole_filew(const wchar_t *file,const void *datos,size_t tam)
+{
+    FILE *fp;
+    int ret = -1;
+
+    if(file)
+    {
+        fp=fopenw(file,"wb");
+        if(fp)
+        {
+            if(fwrite(datos,tam,1,fp) == 1)
+                ret = 0;
+            fflush(fp);
+            fclose(fp);
+        }        
+    }
+    return ret;
+}
+
+/* --------------------------------------- */
+
+int save_whole_file(const char *file,const void *datos,size_t tam)
+{
+    int ret=-1;
+
+    if(file)
+    {
+        FILE *fp=fopen(file,"wb");
+        if(fp)
+        {
+            if(fp)
+            {
+                if( fwrite(datos,tam,1,fp) == 1)
+                    ret = 0;
+                fflush(fp);
+                fclose(fp);
+            }         
+        }
+    }
+    return ret;
+}
+
+
 /* ------------------------------- */
 
 char *strtrim(char *str)

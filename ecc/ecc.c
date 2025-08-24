@@ -237,8 +237,8 @@ int ecc_signing_hash(int which)
 
     for(t=0;ecc_signa[t].oid;t++)
     {
-        if(which == ecc_signa[t].alg)
-            return ecc_signa[t].hash;
+        if(which == ecc_signa[t].alg)   
+            return ecc_signa[t].hash;        
     }
     return HASH_NONE;
 }
@@ -550,6 +550,9 @@ int ecc_keys_from_seq_asn1(ecc_key_t **k,const void *buf,int blen)
 
             ctx = ecc_get_curve_from_asn1(pub.lst[0].data,pub.lst[0].len);
             if(ctx == NULL)
+                ctx = ecc_get_curve(ecc_sign_algorithm_asn1(pub.lst[0].data,pub.lst[0].len));            
+
+            if(ctx == NULL)
             {
                 wchar_t tmp[81];
 
@@ -717,7 +720,7 @@ static int do_ecc_load_pem(pem_file_t *pem,int publica,const char *passcode,ecc_
 
     if(elem)
     {
-        ret = pem_decode_element(elem,passcode);
+        ret = pem_decode_element(elem,passcode);        
         if(ret==0 && (elem->flags & PEM_F_ASN1))
         {
             ret=ecc_keys_from_asn1(ecc,elem->data,elem->size);
@@ -1076,6 +1079,89 @@ asn1_t *ecc_public_to_asn1(ecc_key_t *key)
 /* -------------------------- */
 /* -------------------------- */
 
+asn1_t *ecdsa_sign_to_asn1(ecdsa_sign_t *sign,int bits)
+{
+    asn1_t *asn=NULL,*tmpr,*tmps;
+
+    if(sign)
+    {
+        tmpr=asn1_create_bignum(&(sign->r));
+        tmps=asn1_create_bignum(&(sign->s));
+
+        if(tmpr && tmps)
+        {
+            asn = asn1_create(ASN1_SEQ,tmpr->total + tmps->total);
+            if(asn)
+            {
+                memcpy(asn->data,tmpr->start,tmpr->total);
+                memcpy(asn->data + tmpr->total,tmps->start,tmps->total);
+
+                if(bits)
+                {
+                    asn1_t *tmp = asn1_create_bits(asn->start,asn->total * 8);
+                    asn1_free(asn);
+                    asn = tmp;
+                }
+            }
+        }
+
+        asn1_free(tmpr);
+        asn1_free(tmps);
+
+    }
+    return asn;
+}
+
+
+/* --------------------------------------------- */
+
+int ecdsa_sign_from_asn1(ecdsa_sign_t *sign,const void *data,int tam)
+{
+    asn1_t asn;
+    asn1_seq_t seq;
+    int ret = -1;
+
+    /* Read sequence */
+
+    if(asn1_read(&asn,data,tam) > 0 && asn.type == ASN1_SEQ && !asn1_seq_read(&seq,asn.data,asn.len))
+    {
+        if(seq.num == 2 && seq.lst[0].type==ASN1_INT && seq.lst[1].type==ASN1_INT)
+        {
+            if(sign)
+            {
+                asn1_to_bignum(&(sign->r),&(seq.lst[0]));
+                asn1_to_bignum(&(sign->s),&(seq.lst[1]));
+                ret = 0;
+            }
+        }
+        asn1_seq_free(&seq);
+    }
+    return ret;
+}
+
+/* -------------------------- */
+
+void ecdsa_init_sign(ecdsa_sign_t *sign)
+{
+    if(sign)
+    {
+        mp_init(&(sign->r));
+        mp_init(&(sign->s));
+    }
+}
+
+/* -------------------------- */
+
+void ecdsa_destroy_sign(ecdsa_sign_t *sign)
+{
+    if(sign)
+    {
+        mp_clear(&(sign->r));
+        mp_clear(&(sign->s));
+    }
+}
+
+/* -------------------------- */
 
 int ecdsa_sign_hash(ecc_key_t *key, const void *hash, int hlen, ecdsa_sign_t *sign)
 {
