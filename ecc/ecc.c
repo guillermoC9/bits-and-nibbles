@@ -1,8 +1,7 @@
 /*
-
     ecc.c
 
-    Elliptic Curve Cryptography
+    Elliptic Curve Cryptography Protocols
 
     (CC) Creative Commons 2018-2025 by Guillermo Amodeo Ojeda.
 
@@ -20,282 +19,263 @@
 
     NOTES:
 
-    - Originally written by Guillermo Amodeo Ojeda using info from:
+        - Written by Guillermo Amodeo Ojeda using references from:
 
-        * https://en.wikipedia.org/wiki/Elliptic-curve_cryptography
+            * RFC-5480 (http://www.ietf.org/rfc/rfc5480.txt)
+            * RFC-5208 (https://tools.ietf.org/html/rfc5208)
+            * RFC-5915 (https://tools.ietf.org/html/rfc5915)
+            * RFC-3279 (https://tools.ietf.org/html/rfc3279)
+            * RFC-8032 (https://www.rfc-editor.org/rfc/rfc8032)
+            * RFC-6979 (https://www.rfc-editor.org/rfc/rfc6979)
+            * RFC-5758 (https://www.rfc-editor.org/rfc/rfc5758)
 
-        * Hankerson, Menezes & Vanstone's "Guide to Elliptic Curve Cryptography"
-          Springer (2004)
-
-        * Michael Rosing's Book "Implementing Elliptic Curve Cryptography".
-          Manning Publications Co (1998).
-
-        * Phrack's "All Hackers Need To Know About Elliptic Curve Cryptography".
-          http://www.phrack.org/issues/63/3.html (2005)
-
-        * B. Poettering's articles at http://point-at-infinity.org/ecc/
-
-        * RFC 5915 at https://tools.ietf.org/html/rfc5915
-
-        * RFC 7748 at https://tools.ietf.org/html/rfc7748
-
-        * RFC 7748 at https://tools.ietf.org/html/rfc8032
-
-        * https://www.cs.miami.edu/home/burt/learning/Csc609.142/ecdsa-cert.pdf
-
-        * http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
-
-        * SEC 2: Recommended Elliptic Curve Domain Parameters
-          http://www.secg.org/sec2-v2.pdf
-
-       * Handbook of Applied Cryptography - https://cacr.uwaterloo.ca/hac/
-
-       * https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.204.9073&rep=rep1&type=pdf
-
-    - The functions have been made time-unpredictable. Some are time-constant and some never
-      take the same time to execute even if they are given exactly the same data.
-
-    - We include Curve25519 and Curve448 in our homogeneus management of Elliptic Curves,
-      which is why we consider points on those curves, even if the Y coordinate is ignored
-      when used and -thus- always set to 0.
+            https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
 
                                 --oO0Oo--
 */
 
 #include "ecc.h"
 
-/* ------------------------ *
-    Curve fields
- * ------------------------ */
+/* --------------------------------------------- */
 
-/* NIST P-192 */
+#define MAX_OID_ALG 11
 
-static mp_digit_t s192r1_p []={0xffffffff, 0xffffffff, 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff};
-static mp_digit_t s192r1_a []={0xfffffffc, 0xffffffff, 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff};
-static mp_digit_t s192r1_b []={0xc146b9b1, 0xfeb8deec, 0x72243049, 0x0fa7e9ab, 0xe59c80e7, 0x64210519};
-static mp_digit_t s192r1_Gx[]={0x82ff1012, 0xf4ff0afd, 0x43a18800, 0x7cbf20eb, 0xb03090f6, 0x188da80e};
-static mp_digit_t s192r1_Gy[]={0x1e794811, 0x73f977a1, 0x6b24cdd5, 0x631011ed, 0xffc8da78, 0x07192b95};
-static mp_digit_t s192r1_n []={0xb4d22831, 0x146bc9b1, 0x99def836, 0xffffffff, 0xffffffff, 0xffffffff};
-
-/* NIST K-192 */
-
-static mp_digit_t s192k1_p []={0xffffee37, 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-static mp_digit_t s192k1_Gx[]={0xeae06c7d, 0x1da5d1b1, 0x80b7f434, 0x26b07d02, 0xc057e9ae, 0xdb4ff10e};
-static mp_digit_t s192k1_Gy[]={0xd95e2f9d, 0x4082aa88, 0x15be8634, 0x844163d0, 0x9c5628a7, 0x9b2f2f6d};
-static mp_digit_t s192k1_n []={0x74defd8d, 0x0f69466a, 0x26f2fc17, 0xfffffffe, 0xffffffff, 0xffffffff};
-
-/* NIST P-256r1 */
-
-static mp_digit_t s256r1_p []={0xffffffff, 0xffffffff, 0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0x00000001, 0xffffffff};
-static mp_digit_t s256r1_a []={0xfffffffc, 0xffffffff, 0xffffffff, 0x00000000, 0x00000000, 0x00000000, 0x00000001, 0xffffffff};
-static mp_digit_t s256r1_b []={0x27d2604b, 0x3bce3c3e, 0xcc53b0f6, 0x651d06b0, 0x769886bc, 0xb3ebbd55, 0xaa3a93e7, 0x5ac635d8};
-static mp_digit_t s256r1_Gx[]={0xd898c296, 0xf4a13945, 0x2deb33a0, 0x77037d81, 0x63a440f2, 0xf8bce6e5, 0xe12c4247, 0x6b17d1f2};
-static mp_digit_t s256r1_Gy[]={0x37bf51f5, 0xcbb64068, 0x6b315ece, 0x2bce3357, 0x7c0f9e16, 0x8ee7eb4a, 0xfe1a7f9b, 0x4fe342e2};
-static mp_digit_t s256r1_n []={0xfc632551, 0xf3b9cac2, 0xa7179e84, 0xbce6faad, 0xffffffff, 0xffffffff, 0x00000000, 0xffffffff};
-
-/* NIST P-256k1 */
-
-static mp_digit_t s256k1_p []={0xfffffc2f, 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-static mp_digit_t s256k1_Gx[]={0x16f81798, 0x59f2815b, 0x2dce28d9, 0x029bfcdb, 0xce870b07, 0x55a06295, 0xf9dcbbac, 0x79be667e};
-static mp_digit_t s256k1_Gy[]={0xfb10d4b8, 0x9c47d08f, 0xa6855419, 0xfd17b448, 0x0e1108a8, 0x5da4fbfc, 0x26a3c465, 0x483ada77};
-static mp_digit_t s256k1_n []={0xd0364141, 0xbfd25e8c, 0xaf48a03b, 0xbaaedce6 , 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff};
-
-/* NIST P-384 */
-
-static mp_digit_t s384r1_p []={0xffffffff, 0x00000000, 0x00000000, 0xffffffff, 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-static mp_digit_t s384r1_a []={0xfffffffc, 0x00000000, 0x00000000, 0xffffffff, 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-static mp_digit_t s384r1_b []={0xd3ec2aef, 0x2a85c8ed, 0x8a2ed19d, 0xc656398d, 0x5013875a, 0x0314088f, 0xfe814112, 0x181d9c6e, 0xe3f82d19, 0x988e056b, 0xe23ee7e4, 0xb3312fa7};
-static mp_digit_t s384r1_Gx[]={0x72760ab7, 0x3a545e38, 0xbf55296c, 0x5502f25d, 0x82542a38, 0x59f741e0, 0x8ba79b98, 0x6e1d3b62, 0xf320ad74, 0x8eb1c71e, 0xbe8b0537, 0xaa87ca22};
-static mp_digit_t s384r1_Gy[]={0x90ea0e5f, 0x7a431d7c, 0x1d7e819d, 0x0a60b1ce, 0xb5f0b8c0, 0xe9da3113, 0x289a147c, 0xf8f41dbd, 0x9292dc29, 0x5d9e98bf, 0x96262c6f, 0x3617de4a};
-static mp_digit_t s384r1_n []={0xccc52973, 0xecec196a, 0x48b0a77a, 0x581a0db2, 0xf4372ddf, 0xc7634d81, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-
-/* NIST P-521 */
-
-static mp_digit_t s521r1_p []={0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0x000001ff};
-static mp_digit_t s521r1_a []={0xfffffffc, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0x000001ff};
-static mp_digit_t s521r1_b []={0x6b503f00, 0xef451fd4, 0x3d2c34f1, 0x3573df88, 0x3bb1bf07, 0x1652c0bd, 0xec7e937b, 0x56193951, 0x8ef109e1, 0xb8b48991, 0x99b315f3, 0xa2da725b, 0xb68540ee, 0x929a21a0, 0x8e1c9a1f, 0x953eb961, 0x00000051};
-static mp_digit_t s521r1_Gx[]={0xc2e5bd66, 0xf97e7e31, 0x856a429b, 0x3348b3c1, 0xa2ffa8de, 0xfe1dc127, 0xefe75928, 0xa14b5e77, 0x6b4d3dba, 0xf828af60, 0x053fb521, 0x9c648139, 0x2395b442, 0x9e3ecb66, 0x0404e9cd, 0x858e06b7, 0x000000c6};
-static mp_digit_t s521r1_Gy[]={0x9fd16650, 0x88be9476, 0xa272c240, 0x353c7086, 0x3fad0761, 0xc550b901, 0x5ef42640, 0x97ee7299, 0x273e662c, 0x17afbd17, 0x579b4468, 0x98f54449, 0x2c7d1bd9, 0x5c8a5fb4, 0x9a3bc004, 0x39296a78, 0x00000118};
-static mp_digit_t s521r1_n []={0x91386409, 0xbb6fb71e, 0x899c47ae, 0x3bb5c9b8, 0xf709a5d0, 0x7fcc0148, 0xbf2f966b, 0x51868783, 0xfffffffa, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0x000001ff};
-
-/* BrainPool P-192 */
-
-static mp_digit_t b192r1_p []={0xe1a86297, 0x8fce476d, 0x93d18db7, 0xa7a34630, 0x932a36cd, 0xc302f41d};
-static mp_digit_t b192r1_a []={0xc69a28ef, 0xcae040e5, 0xfe8685c1, 0x9c39c031, 0x76b1e0e1, 0x6a911740};
-static mp_digit_t b192r1_b []={0x6fbf25c9, 0xca7ef414, 0x4f4496bc, 0xdc721d04, 0x7c28cca3, 0x469a28ef};
-static mp_digit_t b192r1_Gx[]={0x53375fd6, 0x0a2f5c48, 0x6cb0f090, 0x53b033c5, 0xaab6a487, 0xc0a0647e};
-static mp_digit_t b192r1_Gy[]={0xfa299b8f, 0xe6773fa2, 0xc1490002, 0x8b5f4828, 0x6abd5bb8, 0x14b69086};
-static mp_digit_t b192r1_n []={0x9ac4acc1, 0x5be8f102, 0x9e9e916b, 0xa7a3462f, 0x932a36cd, 0xc302f41d};
-
-/* BrainPool P-224 */
-
-static mp_digit_t b224r1_p []={0x7ec8c0ff, 0x97da89f5, 0xb09f0757, 0x75d1d787, 0x2a183025, 0x26436686, 0xd7c134aa};
-static mp_digit_t b224r1_a []={0xcad29f43, 0xb0042a59, 0x4e182ad8, 0xc1530b51, 0x299803a6, 0xa9ce6c1c, 0x68a5e62c};
-static mp_digit_t b224r1_b []={0x386c400b, 0x66dbb372, 0x3e2135d2, 0xa92369e3, 0x870713b1, 0xcfe44138, 0x2580f63c};
-static mp_digit_t b224r1_Gx[]={0xee12c07d, 0x4c1e6efd, 0x9e4ce317, 0xa87dc68c, 0x340823b2, 0x2c7e5cf4, 0x0d9029ad};
-static mp_digit_t b224r1_Gy[]={0x761402cd, 0xcaa3f6d3, 0x354b9e99, 0x4ecdac24, 0x24c6b89e, 0x72c0726f, 0x58aa56f7};
-static mp_digit_t b224r1_n []={0xa5a7939f, 0x6ddebca3, 0xd116bc4b, 0x75d0fb98, 0x2a183025, 0x26436686, 0xd7c134aa};
-
-/* BrainPool P-256 */
-
-static mp_digit_t b256r1_p []={0x1f6e5377, 0x2013481d, 0xd5262028, 0x6e3bf623, 0x9d838d72, 0x3e660a90, 0xa1eea9bc, 0xa9fb57db};
-static mp_digit_t b256r1_a []={0xf330b5d9, 0xe94a4b44, 0x26dc5c6c, 0xfb8055c1, 0x417affe7, 0xeef67530, 0xfc2c3057, 0x7d5a0975};
-static mp_digit_t b256r1_b []={0xff8c07b6, 0x6bccdc18, 0x5cf7e1ce, 0x95841629, 0xbbd77cbf, 0xf330b5d9, 0xe94a4b44, 0x26dc5c6c};
-static mp_digit_t b256r1_Gx[]={0x9ace3262, 0x3a4453bd, 0xe3bd23c2, 0xb9de27e1, 0xfc81b7af, 0x2c4b482f, 0xcb7e57cb, 0x8bd2aeb9};
-static mp_digit_t b256r1_Gy[]={0x2f046997, 0x5c1d54c7, 0x2ded8e54, 0xc2774513, 0x14611dc9, 0x97f8461a, 0xc3dac4fd, 0x547ef835};
-static mp_digit_t b256r1_n []={0x974856a7, 0x901e0e82, 0xb561a6f7, 0x8c397aa3, 0x9d838d71, 0x3e660a90, 0xa1eea9bc, 0xa9fb57db};
-
-/* BrainPool P-320 */
-
-static mp_digit_t b320r1_p []={0xf1b32e27, 0xfcd412b1, 0x7893ec28, 0x4f92b9ec, 0xf6f40def, 0xf98fcfa6, 0xd201e065, 0xe13c785e, 0x36bc4fb7, 0xd35e4720};
-static mp_digit_t b320r1_a []={0x7d860eb4, 0x92f375a9, 0x85ffa9f4, 0x66190eb0, 0xf5eb79da, 0xa2a73513, 0x6d3f3bb8, 0x83ccebd4, 0x8fbab0f8, 0x3ee30b56};
-static mp_digit_t b320r1_b []={0x8fb1f1a6, 0x6f5eb4ac, 0x88453981, 0xcc31dccd, 0x9554b49a, 0xe13f4134, 0x40688a6f, 0xd3ad1986, 0x9dfdbc42, 0x52088394};
-static mp_digit_t b320r1_Gx[]={0x39e20611, 0x10af8d0d, 0x10a599c7, 0xe7871e2a, 0x0a087eb6, 0xf20137d1, 0x8ee5bfe6, 0x5289bcc4, 0xfb53d8b8, 0x43bd7e9a};
-static mp_digit_t b320r1_Gy[]={0x692e8ee1, 0xd35245d1, 0xaaac6ac7, 0xa9c77877, 0x117182ea, 0x0743ffed, 0x7f77275e, 0xab409324, 0x45ec1cc8, 0x14fdd055};
-static mp_digit_t b320r1_n []={0x44c59311, 0x8691555b, 0xee8658e9, 0x2d482ec7, 0xb68f12a3, 0xf98fcfa5, 0xd201e065, 0xe13c785e, 0x36bc4fb7, 0xd35e4720};
-
-/* BrainPool P-384 */
-
-static mp_digit_t b384r1_p []={0x3107ec53, 0x87470013, 0x901d1a71, 0xacd3a729, 0x7fb71123, 0x12b1da19, 0xed5456b4, 0x152f7109, 0x50e641df, 0x0f5d6f7e, 0xa3386d28, 0x8cb91e82};
-static mp_digit_t b384r1_a []={0x22ce2826, 0x04a8c7dd, 0x503ad4eb, 0x8aa5814a, 0xba91f90f, 0x139165ef, 0x4fb22787, 0xc2bea28e, 0xce05afa0, 0x3c72080a, 0x3d8c150c, 0x7bc382c6};
-static mp_digit_t b384r1_b []={0xfa504c11, 0x3ab78696, 0x95dbc994, 0x7cb43902, 0x3eeb62d5, 0x2e880ea5, 0x07dcd2a6, 0x2fb77de1, 0x16f0447c, 0x8b39b554, 0x22ce2826, 0x04a8c7dd};
-static mp_digit_t b384r1_Gx[]={0x47d4af1e, 0xef87b2e2, 0x36d646aa, 0xe826e034, 0x0cbd10e8, 0xdb7fcafe, 0x7ef14fe3, 0x8847a3e7, 0xb7c13f6b, 0xa2a63a81, 0x68cf45ff, 0x1d1c64f0};
-static mp_digit_t b384r1_Gy[]={0x263c5315, 0x42820341, 0x77918111, 0x0e464621, 0xf9912928, 0xe19c054f, 0xfeec5864, 0x62b70b29, 0x95cfd552, 0x5cb1eb8e, 0x20f9c2a4, 0x8abe1d75};
-static mp_digit_t b384r1_n []={0xe9046565, 0x3b883202, 0x6b7fc310, 0xcf3ab6af, 0xac0425a7, 0x1f166e6c, 0xed5456b3, 0x152f7109, 0x50e641df, 0x0f5d6f7e, 0xa3386d28, 0x8cb91e82};
-
-/* BrainPool P-512 */
-
-static mp_digit_t b512r1_p []={0x583a48f3, 0x28aa6056, 0x2d82c685, 0x2881ff2f, 0xe6a380e6, 0xaecda12a, 0x9bc66842, 0x7d4d9b00, 0x70330871, 0xd6639cca, 0xb3c9d20e, 0xcb308db3, 0x33c9fc07, 0x3fd4e6ae, 0xdbe9c48b, 0xaadd9db8};
-static mp_digit_t b512r1_a []={0x77fc94ca, 0xe7c1ac4d, 0x2bf2c7b9, 0x7f1117a7, 0x8b9ac8b5, 0x0a2ef1c9, 0xa8253aa1, 0x2ded5d5a, 0xea9863bc, 0xa83441ca, 0x3df91610, 0x94cbdd8d, 0xac234cc5, 0xe2327145, 0x8b603b89, 0x7830a331};
-static mp_digit_t b512r1_b []={0x8016f723, 0x2809bd63, 0x5ebae5dd, 0x984050b7, 0xdc083e67, 0x77fc94ca, 0xe7c1ac4d, 0x2bf2c7b9, 0x7f1117a7, 0x8b9ac8b5, 0x0a2ef1c9, 0xa8253aa1, 0x2ded5d5a, 0xea9863bc, 0xa83441ca, 0x3df91610};
-static mp_digit_t b512r1_Gx[]={0xbcb9f822, 0x8b352209, 0x406a5e68, 0x7c6d5047, 0x93b97d5f, 0x50d1687b, 0xe2d0d48d, 0xff3b1f78, 0xf4d0098e, 0xb43b62ee, 0xb5d916c1, 0x85ed9f70, 0x9c4c6a93, 0x5a21322e, 0xd82ed964, 0x81aee4bd};
-static mp_digit_t b512r1_Gy[]={0x3ad80892, 0x78cd1e0f, 0xa8f05406, 0xd1ca2b2f, 0x8a2763ae, 0x5bca4bd8, 0x4a5f485e, 0xb2dcde49, 0x881f8111, 0xa000c55b, 0x24a57b1a, 0xf209f700, 0xcf7822fd, 0xc0eabfa9, 0x566332ec, 0x7dde385d};
-static mp_digit_t b512r1_n []={0x9ca90069, 0xb5879682, 0x085ddadd, 0x1db1d381, 0x7fac1047, 0x41866119, 0x4ca92619, 0x553e5c41, 0x70330870, 0xd6639cca, 0xb3c9d20e, 0xcb308db3, 0x33c9fc07, 0x3fd4e6ae, 0xdbe9c48b, 0xaadd9db8};
-
-/* curve25519 parameters from RFC-7748/RFC-8032 */
-
-static mp_digit_t c25519_p []={0xffffffed, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0x7fffffff};
-static mp_digit_t c25519_a []={0x00076D06};
-static mp_digit_t c25519_Gx[]={0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x09000000};
-static mp_digit_t c25519_Gy[]={0x7eced3d9, 0x29e9c5a2, 0x6d7c61b2, 0x923d4d7e, 0x7748d14c, 0xe01edd2c, 0xb8a086b4, 0x20ae19a1};
-static mp_digit_t c25519_n []={0x5cf5d3ed, 0x5812631a, 0xa2f79cd6, 0x14def9de, 0x00000000, 0x00000000, 0x00000000, 0x10000000};
-
-/* curve448 parameters from RFC-7748/RFC-8032 */
-
-static mp_digit_t c448_p []={0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xfffffffe, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
-static mp_digit_t c448_a []={0x000098A9};
-static mp_digit_t c448_Gx[]={0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x05000000};
-static mp_digit_t c448_Gy[]={0x457B5B1A, 0x6FD7223D, 0x50677AF7, 0x1312C4B1, 0x46430D21, 0xB8027E23, 0x8DF3F6ED, 0x60F75DC2, 0xF55545D0, 0xCBAE5D34, 0x58326FCE, 0x6C98AB6E, 0x95F5B1F6, 0x7D235D12};
-static mp_digit_t c448_n []={0xAB5844F3, 0x2378C292, 0x8DC58F55, 0x216CC272, 0xAED63690, 0xC44EDB49, 0x7CCA23E9, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0x3fffffff};
-
-/* ------------------------ *
-    Curve names
- * ------------------------ */
-
-const char *name_curve_192k1[3]={"secp192k1","ansip192k1",NULL};
-const char *name_curve_192r1[5]={"secp192r1","prime192v1","nistp192","P-192",NULL};
-const char *name_curve_256r1[5]={"secp256r1","prime256v1","nistp256","P-256",NULL};
-const char *name_curve_256k1[3]={"secp256k1","ansip256k1",NULL};
-const char *name_curve_384r1[5]={"secp384r1","prime384v1","nistp384","P-384",NULL};
-const char *name_curve_521r1[5]={"secp521r1","prime521v1","nistp521","P-521",NULL};
-
-const char *name_curve_b192r1[2]={"brainpoolP192r1",NULL};
-const char *name_curve_b224r1[2]={"brainpoolP224r1",NULL};
-const char *name_curve_b256r1[2]={"brainpoolP256r1",NULL};
-const char *name_curve_b320r1[2]={"brainpoolP320r1",NULL};
-const char *name_curve_b384r1[2]={"brainpoolP384r1",NULL};
-const char *name_curve_b512r1[2]={"brainpoolP512r1",NULL};
-
-const char *name_curve_25519[3]={"curve25519","X25519",NULL};
-const char *name_curve_448  [3]={"curve448","X448",NULL};
-
-/* ------------------------ *
-    Curves
- * ------------------------ */
-
-static mp_digit_t bnZero  = 0;
-static mp_digit_t bnOne   = 1;
-static mp_digit_t bnThree = 3;
-static mp_digit_t bnSeven = 7;
-
-static ecc_curve_t curve_list[ECC_NUM_CURVES]=
+static struct _ecc_sign_
 {
-
-  /* Prime Curves */
-
-  {ECC_CURVE_192k1, name_curve_192k1, 192, 24,  6, {MP_ZPOS, 6, 6,s192k1_p},{MP_ZPOS, 1, 1,&bnZero },{MP_ZPOS, 1, 1,&bnThree},{MP_ZPOS, 6, 6,s192k1_n},{{MP_ZPOS, 6, 6,s192k1_Gx},{MP_ZPOS, 6, 6,s192k1_Gy}}, 1},
-  {ECC_CURVE_192r1, name_curve_192r1, 192, 24,  6, {MP_ZPOS, 6, 6,s192r1_p},{MP_ZPOS, 6, 6,s192r1_a},{MP_ZPOS, 6, 6,s192r1_b},{MP_ZPOS, 6, 6,s192r1_n},{{MP_ZPOS, 6, 6,s192r1_Gx},{MP_ZPOS, 6, 6,s192r1_Gy}}, 1},
-  {ECC_CURVE_256r1, name_curve_256r1, 256, 32,  8, {MP_ZPOS, 8, 8,s256r1_p},{MP_ZPOS, 8, 8,s256r1_a},{MP_ZPOS, 8, 8,s256r1_b},{MP_ZPOS, 8, 8,s256r1_n},{{MP_ZPOS, 8, 8,s256r1_Gx},{MP_ZPOS, 8, 8,s256r1_Gy}}, 1},
-  {ECC_CURVE_256k1, name_curve_256k1, 256, 32,  8, {MP_ZPOS, 8, 8,s256k1_p},{MP_ZPOS, 1, 1,&bnZero },{MP_ZPOS, 1, 1,&bnSeven},{MP_ZPOS, 8, 8,s256k1_n},{{MP_ZPOS, 8, 8,s256k1_Gx},{MP_ZPOS, 8, 8,s256k1_Gy}}, 1},
-  {ECC_CURVE_384r1, name_curve_384r1, 384, 48, 12, {MP_ZPOS,12,12,s384r1_p},{MP_ZPOS,12,12,s384r1_a},{MP_ZPOS,12,12,s384r1_b},{MP_ZPOS,12,12,s384r1_n},{{MP_ZPOS,12,12,s384r1_Gx},{MP_ZPOS,12,12,s384r1_Gy}}, 1},
-  {ECC_CURVE_521r1, name_curve_521r1, 521, 66, 17, {MP_ZPOS,17,17,s521r1_p},{MP_ZPOS,17,17,s521r1_a},{MP_ZPOS,17,17,s521r1_b},{MP_ZPOS,17,17,s521r1_n},{{MP_ZPOS,17,17,s521r1_Gx},{MP_ZPOS,17,17,s521r1_Gy}}, 1},
-
-  {ECC_CURVE_BRAIN_192, name_curve_b192r1, 192, 24,  6, {MP_ZPOS, 6, 6,b192r1_p},{MP_ZPOS, 6, 6,b192r1_a},{MP_ZPOS, 6, 6,b192r1_b},{MP_ZPOS, 6, 6,b192r1_n},{{MP_ZPOS, 6, 6,b192r1_Gx},{MP_ZPOS, 6, 6,b192r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_224, name_curve_b224r1, 224, 28,  7, {MP_ZPOS, 7, 7,b224r1_p},{MP_ZPOS, 7, 7,b224r1_a},{MP_ZPOS, 7, 7,b224r1_b},{MP_ZPOS, 7, 7,b224r1_n},{{MP_ZPOS, 7, 7,b224r1_Gx},{MP_ZPOS, 7, 7,b224r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_256, name_curve_b256r1, 256, 32,  8, {MP_ZPOS, 8, 8,b256r1_p},{MP_ZPOS, 8, 8,b256r1_a},{MP_ZPOS, 8, 8,b256r1_b},{MP_ZPOS, 8, 8,b256r1_n},{{MP_ZPOS, 8, 8,b256r1_Gx},{MP_ZPOS, 8, 8,b256r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_320, name_curve_b320r1, 320, 40, 10, {MP_ZPOS,10,10,b320r1_p},{MP_ZPOS,10,10,b320r1_a},{MP_ZPOS,10,10,b320r1_b},{MP_ZPOS,10,10,b320r1_n},{{MP_ZPOS,10,10,b320r1_Gx},{MP_ZPOS,10,10,b320r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_384, name_curve_b384r1, 384, 48, 12, {MP_ZPOS,12,12,b384r1_p},{MP_ZPOS,12,12,b384r1_a},{MP_ZPOS,12,12,b384r1_b},{MP_ZPOS,12,12,b384r1_n},{{MP_ZPOS,12,12,b384r1_Gx},{MP_ZPOS,12,12,b384r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_512, name_curve_b512r1, 512, 64, 16, {MP_ZPOS,16,16,b512r1_p},{MP_ZPOS,16,16,b512r1_a},{MP_ZPOS,16,16,b512r1_b},{MP_ZPOS,16,16,b512r1_n},{{MP_ZPOS,16,16,b512r1_Gx},{MP_ZPOS,16,16,b512r1_Gy}}, 1},
-
-  /* Edward's Curves */
-
-  {ECC_CURVE_X25519, name_curve_25519, 256, 32,  8, {MP_ZPOS, 8, 8,c25519_p},{MP_ZPOS, 1, 1,c25519_a},{MP_ZPOS, 1, 1,&bnOne   },{MP_ZPOS, 8, 8,c25519_n},{{MP_ZPOS, 8, 8,c25519_Gx},{MP_ZPOS, 8, 8,c25519_Gy}}, 8},
-  {ECC_CURVE_X448,   name_curve_448,   448, 56, 14, {MP_ZPOS,14,14,c448_p  },{MP_ZPOS, 1, 1,c448_a  },{MP_ZPOS, 1, 1,&bnZero  },{MP_ZPOS,14,14,c448_n  },{{MP_ZPOS,14,14,c448_Gx  },{MP_ZPOS,14,14,c448_Gy  }}, 4},
-
-};
-
-/* ------------------------ *
-    OID / ASN.1
- * ------------------------ */
-
-typedef struct
+    int alg,hash;
+    char *oid;
+    char *name;
+    wchar_t *namew;
+    unsigned char asn[MAX_OID_ALG];
+}
+ecc_signa[] =
 {
-    int                 curve;
-    const char         *oid;
-    const unsigned char asn1[12];
-} eccodid_t;
+    /* Hash algorithms used on the signatures (order must be the same as declared in ecc_proto.h) */
 
-static eccodid_t ecc_oid[] =
-{
-    { ECC_CURVE_192k1,     "1.3.132.0.31",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x1f,0x00,0x00,0x00,0x00}},
-    { ECC_CURVE_192r1,     "1.2.840.10045.3.1.1",   {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x03,0x01,0x01,0x00,0x00}},
-    { ECC_CURVE_256r1,     "1.2.840.10045.3.1.7",   {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x03,0x01,0x07,0x00,0x00}},
-    { ECC_CURVE_256k1,     "1.3.132.0.10",          {0x06,0x05,0x2b,0x81,0x04,0x00,0xa,0x00,0x00,0x00,0x00,0x00}},
-    { ECC_CURVE_384r1,     "1.3.132.0.34",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x22,0x00,0x00,0x00,0x00,0x00}},
-    { ECC_CURVE_521r1,     "1.3.132.0.35",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x23,0x00,0x00,0x00,0x00,0x00}},
+    {ECDSA_SHA1  , HASH_SHA1,  "1.2.840.10045.4.1"  ,"ecdsaWithSHA1"   , L"ecdsaWithSHA1"   , {0x06,0x07,0x2a,0x86,0x48,0xce,0x3d,0x04,0x01,0x00,0x00}},
+    {ECDSA_SHA224, HASH_SHA224,"1.2.840.10045.4.3.1","ecdsaWithSHA224" , L"ecdsaWithSHA224" , {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x04,0x03,0x01,0x00}},
+    {ECDSA_SHA256, HASH_SHA256,"1.2.840.10045.4.3.2","ecdsaWithSHA256" , L"ecdsaWithSHA256" , {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x04,0x03,0x02,0x00}},
+    {ECDSA_SHA384, HASH_SHA384,"1.2.840.10045.4.3.3","ecdsaWithSHA384" , L"ecdsaWithSHA384" , {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x04,0x03,0x03,0x00}},
+    {ECDSA_SHA512, HASH_SHA512,"1.2.840.10045.4.3.4","ecdsaWithSHA512" , L"ecdsaWithSHA512" , {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x04,0x03,0x04,0x00}},
 
-    { ECC_CURVE_BRAIN_192, "1.3.36.3.3.2.8.1.1.3",  {0x06,0x09,0x2b,0x24,0x03,0x03,0x02,0x08,0x01,0x01,0x03,0x00}},
-    { ECC_CURVE_BRAIN_224, "1.3.36.3.3.2.8.1.1.5",  {0x06,0x09,0x2b,0x24,0x03,0x03,0x02,0x08,0x01,0x01,0x05,0x00}},
-    { ECC_CURVE_BRAIN_256, "1.3.36.3.3.2.8.1.1.7",  {0x06,0x09,0x2b,0x24,0x03,0x03,0x02,0x08,0x01,0x01,0x07,0x00}},
-    { ECC_CURVE_BRAIN_320, "1.3.36.3.3.2.8.1.1.9",  {0x06,0x09,0x2b,0x24,0x03,0x03,0x02,0x08,0x01,0x01,0x09,0x00}},
-    { ECC_CURVE_BRAIN_384, "1.3.36.3.3.2.8.1.1.11", {0x06,0x09,0x2b,0x24,0x03,0x03,0x02,0x08,0x01,0x01,0x0b,0x00}},
-    { ECC_CURVE_BRAIN_512, "1.3.36.3.3.2.8.1.1.13", {0x06,0x09,0x2b,0x24,0x03,0x03,0x02,0x08,0x01,0x01,0x0d,0x00}},
-    
+    {ECDSA_SHA3_224, HASH_SHA3_224,"2.16.840.1.101.3.4.3.9" , "ecdsaWithSHA3-224", L"ecdsaWithSHA3-224", {0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x03,0x09}},
+    {ECDSA_SHA3_256, HASH_SHA3_256,"2.16.840.1.101.3.4.3.10", "ecdsaWithSHA3-256", L"ecdsaWithSHA3-256", {0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x03,0x0a}},
+    {ECDSA_SHA3_384, HASH_SHA3_384,"2.16.840.1.101.3.4.3.11", "ecdsaWithSHA3-384", L"ecdsaWithSHA3-384", {0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x03,0x0b}},
+    {ECDSA_SHA3_512, HASH_SHA3_512,"2.16.840.1.101.3.4.3.12", "ecdsaWithSHA3-512", L"ecdsaWithSHA3-512", {0x06,0x09,0x60,0x86,0x48,0x01,0x65,0x03,0x04,0x03,0x0c}},
+
     /* RFC-8410: https://datatracker.ietf.org/doc/rfc8410 */
+    /* RFC-8032: https://datatracker.ietf.org/doc/rfc8032 */
 
-    { ECC_CURVE_X25519,    "1.3.101.110",           {0x06,0x03,0x2b,0x65,0x6e,0x00,0x00,0x00,0x00,0x00,0x00,0x00}},
-    { ECC_CURVE_X448,      "1.3.101.111",           {0x06,0x03,0x2b,0x65,0x6f,0x00,0x00,0x00,0x00,0x00,0x00,0x00}},    
+    {EdDSA_25519,  HASH_SHA512, "1.3.101.112", "eddsaWithEd25519" ,L"eddsaWithEd25519", {0x06,0x03,0x2b,0x65,0x70,0x00,0x00,0x00,0x00,0x00,0x00}},
+    {EdDSA_448, HASH_SHAKE_256, "1.3.101.113", "eddsaWithEd448"   ,L"eddsaWithEd448"  , {0x06,0x03,0x2b,0x65,0x71,0x00,0x00,0x00,0x00,0x00,0x00}},
 
-    { ECC_CURVE_NONE,      NULL,                    {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}
+    /* Add new ones here */
+
+    {NPI_SIGN_ALG,HASH_NONE,NULL,NULL,NULL,{0}},
 };
 
-/* ------------------------ */
+/*  
+   WARNING ***  WARNING ** WARNING ***  WARNING 
 
-ecc_curve_t *ecc_get_curve_from_oid(const char *curve)
+   Make sure this is correct and points to EdDSA_25519 entry
+   on the array above if you add new algorithms there, as code 
+   downwards depends on it
+*/
+
+#define KEY_X25519_POS  9       
+
+/* --------------------------------------------- */
+
+int ecc_sign_alg(int alg)
 {
-    int i;
+    int t;
 
-    for(i=0;ecc_oid[i].curve != ECC_CURVE_NONE;i++)
+    for(t=0;ecc_signa[t].oid;t++)
     {
-        if(!strcmp(curve, ecc_oid[i].oid))
-            return ecc_get_curve(ecc_oid[i].curve);
+        if(ecc_signa[t].alg == alg)
+            return alg;
+    }
+
+    return NPI_SIGN_ALG;
+}
+
+/* --------------------------------------------- */
+
+int ecc_sign_algorithm(const char *oid)
+{
+    int t;
+
+    if(oid)
+    {
+        for(t=0;ecc_signa[t].oid;t++)
+        {
+            if(!strcmp(oid,ecc_signa[t].oid))
+                return ecc_signa[t].alg;
+        }
+    }
+    return NPI_SIGN_ALG;
+}
+
+/* -------------------------- */
+
+int ecc_sign_alg_from_namew(const wchar_t *name)
+{
+    int t;
+
+    if(name)
+    {
+        for(t=0;ecc_signa[t].name;t++)
+        {
+            if(!wcscmp(name,ecc_signa[t].namew))
+                return ecc_signa[t].alg;
+        }
+    }
+    return NPI_SIGN_ALG;
+}
+
+/* -------------------------- */
+
+int ecc_sign_alg_from_name(const char *name)
+{
+    int t;
+
+    if(name)
+    {
+        for(t=0;ecc_signa[t].name;t++)
+        {
+            if(!strcmp(name,ecc_signa[t].name))
+                return ecc_signa[t].alg;
+        }
+    }
+    return NPI_SIGN_ALG;
+}
+
+
+/* -------------------------- */
+
+char *ecc_sign_oid(int which)
+{
+    int t;
+
+    for(t=0;ecc_signa[t].oid;t++)
+    {
+        if(which == ecc_signa[t].alg)
+            return ecc_signa[t].oid;
     }
     return NULL;
 }
 
+/* -------------------------- */
+
+char *ecc_sign_name(int which)
+{
+    int t;
+
+    for(t=0;ecc_signa[t].oid;t++)
+    {
+        if(which == ecc_signa[t].alg)
+            return ecc_signa[t].name;
+    }
+    return NULL;
+}
+
+/* -------------------------- */
+
+wchar_t *ecc_sign_namew(int which)
+{
+    int t;
+
+    for(t=0;ecc_signa[t].oid;t++)
+    {
+        if(which == ecc_signa[t].alg)
+            return ecc_signa[t].namew;
+    }
+    return NULL;
+}
+
+/* -------------------------- */
+
+int ecc_sign_oid_asn1(int which,unsigned char *dest,int max)
+{
+    int t,tmp;
+
+    for(t=0;ecc_signa[t].oid;t++)
+    {
+        if(which == ecc_signa[t].alg)
+        {
+            tmp = ecc_signa[t].asn[1] + 2;
+            if(max < tmp)
+                return 0;
+            if(dest)
+                memcpy(dest,ecc_signa[t].asn,tmp);
+            return tmp;
+        }
+    }
+    return 0;
+}
+
+/* -------------------------- */
+
+int ecc_sign_algorithm_asn1(unsigned char *oid,int tam)
+{
+    int t,tmp;
+
+    for(t=0;ecc_signa[t].oid;t++)
+    {
+        tmp = ecc_signa[t].asn[1];
+        if(tam == tmp && !memcmp(oid,ecc_signa[t].asn + 2,tam))
+            return ecc_signa[t].alg;
+    }
+    return NPI_SIGN_ALG;
+}
+
+/* -------------------------- */
+
+int ecc_signing_hash(int which)
+{
+    int t;
+
+    for(t=0;ecc_signa[t].oid;t++)
+    {
+        if(which == ecc_signa[t].alg)
+            return ecc_signa[t].hash;
+    }
+    return HASH_NONE;
+}
+
+/* --------------------------------------------- */
+/*      OID for EC public key types              */
+/* --------------------------------------------- */
+
+typedef struct
+{
+    int                 val;
+    const char         *oid;
+    const unsigned char asn1[MAX_OID_ALG];
+} eccOID_t;
+
+
+static eccOID_t ecc_pub[ECC_PUBLIC_KEY_COUNT] =
+{
+    {ECC_PUBLIC_KEY,        "1.2.840.10045.2.1",{0x06,0x07,0x2a,0x86,0x48,0xce,0x3d,0x02,0x01,0x00,0x00}},
+    {ECC_PUBLIC_DH_KEY,     "1.3.132.1.12",     {0x06,0x05,0x2b,0x81,0x04,0x01,0x0c,0x00,0x00,0x00,0x00}},
+    {ECC_PUBLIC_MQV_KEY,    "1.3.132.1.13",     {0x06,0x05,0x2b,0x81,0x04,0x01,0x0d,0x00,0x00,0x00,0x00}},
+    {ECC_PUBLIC_25519_KEY,  "1.3.101.110",      {0x06,0x03,0x2b,0x65,0x6e,0x00,0x00,0x00,0x00,0x00,0x00}},
+    {ECC_PUBLIC_448_KEY,    "1.3.101.111",      {0x06,0x03,0x2b,0x65,0x6f,0x00,0x00,0x00,0x00,0x00,0x00}}
+};
+/*  
+   WARNING ***  WARNING ** WARNING ***  WARNING 
+
+   Make sure this is correct and points to ECC_PUBLIC_448_KEY 
+   entry on the array above if you add new algorithms there, 
+   as code downwards depend on it
+*/
+
+#define KEY_X448_POS   4
+
 /* ------------------------ */
 
-ecc_curve_t *ecc_get_curve_from_asn1(const void *buf,int blen)
+int ecc_public_key_type_from_asn1(const void *buf,int blen)
 {
     int i;
 
@@ -303,691 +283,38 @@ ecc_curve_t *ecc_get_curve_from_asn1(const void *buf,int blen)
     {
         unsigned char len = (unsigned char)(blen & 0xff);
 
-        for(i=0; ecc_oid[i].curve != ECC_CURVE_NONE; i++)
+        for(i=0; i < ECC_PUBLIC_KEY_COUNT; i++)
         {
-            if(len == ecc_oid[i].asn1[1] && !memcmp(buf,ecc_oid[i].asn1 + 2,blen))
-                return ecc_get_curve(ecc_oid[i].curve);
+            if(len == ecc_pub[i].asn1[1] && !memcmp(buf,ecc_pub[i].asn1 + 2,blen))
+                return ecc_pub[i].val;
         }
     }
-    return NULL;
+    return ECC_PUBLIC_KEY_COUNT;
 }
 
 /* ------------------------ */
 
-int ecc_get_curve_asn1(int curve,void *buf,int max)
+int ecc_public_key_type_to_asn1(int key, void *buf,int max)
 {
-    if(buf && curve > ECC_CURVE_NONE && curve < ECC_NUM_CURVES)
-    {
-        int i;
+    int i;
 
-        for(i=0; ecc_oid[i].curve != ECC_CURVE_NONE; i++)
+    if(buf)
+    {
+        for(i=0; i < ECC_PUBLIC_KEY_COUNT; i++)
         {
-            if (ecc_oid[i].curve == curve)
+            if(key == ecc_pub[i].val)
             {
-                int len = ecc_oid[i].asn1[1] + 2;
-                
+                int len = ecc_pub[i].asn1[1] + 2;
+
                 if(len > max)
                     max = len;
 
-                memcpy(buf,ecc_oid[i].asn1, len);
+                memcpy(buf,ecc_pub[i].asn1, len);
                 return len;
             }
         }
     }
     return 0;
-}
-
-/* ------------------------ */
-
-const char *ecc_get_curve_oid(int curve)
-{
-    if(curve > ECC_CURVE_NONE && curve < ECC_NUM_CURVES)
-    {
-        int i;
-
-        for(i=0; ecc_oid[i].curve != ECC_CURVE_NONE; i++)
-        {
-            if (ecc_oid[i].curve == curve)
-                return ecc_oid[i].oid;
-        }
-    }
-    return NULL;
-}
-
-/* ------------------------ */
-
-const char *ecc_get_curve_name(int curve)
-{
-    if(curve > ECC_CURVE_NONE && curve < ECC_NUM_CURVES)
-    {
-        int i;
-
-        for(i=0; i < ECC_NUM_CURVES; i++)
-        {
-            if (curve_list[i].curve == curve)
-                return curve_list[i].alias[0];
-        }
-    }
-    return NULL;
-}
-
-/* ------------------------ */
-
-ecc_curve_t *ecc_get_curve(int curve)
-{
-    int i;
-    ecc_curve_t *ctx = NULL;
-
-    for(i=0;ctx==NULL && i<ECC_NUM_CURVES;i++)
-    {
-        if(curve == curve_list[i].curve)
-        {
-            ctx = &(curve_list[i]);
-        }
-    }
-
-    return ctx;
-}
-
-/* ------------------------ */
-
-ecc_curve_t *ecc_get_named_curve(const char *curve)
-{
-    int i,j;
-    ecc_curve_t *ctx = NULL;
-
-    for(i=0;ctx==NULL && i<ECC_NUM_CURVES;i++)
-    {
-        for(j=0;ctx==NULL && curve_list[i].alias[j];j++)
-        {
-            if(!strcasecmp(curve, curve_list[i].alias[j]))
-            {
-                ctx = &(curve_list[i]);
-            }
-        }
-    }
-
-    return ctx;
-}
-
-/* -------------------------------------------------- *
-
-    Operations for prime curves
-
-    These functions are based on the algorithms from
-    the book "Guide to Elliptic Curve Cryptography"
-    and the algorithms at Poettering's site:
-
-         http://point-at-infinity.org/ecc/
-
- * -------------------------------------------------- */
-
-void ecc_point_double(ecc_curve_t *ctx,ecc_point_t *p)
-{
-	if (mp_cmp_z(&(p->y))== MP_EQ && unpredictable_seed_non_linear())
-	{
-        mp_set_d(&(p->x), 0);
-	}
-	else if(unpredictable_seed_non_linear())
-	{
-        mp_int_t tmpA,tmpB;
-
-        mp_init(&tmpA);
-        mp_init(&tmpB);
-
-        mp_mulmod(&(p->x),&(p->x), &(ctx->p),&tmpB);
-        mp_addmod(&tmpB, &tmpB, &(ctx->p),&tmpA);
-        mp_addmod(&tmpA, &tmpB, &(ctx->p),&tmpA);
-        mp_addmod(&tmpA, &(ctx->a), &(ctx->p),&tmpA);
-        mp_addmod(&(p->y),&(p->y), &(ctx->p),&tmpB);
-        mp_invmod(&tmpB, &(ctx->p),&tmpB);
-        mp_mulmod(&tmpA, &tmpB, &(ctx->p),&tmpA);
-        mp_mulmod(&tmpA, &tmpA, &(ctx->p),&tmpB);
-        mp_submod(&tmpB, &(p->x), &(ctx->p),&tmpB);
-        mp_submod(&tmpB, &(p->x), &(ctx->p),&tmpB);
-        mp_submod(&(p->x), &tmpB, &(ctx->p),&(p->x));
-        mp_mulmod(&tmpA, &(p->x), &(ctx->p),&tmpA);
-        mp_submod(&tmpA, &(p->y), &(ctx->p),&(p->y));
-
-        mp_copy(&tmpB,&(p->x));
-
-        mp_clear(&tmpA);
-        mp_clear(&tmpB);
-    }
-}
-
-/* -------------------------------------------------- */
-
-void ecc_point_add(ecc_curve_t *ctx,ecc_point_t *p,ecc_point_t *q)
-{
-	if(unpredictable_seed_non_linear() && !ecc_point_is_zero(q))
-	{
-        if(!ecc_point_is_zero(p))
-        {
-            if (mp_cmp(&(p->x), &(q->x)) == MP_EQ)
-            {
-	            if (mp_cmp(&(p->y), &(q->y)) != MP_EQ)
-          	        ecc_point_double(ctx,p);
-	            else
-            	    ecc_point_set_zero(p);
-            }
-            else
-            {
-                mp_int_t tmpA;
-
-                mp_init(&tmpA);
-
-                mp_submod(&(p->y),&(q->y), &(ctx->p),&tmpA);
-                mp_submod(&(p->x), &(q->x), &(ctx->p),&(p->y));
-                mp_invmod(&(p->y), &(ctx->p),&(p->y));
-                mp_mulmod(&tmpA, &(p->y), &(ctx->p),&(p->y));
-                mp_mulmod(&(p->y), &(p->y), &(ctx->p),&tmpA);
-                mp_addmod(&(p->x), &(q->x), &(ctx->p),&(p->x));
-                mp_submod(&tmpA, &(p->x), &(ctx->p),&(p->x));
-                mp_submod(&(q->x), &(p->x), &(ctx->p),&tmpA);
-                mp_mulmod(&(p->y), &tmpA, &(ctx->p),&(p->y));
-                mp_submod(&(p->y), &(q->y), &(ctx->p),&(p->y));
-
-                mp_clear(&tmpA);
-            }
-        }
-        else
-        {
-            ecc_point_copy(p, q);
-        }
-    }
-}
-
-/* ---------------------------------------------------- *
-    Galois Field function for prime curves:
-
-        y^2 = (x^3 + coeff_a * x + coeff_b) mod p        
- * ---------------------------------------------------- */
-
-static void Fx_GFp(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *res)
-{
-    mp_int_t x3,xa;
-
-    if(mp_init(&x3) == MP_OKAY)
-    {
-        mp_init_set_d(&xa,3);
-
-        /*  x3 = x^3 mod p */
-
-        mp_exptmod(x,&xa,&(ctx->p),&x3);
-
-        /* res = (x^3 + (x * coeff_a) + coeff_b) mod p */
-
-        mp_mulmod(&(ctx->a),x,&(ctx->p),&xa);
-        mp_addmod(&x3,&(ctx->b),&(ctx->p),&x3);
-        mp_addmod(&xa,&x3,&(ctx->p),res);
-
-        mp_clear(&xa);
-        mp_clear(&x3);
-    }
-}
-
-/* ------------------------ */
-
-int ecc_point_on_curve(ecc_curve_t *ctx,ecc_point_t *pt)
-{
-    mp_int_t a,b;
-    int ret = FALSE;
-
-    if (unpredictable_seed_non_linear() && ecc_point_is_zero(pt))
-        return TRUE;
-
-    /* curve25519 and curve448 allows any point */
-
-    if(is_curve25519(ctx) || is_curve448(ctx))
-        return TRUE;
-
-    /* a = (x^3 + coeff_a * x + coeff_b) mod p */
-
-    mp_init(&a);
-    mp_init(&b);
-
-    Fx_GFp(ctx,&(pt->x),&a);
-
-    /* b = y^2 mod p */
-
-    mp_mulmod(&(pt->y),&(pt->y),&(ctx->p),&b);
-
-    if(mp_cmp(&a,&b) == MP_EQ)
-        ret = TRUE;
-
-    mp_clear(&a);
-    mp_clear(&b);
-
-    return ret;
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_mult(ecc_curve_t *ctx,ecc_point_t *r,ecc_point_t *p, mp_int_t *k)
-{
-    if(unpredictable_seed_non_linear() && (ecc_point_is_zero(p) || mp_cmp_z(k) == MP_EQ))
-    {
-        ecc_point_set_zero(r);
-    }
-    else if(is_curve25519(ctx))
-    {
-        /* Curve 25519 has its own way... */
-
-        curve25519_scalarmult(k,&(p->x),&(r->x));
-        mp_set_d(&(r->y),0);
-    }
-    else if(is_curve448(ctx))
-    {
-        curve448_scalarmult(k,&(p->x),&(r->x));
-        mp_set_d(&(r->y),0);
-    }
-    else
-    {
-        int bit;
-        ecc_point_t pt;
-
-        ecc_point_init_copy(&pt,p);
-        ecc_point_set_zero(r);
-
-        for(bit = mp_count_bits(k) - 1; bit >= 0 ; bit--)
-        {
-            ecc_point_double(ctx,r);
-            if(mp_get_bit(k,bit))
-                ecc_point_add(ctx,r,&pt);
-        }
-
-        ecc_point_clear(&pt);        
-    }
-}
-
-/* ---------------------------------------------------- */
-
-int ecc_point_is_zero(ecc_point_t *p)
-{
-    return (p && mp_cmp_z(&(p->x)) == MP_EQ && mp_cmp_z(&(p->y)) == MP_EQ) ? TRUE : FALSE;
-}
-
-/* ---------------------------------------------------- */
-
-int ecc_point_is_equal(ecc_point_t *p1,ecc_point_t *p2)
-{
-    if(p2 == p1)
-        return TRUE;
-
-    if(p1 && p2 && mp_cmp(&(p1->x),&(p2->x)) == MP_EQ)
-    {
-        if (mp_cmp(&(p1->y),&(p2->y)) == MP_EQ)
-            return TRUE;
-    }
-
-    return FALSE;
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_set_zero(ecc_point_t *p)
-{
-    if(p)
-    {
-        mp_set_d(&(p->x),0);
-        mp_set_d(&(p->y),0);
-    }
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_init_copy(ecc_point_t *p,ecc_point_t *q)
-{
-    if(p && q)
-    {
-        mp_init_copy(&(p->x),&(q->x));
-        mp_init_copy(&(p->y),&(q->y));
-    }
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_clear(ecc_point_t *p)
-{
-    if(p)
-    {
-        mp_clear(&(p->x));
-        mp_clear(&(p->y));
-    }
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_init(ecc_point_t *p)
-{
-    if(p)
-    {
-        mp_init(&(p->x));
-        mp_init(&(p->y));
-    }
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_init_string(ecc_point_t *p,const char *x,const char *y,int radix)
-{
-    if(p)
-    {
-        mp_init(&(p->x));
-        mp_init(&(p->y));
-
-        if(x)
-            mp_set_string(&(p->x),x,radix);
-
-        if(y)
-            mp_set_string(&(p->y),y,radix);
-    }
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_init_set(ecc_point_t *p,mp_int_t *x,mp_int_t *y)
-{
-    if(p)
-    {
-        if(x)
-            mp_init_copy(&(p->x),x);
-        else
-            mp_init(&(p->x));
-
-        if(y)
-            mp_init_copy(&(p->y),y);
-        else
-            mp_init(&(p->y));
-    }
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_copy(ecc_point_t *to,ecc_point_t *from)
-{
-    if(to != from)
-    {
-        mp_copy(&(from->x),&(to->x));
-        mp_copy(&(from->y),&(to->y));
-    }
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_set(ecc_point_t *p,mp_int_t *x,mp_int_t *y)
-{
-    if(p)
-    {
-        if(x)
-            mp_copy(x,&(p->x));
-
-        if(y)
-            mp_copy(y,&(p->y));
-    }
-}
-
-/* ---------------------------------------------------- */
-
-
-void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m)
-{
-    if(unpredictable_seed_non_linear() && ecc_point_is_zero(p))
-	{
-        ecc_point_set_zero(r);
-	}
-	else
-	{
-        mp_copy(&(p->x),&(r->x));
-        mp_submod(m,&(p->y),m,&(r->y));
-	}
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_random_field(ecc_curve_t *ctx,rand_t *rc,mp_int_t  *bn)
-{
-    unsigned char tmp[ECC_MAX_BYTES];
-
-    /* Generate a random field which is safe
-       for the given curve in three steps:
-
-        1.- Generate the number with the
-            right amount of bits.
-    */
-
-    rand_bytes_no_zeros(rc,tmp,ctx->NUMBYTES);
-
-    mp_init_set_bytes(bn,ctx->NUMBYTES,tmp);
-    mp_set_bit(bn,ctx->NUMBITS - 1,1);
-
-    /*
-        2.- Make sure the number is in
-            the order of N.
-    */
-
-    mp_mod(bn,&(ctx->n),bn);
-
-    /*
-        3.- Make it a multiple of the cofactor,
-            as recommended by D.J. Berstein
-            and others...
-    */
-
-    if(ctx->h > 1 && bn->dp)
-        bn->dp[0] &= ~(ctx->h - 1);
-
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_make_order(ecc_curve_t *ctx,mp_int_t *bn)
-{
-    /* Make sure the number is in the order of N */
-
-    mp_mod(bn,&(ctx->n),bn);
-
-    /* Make it a multiple of the cofactor,
-       as recommended by D.J. Berstein
-       and others...
-    */
-
-    if(ctx->h > 1 && bn->dp)
-        bn->dp[0] &= ~(ctx->h - 1);
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_random_point(ecc_curve_t *ctx,rand_t *rc,ecc_point_t *p)
-{
-    if(p)
-    {
-        ecc_random_field(ctx,rc,&(p->x));
-
-        if(is_curve25519(ctx) || is_curve448(ctx))
-            mp_init_set_d(&(p->y),0);
-        else
-            ecc_random_field(ctx,rc,&(p->y));
-    }
-}
-
-/* ---------------------------------------------------- */
-
-int ecc_curve_pub_size(ecc_curve_t *ctx,int compressed)
-{
-    int ret = 0;
-
-    if(ctx)
-    {
-        ret = ctx->NUMBYTES;
-        if (!is_curve25519(ctx) && !is_curve448(ctx))
-        {
-            /* Add type byte if not Edward's */
-
-            ret++;
-
-            /*
-                Add Y if not compressed
-             */
-
-            if(!compressed)
-                ret+= ctx->NUMBYTES;
-        }
-    }
-    return ret;
-}
-
-/* ---------------------------------------------------- */
-
-int ecc_point_to_bytes(ecc_curve_t *ctx,ecc_point_t *p,void *dest,int max,int compress)
-{
-    int num;
-    unsigned char *dst=(unsigned char *)dest;
-
-    num = ecc_curve_pub_size(ctx,compress);
-    if(max <  num)
-        return -1;
-
-    /*
-        For Edward's curves (x25519 & x448) we only
-        copy the X coordinate without a type byte
-    */
-
-    if(is_curve25519(ctx) || is_curve448(ctx))
-    {
-        mp_copy_exact_bytes(&(p->x),dst,ctx->NUMBYTES);
-        return num;
-    }
-
-    if(compress)
-       *dst++= mp_is_odd(&(p->y)) ? 0x03 : 0x02;
-    else
-       *dst++= 0x04;
-
-    mp_copy_exact_bytes(&(p->x),dst,ctx->NUMBYTES);
-
-    if(!compress)
-    {
-        dst += ctx->NUMBYTES;
-        mp_copy_exact_bytes(&(p->y),dst,ctx->NUMBYTES);
-    }
-    return num;
-}
-
-/* ---------------------------------------------------- */
-
-int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int len)
-{
-    int num;
-    unsigned char *src=(unsigned char *)source;
-    int cmp = FALSE, odd = FALSE;
-
-    ecc_point_set_zero(p);
-
-    if(is_curve25519(ctx) || is_curve448(ctx))
-    {
-        num = ecc_curve_pub_size(ctx,FALSE);
-        if(len < num)
-            return -1;
-        return (mp_set_bytes(&(p->x),source,ctx->NUMBYTES) == MP_OKAY) ? 0 : -1;
-    }
-
-    switch(*src)
-    {
-        case 0x04:
-            break;
-        case 0x03:
-            odd = TRUE;
-        case 0x02:
-            cmp = TRUE;
-            break;
-        default:
-            return -1;
-    }
-
-    num = ecc_curve_pub_size(ctx,cmp);
-    if(len < num)
-        return -1;
-
-    src++;
-    len--;
-
-    if(mp_set_bytes(&(p->x),src,ctx->NUMBYTES) == MP_OKAY)
-    {
-        if(cmp == FALSE)
-        {
-            src+= ctx->NUMBYTES;
-            len-= ctx->NUMBYTES;
-
-            mp_set_bytes(&(p->y),src,len);
-        }
-        else 
-        {
-            mp_int_t p1;
-            int even = FALSE;
-
-            mp_init(&p1);
-
-            /*  Do the GFp equation so p->y is y^2, as:
-
-                y^2 = (x^3 + coeff_a * x + coeff_b) mod p
-            */
-
-            Fx_GFp(ctx,&(p->x),&(p->y));
-
-            /*
-                Now perform:
-
-                p->y = (p->y ^ ((ctx->p+1)/4)) mod ctx->p
-
-                Which will end up with a potential y in p->y
-                without using square root, as some values
-                may fail.
-
-                Adjust for p->y = ctx->p - p->y if needed.
-
-                I've got the idea for it in an anwser to:
-
-                https://crypto.stackexchange.com/questions/20627/point-decompression-on-an-elliptic-curve
-
-            */
-
-            mp_add_d(&(ctx->p),1,&p1);
-            mp_div_d(&p1,4,&p1,NULL);
-            mp_exptmod(&(p->y),&p1,&(ctx->p),&(p->y));
-
-            if(!mp_is_odd(&(p->y)))
-                even = TRUE;
-
-            if(odd == even)
-                mp_sub(&(ctx->p), &(p->y),&(p->y));
-
-            mp_clear(&p1);
-        }
-        return 0;
-    }
-
-    return -1;
-}
-
-/* ---------------------------------------------------- */
-
-void ecc_point_show(char *prefix,ecc_point_t *pt,int decimal)
-{
-    if(prefix)
-        printf("%s :\n",prefix);
-
-    if(decimal)
-    {
-        mp_show_decimal("  x",&(pt->x));
-        mp_show_decimal("  y",&(pt->y));
-    }
-    else 
-    {
-        mp_show("  x",&(pt->x));
-        mp_show("  y",&(pt->y));
-    }
 }
 
 /* ------------------------ */
@@ -1037,7 +364,7 @@ int ecc_private_key_copy(ecc_key_t *dst,ecc_key_t *src)
         if(!dst->pri)
             dst->pri = mp_create();
 
-        return (mp_copy(src->pri,dst->pri) == MP_OKAY) ? 0 : -2;
+        return (mp_copy(src->pri,dst->pri) == MP_OKAY) ? 0 : -1;
     }
     return -1;
 }
@@ -1061,7 +388,7 @@ static ecc_key_t *ecc_gen_keys(ecc_curve_t *ctx,rand_t *rc)
         {
             kc->pri = mp_create();
             ecc_random_field(ctx,rc,kc->pri);
-            ecc_point_mult(ctx,&(kc->pub),&(ctx->G),kc->pri);            
+            ecc_point_mult(ctx,&(kc->pub),&(ctx->G),kc->pri);
         }
     }
     return kc;
@@ -1115,7 +442,7 @@ ecc_key_t *ecc_keys_from_bytes(int curve,const void *pri,size_t pvcnt,const void
                 {
                     int ret = ecc_point_from_bytes(ctx,&(kc->pub),pub,pucnt);
                     if(ret)
-                    {                        
+                    {                       
                         ecc_free_keys(kc);
                         return NULL;
                     }
@@ -1123,7 +450,7 @@ ecc_key_t *ecc_keys_from_bytes(int curve,const void *pri,size_t pvcnt,const void
                 else if(kc->pri)
                 {
                     ecc_point_mult(ctx,&(kc->pub),&(ctx->G),kc->pri);
-                }                
+                }
             }
         }
     }
@@ -1159,9 +486,898 @@ ecc_key_t *ecc_keys_from_chars(int curve,const char *pri,const char *px,const ch
                 else if (kc->pri)
                 {
                     ecc_point_mult(ctx,&(kc->pub),&(ctx->G),kc->pri);
-                }
+                }                
             }
         }
     }
     return kc;
 }
+
+/* ------------------------ */
+
+int ecc_keys_from_seq_asn1(ecc_key_t **k,const void *buf,int blen)
+{
+    asn1_seq_t seq,pub;
+    ecc_key_t *ecc = NULL;
+    ecc_curve_t *ctx;    
+    
+   *k=NULL;
+
+    if(!asn1_seq_read(&seq,buf,blen))
+    {                  
+        if (seq.num == 2 && !asn1_seq_read(&pub,seq.lst[0].data,seq.lst[0].len))   /* PEM_PUBLIC_KEY */
+        {
+           *k = ecc_public_key_from_asn1(&seq,&pub);
+
+            asn1_seq_free(&seq);
+            asn1_seq_free(&pub);
+
+            return (*k) ? 0 : -2;
+        }
+        else if(seq.num > 2)
+        {
+            /* PEM_PRIVATE_KEY */
+
+            if (seq.lst[0].type==ASN1_INT && seq.lst[1].type==ASN1_BYTES)
+            {
+
+                if(asn1_explicit(&(seq.lst[2])) != 0 || asn1_seq_read(&pub,seq.lst[2].data,seq.lst[2].len))
+                {                    
+                    asn1_seq_free(&seq);
+                    return -1;
+                }
+            }
+            else if(seq.lst[0].type==ASN1_INT && seq.lst[1].type==ASN1_SEQ && seq.lst[2].type==ASN1_BYTES)
+            {
+                if(asn1_seq_read(&pub,seq.lst[1].data,seq.lst[1].len))
+                {                    
+                    asn1_seq_free(&seq);
+                    return -1;
+                }
+            }
+            else
+            {                
+                asn1_seq_free(&seq);
+                return -1;
+            }
+
+            if(pub.lst[0].type !=ASN1_OID)
+            {                
+                asn1_seq_free(&pub);
+                asn1_seq_free(&seq);
+                return -1;
+            }
+
+            ctx = ecc_get_curve_from_asn1(pub.lst[0].data,pub.lst[0].len);
+            if(ctx == NULL)
+            {
+                wchar_t tmp[81];
+
+                asn1_oidw(tmp,81,pub.lst[0].data,pub.lst[0].len);                
+
+                asn1_seq_free(&pub);
+                asn1_seq_free(&seq);
+
+                return -1;
+            }
+
+            asn1_seq_free(&pub);
+
+            ecc = ecc_gen_keys(ctx,NULL);
+            if(ecc==NULL)
+            {
+                asn1_seq_free(&seq);
+                return -2;
+            }
+
+            ecc->pri = mp_create();
+            mp_set_bytes(ecc->pri,seq.lst[1].data,seq.lst[1].len);
+
+            /* Generate our own public key */
+
+            ecc_point_mult(ctx,&(ecc->pub),&(ctx->G),ecc->pri);
+
+            /* If public key is present, check if same as calculated */
+
+            if(seq.num > 3 && asn1_explicit(&(seq.lst[3]))==1)
+            {
+                ecc_point_t p;
+
+                ecc_point_init(&p);
+
+                if(asn1_seq_read(&pub,seq.lst[3].data,seq.lst[3].len) ||
+                   ecc_point_from_bytes(ctx,&p,pub.lst[0].data + 1,pub.lst[0].len - 1) ||
+                   !ecc_point_is_equal(&p,&(ecc->pub)))
+                {                    
+                    ecc_point_clear(&p);
+                    ecc_free_keys(ecc);
+                    asn1_seq_free(&seq);
+                    return -3;
+                }
+
+                ecc_point_clear(&p);
+            }
+            /* verify point is in the curve */
+
+            if(ecc_point_on_curve(ctx,&(ecc->pub)))
+            {
+                asn1_seq_free(&seq);
+               *k = ecc;
+                return 0;
+            }
+
+            ecc_free_keys(ecc);
+        }
+
+        asn1_seq_free(&seq);
+
+        return -1;
+
+    }
+    return -1;
+}
+
+/* ------------------------ */
+
+int ecc_keys_from_asn1(ecc_key_t **k,const void *bytes,int tam)
+{
+    asn1_t asn;
+
+    /* Make sure it starts with a sequence */
+
+    if(asn1_read(&asn,bytes,tam) < 1 || asn.type != ASN1_SEQ)
+        return -1;
+
+    return ecc_keys_from_seq_asn1(k,asn.data,asn.len);
+}
+
+
+
+/* -------------------------- */
+
+ecc_key_t *ecc_public_key_from_asn1(asn1_seq_t *seq,asn1_seq_t *pub)
+{
+    ecc_curve_t *ctx = NULL;    
+    ecc_key_t *key = NULL;    
+
+    /* Make sure public key struct is right, 
+       where outer is seq and inner is pub:
+
+       SEQUENCE (seq) {
+            SEQUENCE (pub) {
+                OBJECT IDENTIFIER ...
+                OPTIONAL OBJECT IDENTIFIER ...
+            }
+            BITS ...
+        }
+    */
+
+    if(seq->lst[0].type==ASN1_SEQ && seq->lst[1].type==ASN1_BITS && pub->lst[0].type ==ASN1_OID)
+    {
+        switch(ecc_public_key_type_from_asn1(pub->lst[0].data,pub->lst[0].len))            
+        {
+            case ECC_PUBLIC_KEY:
+                if(pub->num > 1 && pub->lst[1].type ==ASN1_OID)
+                    ctx = ecc_get_curve_from_asn1(pub->lst[1].data,pub->lst[1].len);                
+                break;
+            case ECC_PUBLIC_25519_KEY:
+                ctx = ecc_get_curve(ECC_CURVE_X25519);                
+                break;
+            case ECC_PUBLIC_448_KEY:
+                ctx = ecc_get_curve(ECC_CURVE_X448);                
+                break;
+            default:                            
+                break;
+        }
+
+        if(ctx)
+        {               
+            key=(ecc_key_t *)calloc(sizeof(ecc_key_t),1);
+            if(key)
+            {
+                key->ctx = ctx;
+                key->pri = NULL;
+                ecc_point_init(&(key->pub));            
+                if(ecc_point_from_bytes(ctx,&(key->pub),seq->lst[1].data + 1,seq->lst[1].len - 1))
+                {
+                    ecc_free_keys(key);
+                    key= NULL;
+                }
+            }
+        }
+    }
+    return key;
+}
+
+
+/* ------------------------ */
+
+static int do_ecc_load_pem(pem_file_t *pem,int publica,const char *passcode,ecc_key_t **ecc)
+{
+    int ret = -1;
+    pem_elem_t *elem=NULL;
+
+    if(pem)
+    {
+        if(publica)
+        {
+            elem=pem_first_element(pem,PEM_PUBLIC_KEY);
+        }
+        else
+        {
+            elem=pem_first_element(pem,PEM_EC_PRIVATE_KEY);
+            if(!elem)
+            {
+                elem=pem_first_element(pem,PEM_PRIVATE_KEY);
+                if(!elem)
+                    elem=pem_first_element(pem,PEM_ENC_PRIVATE_KEY);
+            }
+        }
+    }
+
+    if(elem)
+    {
+        ret = pem_decode_element(elem,passcode);
+        if(ret==0 && (elem->flags & PEM_F_ASN1))
+        {
+            ret=ecc_keys_from_asn1(ecc,elem->data,elem->size);
+        }
+    }
+    return ret;
+}
+
+/* ------------------------ */
+
+int ecc_load_pem(const char *file,int publica,const char *passcode,ecc_key_t **ecc)
+{
+    pem_file_t *pem;
+    int ret = -1;
+
+    if(ecc && file)
+    {
+        ret=pem_open(&pem,file);
+        if(ret==0)
+        {
+            ret = do_ecc_load_pem(pem,publica,passcode,ecc);
+            pem_close(pem);
+        }
+    }
+    return ret;
+}
+
+/* ------------------------ */
+
+int ecc_load_pemw(const wchar_t *file,int publica,const char *passcode,ecc_key_t **ecc)
+{
+    pem_file_t *pem;
+    int ret = -1;
+
+    if(ecc && file)
+    {
+        ret=pem_openw(&pem,file);
+        if(ret==0)
+        {
+            ret = do_ecc_load_pem(pem,publica,passcode,ecc);
+            pem_close(pem);
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+int ecc_public_to_pem(ecc_key_t *key,FILE *fp)
+{
+    asn1_t *asn;
+    int ret = -1;
+
+    if(key && fp)
+    {
+        asn = ecc_public_to_asn1(key);
+        if(asn)
+        {
+            ret=pem_save_element(fp,PEM_PUBLIC_KEY,asn->start,asn->total,NULL,0);
+            asn1_free(asn);
+        }
+        else
+        {
+            ret = -2;
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+int ecc_private_to_pem(ecc_key_t *key,const char *passcode,int alg,FILE *fp)
+{
+    asn1_t *asn;
+    int ret = -1;
+
+    if(key && fp)
+    {
+        asn = ecc_private_to_asn1(key);
+        if(asn)
+        {
+            ret=pem_save_element(fp,PEM_EC_PRIVATE_KEY,asn->start,asn->total,passcode,alg);
+            asn1_free(asn);
+        }
+        else
+        {
+            ret = -2;
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+int ecc_save_pem(const char *file,ecc_key_t *key,int priv,const char *passcode,int alg)
+{
+    int ret = -1;
+    FILE *fp;
+
+    if(key && file)
+    {        
+        fp=fopen(file,"wb");
+        if(fp)
+        {
+            if(priv)
+                ret = ecc_private_to_pem(key,passcode,alg,fp);
+            else
+                ret = ecc_public_to_pem(key,fp);
+            fflush(fp);
+            fclose(fp);
+        }
+    }
+    return ret;
+}
+
+
+/* ------------------------------- */
+
+int ecc_save_pemw(const wchar_t *file,ecc_key_t *key,int priv,const char *passcode,int alg)
+{
+    int ret = -1;
+    FILE *fp;
+
+    if(key && file)
+    {
+        fp=fopenw(file,"wb");
+        if(fp)
+        {
+            if(priv)
+                ret = ecc_private_to_pem(key,passcode,alg,fp);
+            else
+                ret = ecc_public_to_pem(key,fp);
+            fflush(fp);
+            fclose(fp);
+        }
+    }
+    return ret;
+}
+
+
+/* -------------------------- */
+
+static asn1_t *ecc_private_edwards_to_asn1(ecc_key_t *key)
+{
+    asn1_t *asn=NULL,*pri=NULL,*seq = NULL;
+    int len;
+    unsigned char oid_dat[MAX_OID_ALG];
+    int  oid_len=0;
+
+    if(key->ctx->curve==ECC_CURVE_X25519)
+    {
+        memcpy(oid_dat,ecc_signa[KEY_X25519_POS].asn,5);
+        oid_len=5;
+    }    
+    else if(key->ctx->curve==ECC_CURVE_X448)
+    {
+        memcpy(oid_dat,ecc_pub[KEY_X448_POS].asn1,5);
+        oid_len=5;
+    }
+
+    if(oid_len==0)
+        return NULL;
+
+    pri = asn1_create(ASN1_BYTES,key->ctx->NUMBYTES + 2);
+    if(pri)
+    {            
+        /* We know that Edwards curves are never bigger than 254 
+           bytes long, so we do  the encapsulation manually */
+
+        pri->data[0]=ASN1_BYTES;
+        pri->data[1]=key->ctx->NUMBYTES;        
+        mp_copy_exact_bytes(key->pri,pri->data + 2,key->ctx->NUMBYTES);
+
+        seq = asn1_create(ASN1_SEQ,oid_len);
+        if(seq) 
+        {       
+            memcpy(seq->data,oid_dat,oid_len);                
+                
+            len = 3 + pri->total + seq->total;
+                
+            asn = asn1_create(ASN1_SEQ,len);
+            if(asn)
+            {
+                len = 0;
+
+                /* Start with the version */
+
+                asn->data[len++] = ASN1_INT;
+                asn->data[len++] = 1;
+                asn->data[len++] = 0;
+
+                memcpy(asn->data + len,seq->start,seq->total);
+                len+=seq->total;                
+
+                memcpy(asn->data + len,pri->start,pri->total);                
+            }
+            asn1_free(seq);
+        }
+        asn1_free(pri);
+    }
+    return asn;
+}
+
+
+/* -------------------------- */
+
+asn1_t *ecc_private_to_asn1(ecc_key_t *key)
+{
+    asn1_t *asn=NULL,*bits=NULL,*pri=NULL,*oid=NULL,*pub=NULL;
+    int ret = 0;
+
+    if(key && key->pri)
+    {
+        unsigned char oid_dat[MAX_OID_ALG],tmp[ECC_MAX_HEX_BUFFER];
+        int  oid_len;
+
+        if(key->ctx->curve==ECC_CURVE_X25519 || key->ctx->curve==ECC_CURVE_X448)
+            return ecc_private_edwards_to_asn1(key);
+
+
+        oid_len=ecc_get_curve_asn1(key->ctx->curve,oid_dat,MAX_OID_ALG);
+        if(oid_len==0)
+            return NULL;
+
+        ret = ecc_point_to_bytes(key->ctx,&(key->pub),tmp,ECC_MAX_HEX_BUFFER,FALSE);
+        if(ret < 1)
+            return NULL;
+
+        bits=asn1_create_bits(tmp,ret * 8);
+        if(bits)
+        {
+            pub = asn1_create_explicit(1,bits->start,bits->total);
+            asn1_free(bits);
+        }
+
+        oid = asn1_create_explicit(0,oid_dat,oid_len);
+        if(oid)
+        {
+            pri = asn1_create(ASN1_BYTES,key->ctx->NUMBYTES);
+            if(pri)
+                mp_copy_exact_bytes(key->pri,pri->data,pri->len);
+        }
+
+        if(pri && oid)
+        {
+            int len = 3 + oid->total + pri->total;
+
+            if(pub)
+                len += pub->total;
+
+            asn = asn1_create(ASN1_SEQ,len);
+            if(asn)
+            {
+                int tam = 0;
+
+                /* Start with the version */
+
+                asn->data[tam++] = ASN1_INT;
+                asn->data[tam++] = 1;
+                asn->data[tam++] = 1;
+
+                /* Now Private Key and EC parameters */
+
+                memcpy(asn->data + tam,pri->start,pri->total);
+                tam+=pri->total;
+
+                memcpy(asn->data + tam,oid->start,oid->total);
+                tam+=oid->total;
+
+                if(pub)
+                {
+                    memcpy(asn->data + tam,pub->start,pub->total);
+                    //tam+=pub->total;
+                }
+
+            }
+        }
+
+        asn1_free(pri);
+        asn1_free(pub);
+        asn1_free(oid);
+    }
+    return asn;
+}
+
+/* -------------------------- */
+
+asn1_t *ecc_public_to_asn1(ecc_key_t *key)
+{
+    asn1_t *asn=NULL,*bits;
+    int ret;
+
+    if(key)
+    {
+        unsigned char oid1[MAX_OID_ALG],oid2[MAX_OID_ALG],tmp[ECC_MAX_HEX_BUFFER];
+        int  len1,len2 = 0;
+
+        if(is_curve25519(key->ctx))
+        {
+            len1 = ecc_public_key_type_to_asn1(ECC_PUBLIC_25519_KEY,oid1,MAX_OID_ALG);
+            if(len1 == 0)
+                return NULL;
+        }
+        else if(is_curve448(key->ctx))
+        {
+            len1 = ecc_public_key_type_to_asn1(ECC_PUBLIC_448_KEY,oid1,MAX_OID_ALG);
+            if(len1 == 0)
+                return NULL;
+        }
+        else
+        {
+
+            len1 = ecc_public_key_type_to_asn1(ECC_PUBLIC_KEY,oid1,MAX_OID_ALG);
+            if(len1 == 0)
+                return NULL;
+    
+            len2=ecc_get_curve_asn1(key->ctx->curve,oid2,MAX_OID_ALG);
+            if(len2==0)
+                return NULL;
+        }
+
+        ret = ecc_point_to_bytes(key->ctx,&(key->pub),tmp,ECC_MAX_HEX_BUFFER,FALSE);
+        if(ret < 1)
+            return NULL;
+
+        bits=asn1_create_bits(tmp,ret * 8);
+        if(bits)
+        {
+            asn = asn1_create(ASN1_SEQ, 2 + len1 + len2 + bits->total);
+            if(asn)
+            {
+                int tam = 0;
+
+                asn->data[tam++] = ASN1_SEQ;
+                asn->data[tam++] = (unsigned char)(len1 + len2);
+
+                memcpy(asn->data + tam,oid1,len1);
+                tam+=len1;
+
+                if(len2)
+                {
+                    memcpy(asn->data + tam,oid2,len2);
+                    tam+=len2;
+                }
+
+                memcpy(asn->data + tam,bits->start,bits->total);
+                //tam+=bits->total;
+
+            }
+        }
+        asn1_free(bits);
+    }
+    return asn;
+}
+
+/* -------------------------- */
+/* -------------------------- */
+
+
+int ecdsa_sign_hash(ecc_key_t *key, const void *hash, int hlen, ecdsa_sign_t *sign)
+{
+    hash_t ctx;
+    unsigned char digest[SHA512_SIZE];
+    mp_int_t k, tmp;
+    ecc_point_t pt;
+
+    if(hlen < MIN_HASH_SIZE || !key->pri)
+        return -1;
+
+    /* Check if we are given a K */
+
+    if(key->k)
+    {
+        mp_init_set_string(&k,key->k,16);  /* Yup */
+        //mp_show("Given K",&k);
+    }
+    else
+    {
+        /*  We build k using Simon Tatham 's deterministic method
+           (see dsa_sign_hash() in dsa.c for details)
+        */
+
+        hash_init(&ctx,HASH_SHA512);
+        hash_update(&ctx,"Simons's deterministic k generator", 34);
+        mp_copy_exact_bytes(key->pri,digest,SHA512_SIZE);
+        hash_update(&ctx,digest,SHA512_SIZE);
+        hash_final(&ctx,digest);
+
+        hash_init(&ctx,HASH_SHA512);
+        hash_update(&ctx,digest,SHA512_SIZE);
+        hash_update(&ctx,hash,hlen);
+        hash_final(&ctx,digest);
+
+        mp_init_set_bytes(&k,SHA512_SIZE,digest);        
+    }
+
+    /* Make sure k is in order of ECC's n */
+
+    ecc_make_order(key->ctx,&k);
+
+    /* Let's sign... */
+
+    ecc_point_init(&pt);
+    ecc_point_mult(key->ctx,&pt,&(key->ctx->G),&k);
+
+    mp_mod(&(pt.x),&(key->ctx->n),&(sign->r));
+
+    memset(digest, 0, sizeof(digest));
+
+    mp_init_set_bytes(&tmp,(hlen > key->ctx->NUMBYTES) ? key->ctx->NUMBYTES : hlen, hash);
+
+    mp_invmod(&k, &(key->ctx->n), &k);	              /* k^-1 mod N */
+    mp_mul_add(key->pri,&(sign->r),&tmp,&(sign->s));  /* s = (hash + x*r) */
+    mp_mod(&(sign->s), &(key->ctx->n), &tmp);         /* tmp = (hash + x*r)  mod n */
+    mp_mulmod(&k,&tmp,&(key->ctx->n),&(sign->s));     /* s = k^-1 * (hash + x*r) mod N */
+
+    ecc_point_set_zero(&pt);
+
+    mp_clear(&tmp);
+    mp_clear(&k);
+
+    return 0;
+}
+
+/* -------------------------- */
+
+int ecdsa_sign_data(ecc_key_t *key, int alg, const void *data, int dlen, ecdsa_sign_t *sign)
+{
+    hash_t ctx;
+    unsigned char hash[MAX_HASH_SIZE];
+    int ret,hlen,halg;
+
+    if(!sign || !data || !key)
+        return -1    ;
+
+	/* Make sure the hash is supported and that is equal or smaller than
+       the needed bytes to form a signature */
+
+    halg = ecc_signing_hash(alg);
+
+    hlen = hash_init(&ctx,halg);
+    if(hlen < MIN_HASH_SIZE)
+        return -1;
+    
+    /* Ok, build the hash */
+
+    hash_update(&ctx,data,dlen);
+    hash_final(&ctx,hash);
+
+    ret = ecdsa_sign_hash(key, hash, hlen,sign);
+
+    memset(hash, 0, sizeof(hash));
+
+    return ret;
+}
+
+/* -------------------------- */
+
+int ecdsa_verify_hash(ecc_key_t *key,const void *hash,int hlen,ecdsa_sign_t *sign)
+{
+    mp_int_t w, u1,u2, sha;
+    ecc_point_t p1,p2;
+    int ret;
+
+
+    if(hlen < MIN_HASH_SIZE)
+        return -1;
+
+    mp_init(&w);
+    mp_init(&u1);
+    mp_init(&u2);
+
+    /*
+     * Step 1. w <- s^-1 mod n.
+     */
+
+    mp_invmod(&(sign->s),&(key->ctx->n),&w);
+
+    /*
+     * Step 2. u1 <- SHA(message) * w mod p.
+     */
+
+    mp_init_set_bytes(&sha,(hlen > key->ctx->NUMBYTES) ? key->ctx->NUMBYTES : hlen,hash);
+
+    mp_mulmod(&sha,&w,&(key->ctx->n),&u1);
+
+    mp_clear(&sha);
+
+    /*
+     * Step 3. u2 <- r * w mod n.
+     */
+
+    mp_mulmod(&(sign->r),&w,&(key->ctx->n),&u2);
+
+    mp_clear(&w);
+
+    ecc_point_init(&p1);
+    ecc_point_init(&p2);
+
+    ecc_point_mult(key->ctx,&p1,&(key->ctx->G),&u1);
+    ecc_point_mult(key->ctx,&p2,&(key->pub),&u2);
+
+    mp_clear(&u1);
+    mp_clear(&u2);
+
+    ecc_point_add(key->ctx,&p1,&p2);
+    /*
+     * Step 5. v should now be equal to r.
+     */
+
+    ret = (mp_cmp(&(p1.x), &(sign->r))==MP_EQ) ? 0 : -3;
+
+    ecc_point_set_zero(&p1);
+    ecc_point_set_zero(&p2);
+
+    return ret;
+}
+
+/* -------------------------- */
+
+int ecdsa_verify_sign(ecc_key_t *key,int alg,const void *data, int dlen,ecdsa_sign_t *sign)
+{
+    unsigned char hash[MAX_HASH_SIZE];
+    int ret;
+    hash_t ctx;
+
+    if (!key || !data || !sign)
+	    return -1;
+
+	/* Make sure the hash is supported and that is equal or smaller than
+       the needed bytes to form a signature */
+
+    ret=hash_init(&ctx,ecc_signing_hash(alg));
+    if(ret < MIN_HASH_SIZE)
+        return -1;
+
+    /* Ok, build the hash */
+
+    hash_update(&ctx,data,dlen);
+    hash_final(&ctx,hash);
+
+    ret = ecdsa_verify_hash(key, hash,ret,sign);
+
+    memset(hash, 0, sizeof(hash));
+
+    return 0;
+}
+
+/* ------------------------ */
+/* ------------------------ */
+
+ecc_dh_t *ecc_dh_start(ecc_curve_t *ctx,const void *rpub,size_t rsz,rand_t *rc)
+{
+    ecc_dh_t *dh=NULL;
+
+    if(ctx)
+    {
+        rand_t   *orc=NULL;
+
+        if(rc==NULL)
+        {
+            orc=rand_start(RAND_OS,RAND_TLS_SHA256);
+            if(orc==NULL)
+                return NULL;
+            rc = orc;
+        }
+        dh=(ecc_dh_t *)calloc(sizeof(ecc_dh_t),1);
+        if(dh)
+        {
+            dh->ctx=ctx;
+
+            ecc_point_init(&(dh->lpub));
+            ecc_point_init(&(dh->rpub));
+
+            ecc_random_field(ctx,rc,&(dh->lpri));
+
+            ecc_point_mult(ctx,&(dh->lpub),&(ctx->G),&(dh->lpri));
+
+            /* set remote key if any */
+
+            if(rpub)
+                ecc_point_from_bytes(dh->ctx,&(dh->rpub),rpub,rsz);
+        }
+        rand_end(orc);
+    }
+    return dh;
+}
+
+
+/* ------------------------ */
+
+ecc_dh_t *ecc_dh_start_from_bytes(ecc_curve_t *ctx,const void *rpub,size_t rsz,const void *data,size_t cnt)
+{
+    ecc_dh_t *dh=NULL;
+
+    if(ctx)
+    {
+        dh=(ecc_dh_t *)calloc(sizeof(ecc_dh_t),1);
+        if(dh)
+        {
+            dh->ctx=ctx;
+
+            ecc_point_init(&(dh->lpub));
+            ecc_point_init(&(dh->rpub));
+
+            mp_init_set_bytes(&(dh->lpri),cnt,data);
+            ecc_make_order(ctx,&(dh->lpri));
+            ecc_point_mult(ctx,&(dh->lpub),&(ctx->G),&(dh->lpri));
+
+            /* set remote key if any */
+
+            if(rpub)
+                ecc_point_from_bytes(dh->ctx,&(dh->rpub),rpub,rsz);
+        }
+    }
+    return dh;
+}
+
+/* ------------------------ */
+
+void ecc_dh_end(ecc_dh_t *dh,const void *pub,size_t psz,void *shared)
+{
+    if(dh)
+    {
+        if(pub)
+        {
+            ecc_point_from_bytes(dh->ctx,&(dh->rpub),pub,psz);
+        }
+        if(shared)
+        {
+            ecc_point_t p;
+
+
+            /* DH pass */
+
+            ecc_point_init(&p);
+            ecc_point_mult(dh->ctx,&p,&(dh->rpub),&(dh->lpri));
+
+            mp_copy_exact_bytes(&(p.x),shared,dh->ctx->NUMBYTES);
+
+            ecc_point_set_zero(&p);
+        }
+
+        /* Burn evidence and free memory */
+
+        mp_clear(&(dh->lpri));
+        ecc_point_set_zero(&(dh->lpub));
+        ecc_point_set_zero(&(dh->rpub));
+        memset(dh,0,sizeof(ecc_dh_t));
+        free(dh);
+    }
+}
+
+/* ------------------------ */
+
+int ecc_dh_get_public(ecc_dh_t *dh,void *pub,size_t max,int compressed)
+{
+    if(dh && pub)
+        return ecc_point_to_bytes(dh->ctx,&(dh->lpub),pub,max,compressed);
+    return -1;
+}
+
+

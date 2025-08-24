@@ -78,9 +78,6 @@ void print_bytes_hexa(char *prefix, void *d, size_t n)
 
 /* --------------- */
 
-#define ECC_MAX_HEX_BUFFER  (ECC_MAX_BYTES * 2 + 1)
-
-/* --------------- */
 
 static void print_ecc_key(ecc_key_t *key)
 {

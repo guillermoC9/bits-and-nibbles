@@ -85,6 +85,7 @@
 #ifndef RANDOM_STUFF
 #define RANDOM_STUFF
 
+#include "ticks.h"
 #include "hmac.h"
 
 /* -------------------------------------------------- *
@@ -672,6 +673,63 @@ u64_t rand_u64(rand_t *rc);
 * ----------------------------------------------------------- */
 
 void  rand_bits(rand_t *rc,void *buf, int bits);
+
+/* ------------------------------------------------------------------- *
+    These functions generate a string ID compatible with Firestore's 
+    AutoId generation, as they use the same technique than function
+    AutoId:newId(), which is the function that generates all the IDs 
+    used  by the Firestore's Javascript SDK.
+
+    Auto:newId() can be found in the file misc.ts inside the directory 
+    utils in the source code of the mentioned SDK, at:
+
+    https://github.com/firebase/firebase-js-sdk/blob/main/packages/firestore/src/util/misc.ts
+
+    On my view this is a risky way of generating IDs that are assumed
+    unique and unpredictable, as nothing is actually done to ensure 
+    their uniqueness besides hoping that Math.random() doesn't repeat
+    sequences of numbers.
+
+    Even if this repetition is very difficult, it is not impossible,
+    and as some experts said: "Random numbers are too important to be
+    left to chance". 
+    
+    We chose to use the original Marsaglia's Xorshift128 and not 
+    Xorshitf128+, which replaced MWC1616 in V8 v4.9.41.0 (see details in
+    https://v8.dev/blog/math-random).
+
+        firestore_auto_id()  -> Same as V8
+        firestore_auto_idw() -> Same as V8 (wchar)
+
+    Note that these functions can generate IDs smaller or longer than 
+    20 chars by changing 'max', which is assumed to be the lengh of
+    the desired string + 1 for the NUL. ;-)
+ * ------------------------------------------------------------------- */
+
+char    *firestore_auto_id(char *string,size_t max);
+wchar_t *firestore_auto_idw(wchar_t *string,size_t max);
+
+/* -------------------------------------------- *
+    This function generates an unpredictable 
+    amount of data hashed with the specified
+    hash algorithm. 
+    
+                 *** WARNING ***
+
+    You may be tempted to use it as random data 
+    generator, but I discorage it if you are 
+    going to do something serious with the 
+    generated data. 
+    
+    Unless of course you have measured the risk,
+    or doing something like generating a random
+    IV.
+    
+    Random data generation is not a trivial 
+    business, specially for use in criptography.
+ * -------------------------------------------- */
+
+void hash_get_entropy(int hash,void *dest,size_t num);
 
 #ifdef __cplusplus
 };

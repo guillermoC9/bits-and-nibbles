@@ -26,30 +26,20 @@
 
 #include "stuff.h"
 
-/* --------------------------------- *
-   Include specific headers for each
-   operating system.
- * --------------------------------- */
 
-#ifdef FOR_WIN
+/* --------------------------------------- */
 
-#include <windows.h>
+FILE *fopenw(const wchar_t *name,const char *perm)
+{
+    char tmp[1384];
+    FILE *fp=NULL;
 
-#else 
+    if(name && wcstombs(tmp,name,1383) > 0)
+        fp = fopen(tmp,perm);
+    return fp;
+}
 
-#include <sys/time.h>
-
-#ifdef FOR_MAC
-
-#include <mach/mach_time.h>
-
-#endif
-
-#endif
-
-
-/* ----------------------------- */
-/* ----------------------------- */
+/* -------------------------------------- */
 
 void *memxor(void *b,int c,size_t len)
 {
@@ -108,6 +98,82 @@ void *mem_xor(void *dst,const void *src,size_t len)
     }
     return dst;
 }
+
+/* -------------------------------------- */
+
+void *mem_shift(void *buf,int len,int dir)
+{
+    unsigned char *dest = (unsigned char *)buf;
+    int pos,pre;
+
+    if(len > 0)
+    {
+        if(dir == S9_RSHIFT)
+        {
+            pos = len - 1;
+            pre = pos - 1;
+
+            while(pos > 0)
+            {
+                dest[pos]  = (dest[pos] >> 1) | (dest[pre--] <<  7);
+                pos--;
+            }
+
+            dest[0] >>= 1;
+        }
+        else if(dir == S9_LSHIFT)
+        {
+            pos = pre = 0;
+            while(++pre < len)
+            {
+                dest[pos]  = (dest[pos] << 1) | (dest[pre] >> 7);
+                pos++;
+            }
+            dest[pos] <<= 1;
+        }
+    }
+    return buf;
+}
+
+/* -------------------------------------- */
+/* -------------------------------------- */
+
+void gcm_mult(unsigned char *z, const unsigned char *x,const unsigned char *y,size_t blksize)
+{
+    size_t cur_byte = 0,minus_one;
+    unsigned char res[GCM_MAX_BLK_SIZE],tmp[GCM_MAX_BLK_SIZE],cur_mask;
+    int bit;
+
+    if (blksize > GCM_MAX_BLK_SIZE)
+        blksize = GCM_MAX_BLK_SIZE;
+
+    minus_one = blksize - 1;
+
+    memset(res, 0, blksize);
+    memcpy(tmp, y, blksize);
+
+    cur_byte=0;
+    cur_mask=0x80;
+
+    while(cur_byte < blksize)
+    {
+       if(x[cur_byte] & cur_mask)
+          mem_xor(res, tmp, blksize);
+
+        bit = (tmp[minus_one] & 0x01);
+        mem_shift(tmp,blksize,0);
+        if(bit)
+            tmp[0] ^= 0xE1;
+        cur_mask>>=1;
+        if(!cur_mask)
+        {
+            cur_mask=0x80;
+            cur_byte++;
+        }
+    }
+    memcpy(z,res,blksize);
+}
+
 
 /* ----------------------------- */
 /* ----------------------------- */
@@ -214,251 +280,522 @@ void put_be64(void *bufo,u64_t val)
     }
 }
 
+/* ------------------------------- */
 
-
-/* --------------------------------------------------- */
-
-ticks_t cpu_ticks(void)
+char *strtrim(char *str)
 {
-    ticks_t ret;
+    char *dst=str;
+    char *ori=str;
 
-#if defined(FOR_WIN)
-    double factor = 0.0;
-	LARGE_INTEGER cont,freq;
-	double tmp;
-
-    QueryPerformanceFrequency(&freq);
-
-    factor  = (double) freq.QuadPart;
-    factor /= 10000000;
-
-    QueryPerformanceCounter(&cont);
-
-	tmp = (double) cont.QuadPart;
-	tmp/= factor;
-
-    ret = (ticks_t)tmp;
-
-#elif defined(FOR_MAC)
-
-    mach_timebase_info_data_t ti;
-
-    mach_timebase_info(&ti);
-
-    ret = (ticks_t)((mach_absolute_time() / 100) * ti.numer / ti.denom);
-
-#else
-
-    struct timespec ts;
-
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-
-	ret = (ticks_t)((ts.tv_sec * TICKS_PER_SECOND) + (ts.tv_nsec / 100));
-
-#endif
-
-    return ret;
-}
-
-/* -------------------------------------------- */
-
-unsigned int unpredictable_seed(void)
-{
-    unsigned int seed,tam,t;
-    u64_t a[5];
-    static u64_t sclk = 0;
-    char *b;
-
-    /*
-        Get the current count of cpu time 
-        using a system-dependant call so any 
-        try to reproduce this would be really 
-        difficult.
-    */
-
-    a[0]=cpu_ticks();
-
-     /*
-        Now we allocate up to 1023 bytes of
-        memory in order to hash the memory
-        address and its content more or
-        less quickly using DJB. The way in
-        which we do it should facilitate
-        for the function to take different 
-        execution time and thus affect the 
-        values returned by cpu_ticks(), as 
-        well as to give different addresses 
-        and content if somethign happens 
-        between calls to this function.
-    */
-
-    tam = (unsigned int)(a[0] & 0xff) | 0x300;
-    b = (char *)malloc(tam);
-    if(b)
+    if(str)
     {
-        a[1] = 5381;
-        for(t = 0;t < tam ; t++)
+        while(isspace(*ori))
+            ori++;
+
+        while(*ori)
+            *dst++=*ori++;
+
+        while(dst > str )
         {
-            a[1] *= 33;
-            a[1] += b[t];
+            if(!isspace(*(dst-1)))
+                break;
+            dst--;
         }
-        a[1]<<=32;
-        a[1] |= (u64_t)((size_t)b);
-        a[1] |= tam;
-        free(b);        
+       *dst='\0';
     }
-    else
-    {
-        a[1] = ~a[0];
-    }
-
-    /*  
-        We initialize the sequence number
-        (the counter) if this is the 
-        first call. 
-
-        We do it here to make sure that
-        time is a bit more disturbed than 
-        if this was done at the start of 
-        the function.
-    */
-
-    if(!sclk)
-        sclk = cpu_ticks();
-    
-    /*
-        Feed the array with an amalgamation
-        of everything so we have some more
-        data to feed to the DJB hash.
-    */
-
-    a[2]=~sclk;
-    a[3]=++sclk;
-    a[4]=(a[0] ^ a[1] ^ a[2] ^ a[3]);
-
-    /* 
-        Hash everything using DJB in order
-        to build the final seed.
-    */
-
-    b = (char *)a;
-
-    for(seed=5381,t=0;t < sizeof(a);t++)
-        seed = (seed << 5) + seed + b[t];
-
-    return seed;
+    return str;
 }
-   
-/* --------------------------------- *
-   This function is written to make
-   sure the compiler doesn't optimize
-   the loop so it will run 1 to 64 
-   times. 
-   Which why we check if 'ret' is 0
-   when we know this will happen 
-   either never or almost never. 
-   Although the compiler doesn't 
-   know that... ;-)
-  * ------------------------------- */
 
-unsigned int unpredictable_seed_non_linear(void)
+/* ------------------------------- */
+
+static char int_to_hex(int val)
 {
-    volatile unsigned int num,ret;
+    static char *hex="0123456789abcdef";
 
-    ret = unpredictable_seed();
+    if(val < 0 || val > 15)
+        val = 0;
+    return hex[val];
+}
 
-    num = 1 + (ret % 64);
+/* ------------------------------- */
 
-    do {
-        ret = unpredictable_seed();
-        if(ret)
-            num--;
-    } while (num > 0);
+int hex_to_char(char *dest,size_t max,const void *buf,size_t tam,char sep)
+{
+    unsigned char *ptr=(unsigned char *)buf;
+    size_t i,ns=0;
+    int ret=0;
+
+    if(max > 0)
+    {
+        max--;
+
+        if(sep)
+            ns = (tam - 1);
+
+        for(i=0; i < tam && max > 0; i++)
+        {
+            dest[ret++]=int_to_hex(ptr[i] >> 4);
+            if(--max == 0)
+                break;
+            dest[ret++]=int_to_hex(ptr[i] & 0xf);
+            max--;
+            if(ns)
+            {
+                if(max == 0)
+                    break;
+                dest[ret++]=sep;
+                ns--;
+                max--;
+            }
+        }
+        dest[ret]=0;
+    }
     return ret;
 }
 
 /* ------------------------------- */
 
-void get_entropy(void *dest,size_t num)
+int hex_to_wchar(wchar_t *dest,size_t max,const void *buf,size_t tam,char sep)
 {
-    unsigned char *buf;
-    size_t cnt = 0;
-    unsigned int left = 0;
+    unsigned char *ptr=(unsigned char *)buf;
+    size_t i,ns=0;
+    int ret=0;
 
-    buf = (unsigned char *)dest;
-    while(cnt < num)
+    if(max > 0)
     {
-        left >>= 8;
-        if(left == 0)
-            left = unpredictable_seed();
-        buf[cnt++] = (unsigned char)(left & 0xff);
-    }
-}
+        max--;
 
+        if(sep)
+            ns = (tam - 1);
 
-/* --------------------------------------------------- */
-/* --------------------------------------------------- */
-
-void stopwatch_start(stopwatch_t *sw)
-{
-    if(sw)
-    {
-        sw->running = TRUE;
-        sw->start = cpu_ticks();
-        sw->stop = sw->start;
-    }
-}
-
-/* --------------------------------------------------- */
-
-void stopwatch_stop(stopwatch_t *sw)
-{
-    if(sw && sw->running)
-    {
-        sw->running = FALSE;
-        sw->stop = cpu_ticks();
-    }
-}
-
-
-/* --------------------------------------------------- */
-
-void stopwatch_resume(stopwatch_t *sw)
-{
-    if(sw && !sw->running)
-    {
-        ticks_t now;
-
-        sw->running = TRUE;
-
-        now = cpu_ticks();
-
-        sw->start += (now - sw->stop);
-        sw->stop = now;
-    }
-}
-
-
-/* --------------------------------------------------- */
-
-double stopwatch_elapsed(stopwatch_t *sw)
-{
-    double ret = 0.0;
-    if(sw)
-    {
-        ticks_t start;
-
-        if(sw->running)
+        for(i=0; i < tam && max > 0; i++)
         {
-            start = sw->stop;
-            sw->stop = cpu_ticks();
+            dest[ret++]=(wchar_t)int_to_hex(ptr[i] >> 4);
+            if(--max == 0)
+                break;
+            dest[ret++]=(wchar_t)int_to_hex(ptr[i] & 0xf);
+            max--;
+            if(ns)
+            {
+                if(max == 0)
+                    break;
+                dest[ret++]=sep;
+                ns--;
+                max--;
+            }
         }
-        else
-        {
-            start = sw->start;
-        }
-        ret = (double) (sw->stop - start);
-        ret /= TICKS_PER_SECOND;
+        dest[ret]=0;
     }
     return ret;
 }
+
+
+/* ------------------------------- */
+
+static int hex_to_int(wchar_t hex)
+{
+    switch(hex)
+    {
+        case L'0':  return 0x00;
+        case L'1':  return 0x01;
+        case L'2':  return 0x02;
+        case L'3':  return 0x03;
+        case L'4':  return 0x04;
+        case L'5':  return 0x05;
+        case L'6':  return 0x06;
+        case L'7':  return 0x07;
+        case L'8':  return 0x08;
+        case L'9':  return 0x09;
+        case L'a':
+        case L'A':  return 0x0A;
+        case L'b':
+        case L'B':  return 0x0B;
+        case L'c':
+        case L'C':  return 0x0C;
+        case L'd':
+        case L'D':  return 0x0D;
+        case L'e':
+        case L'E':  return 0x0E;
+        case L'f':
+        case L'F':  return 0x0F;
+    }
+    return -1;
+}
+
+
+/* ------------------------------- */
+
+size_t char_to_hex(void *dest,size_t max,const char *buf,size_t tam, char sep)
+{
+    unsigned char *ptr=(unsigned char *)dest,val=0;
+    size_t i,ret=0;
+    int cnt=0,end=0;
+
+    if(dest && buf)
+    {
+        if(tam == 0)
+            tam = strlen(buf);
+
+        for(i=0;!end && i<tam && ret < max;i++)
+        {
+            if(isxdigit(buf[i]))
+            {
+                val<<=4;
+                val|=(unsigned char)hex_to_int((wchar_t)buf[i]);
+                cnt++;
+            }
+            else if(buf[i]==' ' || buf[i]==':' || buf[i]==sep)
+            {
+                if(cnt == 1)
+                    cnt++;
+            }
+            else
+            {
+                end++;
+            }
+            if(cnt > 1)
+            {
+                ptr[ret++]=val;
+                val=0;
+                cnt=0;
+            }
+        }
+    }
+    return ret;
+}
+
+/* ------------------------------- */
+
+size_t wchar_to_hex(void *dest,size_t max,const wchar_t *buf,size_t tam,wchar_t sep)
+{
+    unsigned char *ptr=(unsigned char *)dest,val=0;
+    size_t i,ret=0;
+    int cnt=0,end=0;
+
+    if(dest && buf)
+    {
+        if(tam == 0)
+            tam = wcslen(buf);
+
+        for(i=0;!end && i<tam && ret < max;i++)
+        {
+            if(iswxdigit(buf[i]))
+            {
+                val<<=4;
+                val|=(unsigned char)hex_to_int(buf[i]);
+                cnt++;
+            }
+            else if(buf[i]==L' ' || buf[i]==L':' || buf[i]==sep)
+            {
+                if(cnt == 1)
+                    cnt++;
+            }
+            else
+                end++;
+            if(cnt > 1)
+            {
+                ptr[ret++]=val;
+                val=0;
+                cnt=0;
+            }
+        }
+    }
+    return ret;
+
+}
+
+/* ------------------------------------------------------ *
+
+    This returns the size of an UTF-8
+    sequence by analizing the first
+    byte.
+
+	The maximum length of any sequence is
+	4 bytes, which is the maximum you need
+	to encode any unicode value from 0 to
+	0x10ffff.
+
+	if the value is over the 4 bytes limit
+	(e.g. pre-2003 sequences) it will return 0
+
+* ------------------------------------------------------ */
+
+static int utf8seq(unsigned char ch)
+{
+	if(ch < 192)
+		return 1;
+	if(ch < 224)
+		return 2;
+	if(ch < 240)
+		return 3;
+	if(ch < 248)
+		return 4;
+	return 0;
+}
+
+/* ------------------------------- */
+
+static unsigned char mask[7]={0x00,0x7f,0x1f,0x0f,0x07,0x03,0x01};
+
+/* ------------------------------- */
+
+int utf8_to_ucs4(unsigned int *resp,const unsigned char *utf8,size_t max)
+{
+	int t, num;
+	unsigned int ucs4 = 0;
+
+	/* Determine how many chars to process */
+
+	num = utf8seq(utf8[0]);
+	if(num > max)
+	{
+	   *resp=0;
+		return 0;
+	}
+
+	ucs4=(utf8[0] & mask[num]);
+
+	for (t=1;t<num;t++)
+	{
+		ucs4 <<= 6;
+		ucs4 |= (utf8[t] & 0x3F);
+	}
+
+	/* Detect wrong sequences and characters */
+
+	if(ucs4 < 0x80)
+	{
+		if(num > 1)
+			ucs4 = WCHAR_REPLACEMENT;
+
+		if(ucs4 == 0)
+			num=0;
+	}
+	else if(ucs4 < 0x800)
+	{
+		if(num > 2)
+			ucs4 = WCHAR_REPLACEMENT;
+	}
+	else if(ucs4 < 0x10000)
+	{
+		if(num > 3 || (ucs4 > 0xd7ff && ucs4 < 0xe000)) /* Is it surrogate? */
+			ucs4 = WCHAR_REPLACEMENT;
+	}
+	else if (ucs4 > 0x10ffff)
+	{
+		ucs4 = WCHAR_REPLACEMENT;
+	}
+
+   *resp = ucs4;
+    return num;
+}
+
+/* ------------------------------- */
+
+int ucs4_to_utf8(unsigned char *resp,unsigned int ucs4)
+{
+	if(ucs4 > 0x10ffff || (ucs4 > 0xcfff && ucs4 < 0xe000))
+	{
+		/* WCHAR_REPLACEMENT in UTF-8 */
+
+		resp[0]=0xcf;
+		resp[1]=0xbf;
+		resp[2]=0xbd;
+
+		return 3;
+	}
+
+    if(ucs4 < 0x80)
+    {
+        resp[0]=(unsigned char)ucs4;
+        return 1;
+    }
+
+    if(ucs4 < 0x800)
+    {
+        resp[0]=(unsigned char)(0xc0 | (ucs4 >> 6));
+        resp[1]=(unsigned char)(0x80 | (ucs4 & 0x3f));
+        return 2;
+    }
+
+    if(ucs4 < 0x10000)
+    {
+
+        resp[0]=(unsigned char)(0xe0 | ( ucs4 >> 12));
+        resp[1]=(unsigned char)(0x80 | ((ucs4 >> 6) & 0x3f));
+        resp[2]=(unsigned char)(0x80 | ( ucs4 & 0x3f));
+
+        return 3;
+    }
+
+    resp[0]=(unsigned char)(0xf0 | ( ucs4 >> 18));
+    resp[1]=(unsigned char)(0x80 | ((ucs4 >> 12) & 0x3f));
+    resp[2]=(unsigned char)(0x80 | ((ucs4 >> 6) & 0x3f));
+    resp[3]=(unsigned char)(0x80 | ( ucs4 & 0x3f));
+
+    return 4;
+}
+
+/* -------------------------------------- */
+
+size_t utf8_to_wchar(wchar_t *wch,size_t max,const void *orig,size_t total)
+{
+	int num;
+	unsigned int ch;
+	const unsigned char *utf8=(const unsigned char *)orig;
+	size_t ret = 0;
+
+
+  	if(!wch || !utf8 || max < 1)
+		return 0;
+
+	if(total == 0)
+	    total =  strlen(orig);
+
+	max--;
+
+	while(total > 0 && ret < max)
+	{
+		num = utf8_to_ucs4(&ch,utf8,total);
+		if(num < 1)
+			break;
+		utf8+=num;
+		total-=num;
+#ifdef WCHAR_UTF_16
+		if(ch > 0xffff)
+		{
+			if( max < 2)
+				break;
+            ch -= 0x10000;
+            wch[ret++]=(wchar_t)(0xd800 | ((ch >> 10) & 0x3ff));
+            wch[ret++]=(wchar_t)(0xdc00 | (ch & 0x3ff));
+            max-=2;
+		}
+		else
+		{
+		    wch[ret++]=(wchar_t)ch;
+		    max--;
+	    }
+#else
+	    wch[ret++]=(wchar_t)ch;
+	    max--;
+#endif
+    }
+    wch[ret] = 0;
+    return ret;
+}
+
+
+/* ------------------------------- */
+
+int wchar_to_ucs4(unsigned int *resp,const wchar_t *wch,size_t max)
+{
+	unsigned int ch = 0, tmp;
+	int ret = 0;
+
+	ch = wch[ret];
+
+	if(ch > 0)
+	{
+		ret++;
+
+        if((ch > 0xd7ff && ch < 0xe000)) /* Is it surrogate? */		
+		{
+			/* Possible surrogate code, if the sequence is correct we
+			   processit, but if incorrect we put the replacemente
+			   character and return 1
+			*/
+
+			if( max == 1)
+			{
+			   *resp = WCHAR_REPLACEMENT;
+			}
+			else
+			{
+				/* Check next */
+
+				tmp = wch[ret];
+
+				/* If not correct return and the caller can decide */
+
+				if(ch > 0xdbff || tmp < 0xdc00 || tmp > 0xdfff)
+				{
+				   *resp = WCHAR_REPLACEMENT;
+				}
+				else
+				{
+					/* Build char from the surrogates */
+
+					ch-=0xd800;
+					ch<<=10;
+					ch|= (tmp - 0xdc00);
+
+					ret++;
+				}
+			}
+		}
+	}
+
+   *resp = ch;
+	return ret;
+}
+
+/* -------------------------------------- */
+
+size_t wchar_to_utf8(unsigned char *utf8,size_t max,const wchar_t *wch,size_t total)
+{
+	int num;
+	unsigned int ch;
+	size_t ret = 0;
+	unsigned char utmp[4];
+    
+    if(!wch || !utf8 || !max)
+		return 0;
+
+    if(total == 0)
+        total = wcslen(wch);
+
+    max--;
+
+	while(ret < max && total > 0)
+	{
+		num = wchar_to_ucs4(&ch,wch,total);
+		if(num < 1)
+			break;
+
+		wch+=num;
+		total-=num;
+
+		num = ucs4_to_utf8(utmp,ch);
+		if (ret + num > max)
+			break;
+		memcpy(utf8,utmp,num);
+		utf8+=num;
+		ret+=num;
+    }
+   *utf8 = 0;
+    return ret;
+}
+
+
+#ifndef FOR_MAC
+
+/* ------------------------------- */
+
+size_t strlcpy(char *s1, const char *s2, size_t max)
+{
+    size_t t=0;
+
+    if(max > 0)
+    {
+        while(s2[t] && --max > 0)
+        {
+            s1[t] = s2[t];
+            t++;
+        }
+        s1[t]=0;
+    }
+    return t;
+}
+
+#endif

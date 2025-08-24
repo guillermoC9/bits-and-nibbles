@@ -1,8 +1,7 @@
 /*
-
     ecc.h
 
-    Elliptic Curve Cryptography
+    Elliptic Curve Cryptography Protocols
 
     (CC) Creative Commons 2018-2025 by Guillermo Amodeo Ojeda.
 
@@ -20,145 +19,38 @@
 
     NOTES:
 
-    - Originally written by Guillermo Amodeo Ojeda using info from:
+        - Written by Guillermo Amodeo Ojeda using references from:
 
-        * https://en.wikipedia.org/wiki/Elliptic-curve_cryptography
+            * RFC-5480 (http://www.ietf.org/rfc/rfc5480.txt)
+            * RFC-5208 (https://tools.ietf.org/html/rfc5208)
+            * RFC-5915 (https://tools.ietf.org/html/rfc5915)
+            * RFC-3279 (https://tools.ietf.org/html/rfc3279)
+            * RFC-8032 (https://www.rfc-editor.org/rfc/rfc8032)
+            * RFC-6979 (https://www.rfc-editor.org/rfc/rfc6979)
+            * RFC-5758 (https://www.rfc-editor.org/rfc/rfc5758)
 
-        * Hankerson, Menezes & Vanstone's "Guide to Elliptic Curve Cryptography"
-          Springer (2004)
-
-        * Michael Rosing's Book "Implementing Elliptic Curve Cryptography".
-          Manning Publications Co (1998).
-
-        * Phrack's "All Hackers Need To Know About Elliptic Curve Cryptography".
-          http://www.phrack.org/issues/63/3.html (2005)
-
-        * B. Poettering's articles at http://point-at-infinity.org/ecc/
-
-        * RFC 5915 at https://tools.ietf.org/html/rfc5915
-
-        * RFC 7748 at https://tools.ietf.org/html/rfc7748
-
-        * RFC 7748 at https://tools.ietf.org/html/rfc8032
-
-        * https://www.cs.miami.edu/home/burt/learning/Csc609.142/ecdsa-cert.pdf
-
-        * http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
-
-        * SEC 2: Recommended Elliptic Curve Domain Parameters
-          http://www.secg.org/sec2-v2.pdf
-
-       * Handbook of Applied Cryptography - https://cacr.uwaterloo.ca/hac/
-
-       * https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.204.9073&rep=rep1&type=pdf
-
-    - The functions have been made time-unpredictable. Some are time-constant and some never
-      take the same time to execute even if they are given exactly the same data.
-
-    - We include Curve25519 and Curve448 in our homogeneus management of Elliptic Curves,
-      which is why we consider points on those curves, even if the Y coordinate is ignored
-      when used and -thus- always set to 0.
-
+            https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm
 
                                 --oO0Oo--
 */
 
-#ifndef ELLIPTIC_CURVES
-#define ELLIPTIC_CURVES
+#ifndef ECC_PROTOCOLS_H
+#define ECC_PROTOCOLS_H
 
-#include "curve25519.h"
-#include "curve448.h"
-#include "mpint.h"
-#include "random.h"
+#include "curves.h"
+#include "pem.h"
 
-#define ECC_MIN_BITS    192                         /* Min size in bits of a field (secp192k1) */
-#define ECC_MAX_BITS    521                         /* Max size in bits of a field (secp521r1) */
-#define ECC_MAX_BYTES   ((ECC_MAX_BITS +  7) / 8)   /* Max size in bytes of a field */
+/* Limits */
 
-#define ECC_MAX_WORDS   ((ECC_MAX_BITS + MP_DIGIT_LOG) / MP_DIGIT_BITS)
+#define ECDSA_MIN_BITS          ECC_MIN_BITS
+#define ECDSA_MAX_BITS          ECC_MAX_BITS
+#define ECDSA_MAX_BYTES         ECC_MAX_BYTES
 
-#define ECC_MSB         0x80000000
-#define ECC_FULL        0xffffffff
+#define ECC_MAX_PRIVATE_DH      (ECDSA_MAX_BYTES)
+#define ECC_MAX_PUBLIC_DH       (ECDSA_MAX_BYTES * 2 + 1)
+#define ECC_MAX_SHARED_DH       (ECDSA_MAX_BYTES)
 
-/* ECC Point */
-
-typedef struct
-{
-    mp_int_t x;
-    mp_int_t y;
-} ecc_point_t;
-
-/** ECC Curve  */
-
-typedef struct
-{
-    int     curve;       /* What curve is this (see enum below ) */
-
-    const char **alias;  /* Curve aliases list */
-
-    int     NUMBITS;     /* Bits of the curve */
-    int     NUMBYTES;    /* Size in bytes of the curve */
-    int     NUMWORDS;    /* Size in words of the fields (for GF2m arithmetic) */
-
-    mp_int_t     p;      /* Polynomial P */
-    mp_int_t     a;      /* Element A */
-    mp_int_t     b;      /* Element B */
-    mp_int_t     n;      /* Order N */
-
-    ecc_point_t G;      /* Base point (Generator)*/
-
-    int         h;      /* Cofactor H */
-
-    /* Stuff for  Binary Arithmetics */
-
-    mp_digit_t  UPRBIT;
-    mp_digit_t  UPRMASK;
-
-    int     FULLWORDS;
-    int     LOG2;
-
-} ecc_curve_t;
-
-/* -------------------------- * 
-      Supported Curve List 
- * -------------------------- */
-
-enum
-{
-    ECC_CURVE_NONE = 0,
-
-    ECC_CURVE_192k1,        /* Weierstrass secp192k1 / ansip192k1 */
-    ECC_CURVE_192r1,        /* Weierstrass secp192r1 / prime192v1 / nistp192 */
-
-    ECC_CURVE_256r1,        /* Weierstrass secp256r1 / prime256v1 / nistp256 */
-    ECC_CURVE_256k1,        /* Weierstrass secp256k1 / ansip256k1 */
-
-    ECC_CURVE_384r1,        /* Weierstrass secp384r1 / prime384v1 / nistp384 */
-    ECC_CURVE_521r1,        /* Weierstrass secp521r1 / prime521v1 / nistp521 */
-
-    ECC_CURVE_BRAIN_192,    /* Weierstrass Brainpool 192r1 */
-    ECC_CURVE_BRAIN_224,    /* Weierstrass Brainpool 224r1 */
-    ECC_CURVE_BRAIN_256,    /* Weierstrass Brainpool 256r1 */
-    ECC_CURVE_BRAIN_320,    /* Weierstrass Brainpool 320r1 */
-    ECC_CURVE_BRAIN_384,    /* Weierstrass Brainpool 384r1 */
-    ECC_CURVE_BRAIN_512,    /* Weierstrass Brainpool 512r1 */
-
-    ECC_CURVE_X25519,        /* Edwards curve25519 */
-    ECC_CURVE_X448,          /* Edwards curve448 */
-
-    ECC_NUM_CURVES          /* Always last */
-};
-
-/* Macros */
-
-#define ecc_curve_bits(_c)   ((_c)->NUMBITS)
-#define ecc_curve_bytes(_c)  ((_c)->NUMBYTES)
-#define ecc_curve_name(_c)   ((_c)->alias[0])
-#define ecc_curve_type(_c)   ((_c)->type)
-#define ecc_curve_id(_c)     ((_c)->curve)
-
-#define is_curve25519(_c)    ((_c)->curve == ECC_CURVE_X25519)
-#define is_curve448(_c)      ((_c)->curve == ECC_CURVE_X448)
+#define ECC_MAX_HEX_BUFFER      (ECC_MAX_PUBLIC_DH * 2 + 1)
 
 /* ECC Keys context */
 
@@ -169,218 +61,140 @@ typedef struct
     mp_int_t       *pri;    /* Private key (optional) */
     ecc_point_t  pub;       /* Public key */
 
-    const char     *k;         /* Only used for test stuff */
+    const char     *k;      /* Only used for test stuff */
 } ecc_key_t;
 
-/* Macros */
+
+/* Useful macros */
 
 #define ecc_bits(_r)         ((_r)->ctx->NUMBITS)
 #define ecc_key_size(_r)     ((_r)->ctx->NUMBYTES)
 #define ecc_bufsize(_r)      ((_r)->ctx->NUMBYTES)
 #define ecc_has_private(_r)  ((_r)->pri)
 
-/* -------------------------- * 
-          Functions 
- * -------------------------- */
+/* Elliptic Curve Diffie-Hellman key exchange */
+
+typedef struct
+{
+    ecc_curve_t *ctx;      /* Curve Parameters Context */
+
+    mp_int_t     lpri;      /* Local Private key */
+    ecc_point_t  lpub;      /* Local Public key */
+    ecc_point_t  rpub;      /* Remote Public key */
+} ecc_dh_t;
+
+/* ECC Public Key Types List */
+
+enum
+{
+    ECC_PUBLIC_KEY=0,       /* id-ecPublicKey (eg. ECDSA) */
+    ECC_PUBLIC_DH_KEY,      /* id-ecDH (eg. ECDH) */
+    ECC_PUBLIC_MQV_KEY,     /* id-ecMQV (eg. ECMQV) */
+    ECC_PUBLIC_25519_KEY,   /* id-ecDH-25519 (eg. ECDH 25519) */
+    ECC_PUBLIC_448_KEY,     /* id-ecDH-448 (eg. ECDH 448) */
+
+    ECC_PUBLIC_KEY_COUNT    /* LEAVE ALWAYS LAST */
+};
+
+/* Elliptic curve Digital Signature Algorithms */
+
+enum
+{
+    NPI_SIGN_ALG=0,         /* Non Probably Implemented SIGNature ALGgorithm */
+
+    ECDSA_SHA1,             /* ecdsaWithSHA1*/
+    ECDSA_SHA224,           /* ecdsaWithSHA224 */
+    ECDSA_SHA256,           /* ecdsaWithSHA256 */
+    ECDSA_SHA384,           /* ecdsaWithSHA384 */    
+    ECDSA_SHA512,           /* ecdsaWithSHA512 */
+
+    ECDSA_SHA3_224,         /* ecdsaWithSHA3-224 */
+    ECDSA_SHA3_256,         /* ecdsaWithSHA3-256 */
+    ECDSA_SHA3_384,         /* ecdsaWithSHA3-384 */
+    ECDSA_SHA3_512,         /* ecdsaWithSHA3-512 */
+    
+    EdDSA_25519,            /* ecdsaWithEd25519 */
+    EdDSA_448,              /* ecdsaWithEd448 */
+
+    LAST_ECC_SIGN_ALG /* LEAVE ALWAYS LAST */
+};
+
+/* Signature */
+
+typedef struct
+{
+    mp_int_t r;
+    mp_int_t s;
+} ecdsa_sign_t;
+
+/* Functions */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* -------------------------------------------------- *
-   Returns an Elliptic Curve with the given curve type:
-
-    Eg: curve = ecc_get_curve(ECC_CURVE_224r1);
-
-    The curve struct is static and doesn't need 
-    to be freed
-* -------------------------------------------------- */
-
-ecc_curve_t *ecc_get_curve(int curve);
-
-/* -------------------------------------------------- *
-   Returns an Elliptic Curve with the given curve 
-   name:
-
-    Eg: curve = ecc_get_named_curve("prime256v1");
-
-   The curve is static and doesn't need to be freed
+    This is to check if  'alg' is a valid ECC sign
+    algorithm. If it is it will return 'alg' otherwise
+    it will return NPI_SIGN_ALG
  * -------------------------------------------------- */
 
-ecc_curve_t *ecc_get_named_curve(const char *curve);
+int ecc_sign_alg(int alg);
 
 /* -------------------------------------------------- *
-   Returns an Elliptic Curve with the given curve OID:
-
-    Eg:
-        curve = ecc_get_curve_from_oid("1.3.132.0.10");
-
-    is equivalent to:
-
-        curve = ecc_get_curve(ECC_CURVE_256k1);
-
-    and:
-
-        curve = ecc_get_named_curve("secp256k1");
-
-    The curve is static and doesn't need to be freed
-* -------------------------------------------------- */
-
-ecc_curve_t *ecc_get_curve_from_oid(const char *curve);
-
-/* -------------------------------------------------- *
-   Returns an Elliptic Curve with the given curve OID
-   in asn1 format
-
-    The curve is static and doesn't need to be freed
+    Returns the signature algorithm from an OID
  * -------------------------------------------------- */
 
-ecc_curve_t *ecc_get_curve_from_asn1(const void *asn,int len);
+int ecc_sign_algorithm(const char *oid);
 
 /* -------------------------------------------------- *
-   copy to 'buf' the OID of a curve encoded in ASN.1
-   and return its length or 0 if not found
+    Returns the signature algorithm from an OID but
+    encoded in ASN.1/DER
  * -------------------------------------------------- */
 
-int ecc_get_curve_asn1(int curve,void *buf,int max);
+int ecc_sign_algorithm_asn1(unsigned char *oid,int tam);
 
 /* -------------------------------------------------- *
-    Returns the OID of a curve or NULL if not found
+    Returns the OID from signature algorithm
  * -------------------------------------------------- */
 
-const char *ecc_get_curve_oid(int curve);
-const char *ecc_get_curve_name(int curve);
+char *ecc_sign_oid(int cual);
 
 /* -------------------------------------------------- *
-   Returns the size of a public key in bytes after
-   conversion.
-
-   Size includes the type/prefix byte for all curves except
-   for x25519 and x448.
+    Returns the name of a signature algorithm
  * -------------------------------------------------- */
 
-int ecc_curve_pub_size(ecc_curve_t *ctx,int compressed);
+char    *ecc_sign_name(int cual);
+wchar_t *ecc_sign_namew(int cual);
 
 /* -------------------------------------------------- *
-   Convert points to bytes.
-
-   For curves not x25519 nor x448, adds a type/prefix
-   byte with the folling meaning:
-
-        0x04 = Uncompressed (both X and Y)
-        0x02 = Compressed (only X) where Y is even
-        0x03 = Compressed (only X) where Y is odd
-
-   compress = TRUE to get a compressed curve.
-
-   Note that 'compress' is ignored for curves x25519,
-   x448 and for binary curves, which are always
-   uncompressed.
+    Returns the signature algorithm  from its name
  * -------------------------------------------------- */
 
-int ecc_point_to_bytes(ecc_curve_t *ctx,ecc_point_t *p,void *dest,int max,int compress);
+int ecc_sign_alg_from_name(const char *nombre);
+int ecc_sign_alg_from_namew(const wchar_t *nombre);
 
 /* -------------------------------------------------- *
-   Convert bytes to a point. It expects a type/prefix
-   byte (0x02, 0x03 or 0x04) at the start for
-   curves other than x25519 or x448, and it will
-   return S9_EINCORRECT if not there.
 
-   Returns error or S9_OK (0) if done
+    Copies the OID -in ASN.1/DER format- of a given
+    signature algorithm.
+
+    It returns the number of bytes written or 0 if
+    doesn't recognize the given algorithm.
+
+    'des' can be NULL if you only want to know the
+    length of a given signature in ASN.1/DER
+
  * -------------------------------------------------- */
 
-int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int len);
+int ecc_sign_oid_asn1(int cual,unsigned char *dest,int max);
 
 /* -------------------------------------------------- *
-   Make a field bn to be in the magnitude of N and
-   and multiple of the cofactor
+    Returns the hash used by a given signature
+    algorithm
  * -------------------------------------------------- */
 
-void ecc_make_order(ecc_curve_t *ctx,mp_int_t *bn);
-
-/* -------------------------------------------------- *
-   Generate random fields and points
-
-   IMPORTANT!! bn and p should NOT be initialized
- * -------------------------------------------------- */
-
-void ecc_random_field(ecc_curve_t *ctx,rand_t *rc,mp_int_t  *bn);
-void ecc_random_point(ecc_curve_t *ctx,rand_t *rc,ecc_point_t *p);
-
-/* -------------------------------------------------- *
-   Show a point in the screen, 'decimal' is TRUE or
-   FALSE show as decimal. FALSE show hexa
- * -------------------------------------------------- */
-
-void ecc_point_show(char *prefix,ecc_point_t *p,int decimal);
-
-/* -------------------------------------------------- *
-   IMPORTANT!! p should NOT be initialized
- * -------------------------------------------------- */
-
-void ecc_point_init(ecc_point_t *p);
-void ecc_point_init_copy(ecc_point_t *p,ecc_point_t *q);
-void ecc_point_init_string(ecc_point_t *p,const char *x,const char *y,int radix);
-
-/* -------------------------------------------------- *
-   The values of x,y are copied so they can be freed
-   without affecting the point.
- * -------------------------------------------------- */
-
-void ecc_point_init_set(ecc_point_t *p,mp_int_t *x,mp_int_t *y);
-
-/* -------------------------------------------------- *
-   Point clean up
- * -------------------------------------------------- */
-
-void ecc_point_clear(ecc_point_t *p);
-
-/* -------------------------------------------------- *
-   IMPORTANT!! p should BE initialized as current
-   values would be freed
- * -------------------------------------------------- */
-
-void ecc_point_set_zero(ecc_point_t *p);
-void ecc_point_copy(ecc_point_t *p,ecc_point_t *from);
-
-/* -------------------------------------------------- *
-   IMPORTANT!! This function is to set values to an
-   existing point so p should BE initialized becasue
-   the current x,y of p will be freed, and the alues
-   of x,y would be copied so they are independent
-   of the originals
-   .
- * -------------------------------------------------- */
-
-void ecc_point_set(ecc_point_t *p,mp_int_t *x,mp_int_t *y);
-
-/* -------------------------------------------------- *
-   Point arithmetic
- * -------------------------------------------------- */
-
-int ecc_point_on_curve(ecc_curve_t *ctx,ecc_point_t *p);
-int ecc_point_is_zero(ecc_point_t *p);
-int ecc_point_is_equal(ecc_point_t *p1,ecc_point_t *p2);
-
-/* -------------------------------------------------- *
-   r(x,y) = p(x,-y) mod m. Note that r should be
-   initialized
- * -------------------------------------------------- */
-
-void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m);
-
-/* -------------------------------------------------- *
-   Point doubling, addition and multiplication
-
-        r = r + r;
-        r = r + p
-        r = p * k
- * -------------------------------------------------- */
-
-void ecc_point_double(ecc_curve_t *ctx,ecc_point_t *r);
-void ecc_point_add(ecc_curve_t *ctx,ecc_point_t *r,ecc_point_t *p);
-void ecc_point_mult(ecc_curve_t *ctx,ecc_point_t *r,ecc_point_t *p, mp_int_t *k);
-
+int ecc_signing_hash(int cual);
 
 /* -------------------------------------------------- *
    Destroy keys created with the key generation/load
@@ -408,8 +222,8 @@ int ecc_private_key_copy(ecc_key_t *dst,ecc_key_t *src);
 
     if 'rc' is not provided -i.e. is NULL- then a
     generator is choosen, trying first the system
-    S9_RAND_OS and if not present then it uses
-    S9_RAND_TLS_SHA256.
+    RAND_OS and if not present then it uses
+    RAND_TLS_SHA256.
  * -------------------------------------------------- */
 
 ecc_key_t *ecc_generate_keys(int curve,rand_t *rc);
@@ -426,6 +240,301 @@ ecc_key_t *ecc_generate_keys(int curve,rand_t *rc);
 
 ecc_key_t *ecc_keys_from_bytes(int curve,const void *pri,size_t pvcnt,const void *pub,size_t pucnt);
 ecc_key_t *ecc_keys_from_chars(int curve,const char *pri,const char *px,const char *py);
+
+/* ------------------------------------------------------------ *
+    Builds an ECC key context from a byte buffer
+    in ASN.1/DER
+
+    It accepts these formats:
+
+    - PublicKeyInfo (PKCS-8 public key)
+
+        PublicKeyInfo ::= SEQUENCE
+        {
+            algorithm       AlgorithmIdentifier,
+            PublicKey       BIT STRING
+        }
+
+        AlgorithmIdentifier ::= SEQUENCE
+        {
+            algorithm       OBJECT IDENTIFIER,
+            parameters      ANY DEFINED BY algorithm OPTIONAL
+        }
+
+        ECParameters ::= CHOICE
+        {
+            NamedCurve      OBJECT IDENTIFIER,
+        }
+
+
+    - PrivateKeyInfo (Clave Privada en formato PKCS-8)
+
+        PrivateKeyInfo ::= SEQUENCE
+        {
+            version         Version
+            algorithm       AlgorithmIdentifier,
+            PrivateKey      BIT STRING
+        }
+
+        AlgorithmIdentifier ::= SEQUENCE
+        {
+            algorithm       OBJECT IDENTIFIER,
+            parameters      ANY DEFINED BY algorithm OPTIONAL
+        }
+
+    - ECPrivateKeyInfo
+
+        ECPrivateKeyInfo ::= SEQUENCE
+        {
+            version         Version
+            PrivateKey      OCTECT STRING
+            parameters [0]  ECParameters OPTIONAL,
+            PublicKey  [1]  BIT STRING OPTIONAL
+        }
+
+        Although marked as OPTIONAL, section 3 of RFC-5915
+        says that conforming implementations  MUST include
+        the 'parameters' field.
+
+        'PublicKey' SHOULD be present, but if it was ommitted
+        it can be calculated from the private key and the
+        parameters (which is why it should always be present).
+
+ * ------------------------------------------------------------ */
+
+
+int ecc_keys_from_asn1(ecc_key_t **k,const void *bytes,int tam);
+
+/* -------------------------------------------------- *
+   Creates a ECC context from an ASN.1/DER sequence,
+   like ecc_keys_from_asn1() does, but in this case
+   the header of the sequence must not be there.
+ * -------------------------------------------------- */
+
+int ecc_keys_from_seq_asn1(ecc_key_t **k,const void *bytes,int tam);
+
+/* -------------------------------------------------- *
+   Builds a public ECC key context from 2 buffers 
+   encoded in ASN.1/DER with the public key format
+
+        - PublicKeyInfo (PKCS-8 public key)
+
+            PublicKeyInfo ::= SEQUENCE
+            {
+                algorithm       AlgorithmIdentifier,
+                PublicKey       BIT STRING
+            }
+            
+            AlgorithmIdentifier ::= SEQUENCE
+            {
+                algorithm       OBJECT IDENTIFIER,
+                parameters      ECParameters IF REQUIRED BY algorithm OPTIONAL
+            }
+
+            ECParameters ::= CHOICE
+            {
+                NamedCurve      OBJECT IDENTIFIER
+            }
+
+        Basically 'seq' is PublicKeyInfo and 'pub' is
+        AlgorithmIdentifier
+
+*/
+
+ecc_key_t *ecc_public_key_from_asn1(asn1_seq_t *seq,asn1_seq_t *pub);
+
+/* -------------------------------------------------- *
+   Return a public key type from a OID block in ASN.1   
+   or converts such a block to the public key type
+ * -------------------------------------------------- */
+
+int ecc_public_key_type_from_asn1(const void *buf,int blen);
+int ecc_public_key_type_to_asn1(int key, void *buf,int max);
+
+
+/* -------------------------------------------------- *
+
+    Loads a DSA key from a PEM 'file' in PKCS-8
+    format.
+
+    If 'public' is TRUE, it will look for a ECC
+    public key in PKCS-8 formta inside the file.
+
+    If it is FALSE it will look for the private key.
+
+    The PKCS-8 DSA private key can be encrypted using
+    AES-256-CBC, AES-192-CBC, AES-128-CBC or DES=EDE3-CBC
+    using 'passcode' as the encription key.
+
+    Returns:
+
+        OK         - Loaded
+        EINVAL     - 'cer' is NULL.
+        EOPEN      - Cannot load the file (it may
+                        not exist).
+        EINCORRECT - The file format of the key is
+                        incorrect.
+        ENOIMPL    - an algorithm or curve used is
+                        not supported
+        ECRYPTED   - The key is encrypted but 'passcode'
+                        was not provided (NULL)
+        EPRIV      - They key failed the verification.
+                        It might wrong or be corrupt.
+ * -------------------------------------------------- */
+
+int ecc_load_pem(const char *file,int publica,const char *passcode,ecc_key_t **ecc);
+int ecc_load_pemw(const wchar_t *file,int publica,const char *passcode,ecc_key_t **ecc);
+
+/* ----------------------------------------------------- *
+    Encodes the public key int a ECC context to PKCS-8
+    format in ASN.1/DER and returns the buffer.
+
+    Format:
+
+        PublicKeyInfo (look ecc_keys_from_asn1())
+
+    Use asn1_free() to free the returned buffer
+    once you do not need it anymore.
+ * ----------------------------------------------------- */
+
+asn1_t *ecc_public_to_asn1(ecc_key_t *key);
+
+
+/* ----------------------------------------------------- *
+    Same as the previous but encodes the private key
+
+    Format:
+
+        ECPrivateKeyInfo (look ecc_keys_from_asn1())
+
+    Use asn1_free() to free the returned buffer
+    once you do not need it anymore.
+
+ * ----------------------------------------------------- */
+
+asn1_t *ecc_private_to_asn1(ecc_key_t *key);
+
+/* -------------------------------------------------- *
+    Saves a public key to a PEM file in PKCS-8 format
+    compatible with OpenSSL and other products.
+ * -------------------------------------------------- */
+int ecc_public_to_pem(ecc_key_t *key,FILE *fp);
+
+/* -------------------------------------------------- *
+   Same as previous but it saves the private key in
+   PKCS-1 format instead.
+
+   If 'passcode' is not NULL, it will encrypt the key
+   using it with the provided 'alg' algorithm, which
+   would be ignored if 'passcode' is NULL
+ * -------------------------------------------------- */
+
+int ecc_private_to_pem(ecc_key_t *key,const char *passcode,int alg,FILE *fp);
+
+
+/* -------------------------------------------------- *
+    Saves a ECC key context to a PEM file.
+
+    If 'priv' is TRUE it saves as a private key
+    format, encrypting it using 'passcode' if
+    especified with 'alg as the cypher. Default is
+    AES-128-CBC.
+
+    If 'priv' is FALSE it will save it as a
+    PKCS-8 public key format
+ * -------------------------------------------------- */
+
+int ecc_save_pem(const char *file,ecc_key_t *key,int priv,const char *passcode,int alg);
+int ecc_save_pemw(const wchar_t *file,ecc_key_t *key,int priv,const char *passcode,int alg);
+
+/** ECDSA Stuff */
+
+/* -------------------------------------------------- *
+   Sign a buffer of dlen bytes and return the
+   signature in 'sign'
+ * -------------------------------------------------- */
+
+int ecdsa_sign_data(ecc_key_t *key,int alg, const void *data, int dlen, ecdsa_sign_t *sign);
+
+/* -------------------------------------------------- *
+    Sign a buffer that contains a hash of hlen bytes
+    and return the signature in 'sign'
+ * -------------------------------------------------- */
+
+int ecdsa_sign_hash(ecc_key_t *key, const void *hash, int hlen, ecdsa_sign_t *sign);
+
+/* -------------------------------------------------- *
+    Verify if signature in 'sign' corresponds to the
+    signature of 'data'
+ * -------------------------------------------------- */
+
+int ecdsa_verify_sign(ecc_key_t *key, int alg, const void *data, int dlen, ecdsa_sign_t *sign);
+
+/* -------------------------------------------------- *
+    Verify if signature in 'sign' corresponds to the
+    signature of the hash value in 'hash'
+ * -------------------------------------------------- */
+
+int ecdsa_verify_hash(ecc_key_t *key,const void *hash,int hlen,ecdsa_sign_t *sign);
+
+/* ----------------------------------------------------- *
+   Creates an Elliptic Curve Diffie-Hellman key
+   exchange context using a random number generator
+   to generate the one-use keys.
+
+   If the generator is NOT given, a default RAND_OS
+   is used or RAND_TLS_SHA256 if not present.
+
+  'rpub' is assumed to be at least ctx->NUMBYTES long
+   and is only needed by the client side of the
+   exchange to set the server key.
+
+   Eg:
+        dh = ecc_dh_start(ctx,NULL,rnd);
+ * ----------------------------------------------------- */
+
+ecc_dh_t *ecc_dh_start(ecc_curve_t *ctx,const void *rpub,size_t rsz,rand_t *rc);
+
+
+/* -------------------------------------------------- *
+    Same as previous but using a raw data buffer of
+    'cnt' bytes, which cannot be smaller than
+    ctx->NUMBYTES.
+ * -------------------------------------------------- */
+
+ecc_dh_t *ecc_dh_start_from_bytes(ecc_curve_t *ctx,const void *rpub,size_t rsz,const void *data,size_t cnt);
+
+/* -------------------------------------------------- *
+    Finishes an Elliptic Curve Diffie-Hellman key
+    exchange generating the shared secret.
+
+    'pub' is assumed to be at least ctx->NUMBYTES long
+    and is only needed by the server side of the
+    exchange to set the client key.
+
+    'shared' is assumed to be at least ctx->NUMBYTES long
+    and it receives the shared secret.
+
+    Eg:
+
+        ecc_dh_end(dh,NULL,0,shared);
+
+    IMPORTANT: this frees 'dh'
+
+ * -------------------------------------------------- */
+
+void ecc_dh_end(ecc_dh_t *dh,const void *pub,size_t psz,void *shared);
+
+/* -------------------------------------------------- *
+    Read the local public key of an Elliptic Curve
+    Diffie-Hellman key exchange context.
+
+    Eg:
+
+        ret = ecc_dh_get_public(dh,public,256,TRUE);
+ * -------------------------------------------------- */
+
+int ecc_dh_get_public(ecc_dh_t *dh,void *pub,size_t max,int compressed);
 
 
 #ifdef __cplusplus

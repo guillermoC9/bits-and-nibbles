@@ -1099,3 +1099,107 @@ void rand_bits(rand_t *rc,void *ret,int bits)
        *buf &= (0xff >> cnt);
     }
 }
+
+/* ------------------------------------------------------------------------------------------- *
+    https://github.com/firebase/firebase-js-sdk/blob/main/packages/firestore/src/util/misc.ts
+ * ------------------------------------------------------------------------------------------- */
+
+static void math_dot_random(char *buf)
+{
+    double value;
+    int t;
+    unsigned int pos;
+    static gx_rand_t ctx = {0,0,0,0};
+    char chars[63]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    if(!ctx.w)
+        xorshift128_init(&ctx,unpredictable_seed_non_linear());
+
+    for(t=0;t<20;t++)
+    {
+        value =(double) xorshift128_function(&ctx);
+        value/= 4294967295.0;
+
+        pos = (unsigned int)(value * 62.0);
+
+       *buf++ = chars[pos % 62];
+    }
+}
+
+/* -------------------------------- */
+
+static void build_firestore_auto_id(void *buf,size_t max,int wide)
+{
+    char id[20];
+    size_t pos=0,cnt=20;
+    char *ch;
+    wchar_t *wc;
+
+    if(max > 0)
+    {
+        max--;
+        ch = (char *)buf;
+        wc = (wchar_t *)buf;
+        while(pos < max)
+        {
+            if(cnt == 20)
+            {
+                math_dot_random(id);
+                cnt = 0;
+            }
+            if(wide)
+                wc[pos++]=id[cnt++];
+            else
+                ch[pos++]=id[cnt++];
+        }
+        if(wide)
+            wc[pos]=0;
+        else
+            ch[pos]=0;
+    }
+}
+
+/* -------------------------------- */
+
+char *firestore_auto_id(char *string,size_t max)
+{
+    if(string)
+        build_firestore_auto_id(string,max,FALSE);
+    return string;
+}
+
+/* -------------------------------- */
+
+wchar_t *firestore_auto_idw(wchar_t *string,size_t max)
+{
+    if(string)
+        build_firestore_auto_id(string,max,TRUE);
+    return string;
+}
+
+/* ------------------------------- */
+/* ------------------------------- */
+
+void hash_get_entropy(int hash,void *dest,size_t num)
+{
+    unsigned char *buf,tmp[MAX_HASH_SIZE];
+    size_t cnt = 0;
+    int left = 0;
+    hash_t ctx;
+    
+    if(hash > HASH_NONE && hash < HASH_NUM_HASHES)
+    {
+        buf  = (unsigned char *)dest;        
+        while(cnt < num)
+        {
+            if(left == 0)
+            {                
+                get_entropy(tmp,MAX_HASH_SIZE);
+                left = hash_init(&ctx,hash);                
+                hash_update(&ctx,tmp,MAX_HASH_SIZE);
+                hash_final(&ctx,tmp);                
+            }
+            buf[cnt++] = tmp[--left];
+        }
+    }
+}

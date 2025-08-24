@@ -1,7 +1,7 @@
 /*
     hmac.h
 
-    Hash-derived Message Authentication Code functions
+    Cryptographic Hashing functions
 
     (CC) Creative Commons 2018-2025 by Guillermo Amodeo Ojeda.
 
@@ -24,12 +24,14 @@
                                 --oO0Oo--
 */
 
-#ifndef CRYTOGRAPHIC_HMAC
-#define CRYTOGRAPHIC_HMAC
+#ifndef CRYTOGRAPHIC_HASH
+#define CRYTOGRAPHIC_HASH
 
+#include "md2.h"
 #include "md5.h"
 #include "sha1.h"
 #include "sha2.h"
+#include "sha3.h"
 
 /** Hash Algorithms IDs */
 
@@ -39,6 +41,7 @@ enum
 
     /* MD */
 
+    HASH_MD2,    
     HASH_MD5,
 
     /* SHA */
@@ -48,11 +51,35 @@ enum
     HASH_SHA256,
     HASH_SHA384,
     HASH_SHA512,
+    HASH_SHA512_224,
+    HASH_SHA512_256,
+
+    /* SHA-3 */
+
+    HASH_SHA3_224,
+    HASH_SHA3_256,
+    HASH_SHA3_384,
+    HASH_SHA3_512,
+
+    /* Keccak */
+
+    HASH_KECCAK_224,
+    HASH_KECCAK_256,
+    HASH_KECCAK_384,
+    HASH_KECCAK_512,
+
+    /* Shake */
+
+    HASH_SHAKE_128,
+    HASH_SHAKE_256,
 
     /* New algorithms go over this comment */
 
     HASH_NUM_HASHES
 };
+
+#define FIRST_HASH   (HASH_NONE + 1)
+#define LAST_HASH    (HASH_NUM_HASHES - 1)
 
 /** Biggest hash produced (SHA-512 at the moment) */
 
@@ -60,7 +87,34 @@ enum
 #define MAX_HASH_SIZE     SHA512_SIZE
 
 /* ----------------------------------------------------- *
-    Hash calculation with support for few algorithms
+    Hash calculation with support for all algorithms
+
+    IMPORTANT: 
+    
+      Poly1305 is not really a hash algorithm but 
+      a HMAC Function, so calls to hash_init() must 
+      include a key of POLY1305_SIZE bytes (16). 
+      Thus the result from has_final() is actually 
+      an HMAC rather than a hash.
+
+      Shake128/256 are neither hash algorithms,
+      they are HMAC Key Derived Functions, and 
+      the  hash resulting from hash_final() would
+      be a 16/32 bytes key rather than a hash.
+
+      If you need a bigger key, you can call 
+      hash_final_hkdf() instead, which allows
+      an amount of bytes to be returned instead
+      the 16/32 of the digest size ;-)
+
+      It may seem stupid to allow these two
+      algorithms to be used in here if they are
+      not pure hash algorithms, but allowing them
+      here ease to use them from anywhere
+      else like hmac_...() functions, or for
+      ed448 signature algorithms, as the caller 
+      know how to handle the differences.
+
  * ----------------------------------------------------- */
 
 typedef struct
@@ -71,13 +125,16 @@ typedef struct
 
     union
     {
+        md2_t     md2;        
         md5_t     md5;
-        
+
         sha1_t    sha1;
         sha224_t  sha224;
         sha256_t  sha256;
         sha384_t  sha384;
         sha512_t  sha512;
+        sha3_t    sha3;
+
     } a;
 } hash_t;
 
@@ -95,16 +152,38 @@ typedef struct
    RFC-4868 with support for multiple algorithms.
 
    It supports algorithms not covered by those RFC
-   by basically using the same method and blocksizes.
+   by basically using the same method and blocksizes,
+   although in the case of SHA3 the blocksizes are
+   standarized by NIST.
+
+   In the case of Poly1305 from D J Bernstein the
+   code DOESN'T follow the RFCs with ipad and opad,
+   as this algorithm already produces an HMAC, so
+   the interface here is a mere passthrough to
+   allow a caller to use this interface as a way to
+   to solve all their HMAC needs.
+
+   Shake128/256 works kind of like the RFCs but not
+   quite exactly so it should be avoided. As stated
+   before, it was added for ease handling of the
+   algorithms from anywhere else.
  * ------------------------------------------------ */
 
-/* Block size for normal HMAC as RFCs */
+/** Block size for normal HMAC as RFCs */
 
 #define HMAC_SIZE         64
 
-/* Blocksize for HMAC-SHA384 and HMAC-SHA512 as RFCs */
+/** Blocksize for HMAC-SHA384 and HMAC-SHA512 as RFCs */
 
-#define HMAC_BIG_SIZE        128
+#define HMAC_BIG_SIZE    128
+
+/** Blocksizes for HMAC-SHA3_... as per NIST tables */
+
+#define HMAC_SHA3_224_SIZE   144  /* 1152 bits */
+#define HMAC_SHA3_256_SIZE   136  /* 1088 bits */
+#define HMAC_SHA3_384_SIZE   104  /*  832 bits */
+#define HMAC_SHA3_512_SIZE    72  /*  576 bits */
+
 #define HMAC_MAX_BLOCK_SIZE  150
 
 typedef struct
@@ -117,18 +196,57 @@ typedef struct
 
 } hmac_t;
 
+
 /* ------------------------------------------------ *
-   Functions
+   Get information from the context
  * ------------------------------------------------ */
+
+#define hmac_alg_code(_ctx)   ((_ctx)->h.alg)
+#define hmac_alg_name(_ctx)   ((_ctx)->h,namec)
+#define hmac_alg_namew(_ctx)  ((_ctx)->h.namew)
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* ------------------------------------------------ *
+   Given a hash algorithm id returns its name
+ * ------------------------------------------------ */
+
+char *hash_name(int hash);
+
+/* ------------------------------------------------ *
+   Same as before but it returns a wchar_t *
+ * ------------------------------------------------ */
+
+wchar_t *hash_namew(int hash);
+
+/* ------------------------------------------------ *
+   Given a hash name it retursn its algorithm id
+ * ------------------------------------------------ */
+
+int hash_alg(const char *hash);
+
+/* ------------------------------------------------ *
+   Same as before but it returns a wchar_t *
+ * ------------------------------------------------ */
+
+int hash_algw(const wchar_t *hash);
+
+/* ------------------------------------------------ *
+   Return the result size of a hash algorithm
+ * ------------------------------------------------ */
+
+int hash_size(int alg);
+
+/* ------------------------------------------------ *
    The classical way of calculating hashes by
    initializing a context and update it with
    a series to call to the update function.
+
+   'key' is only used for those algorithms
+   that take a parameter like poly1305
 
    returns the size of the hash, 0 if do not
    recognize it or -1 in parameter errors
@@ -138,31 +256,41 @@ int  hash_init(hash_t *ctx,int alg);
 void hash_update(hash_t *ctx,const void *datos,size_t tam);
 void hash_final(hash_t *ctx,void *hash);
 
+/* Use this final for HKDF liek shake-128 or shake-256 */
+
+void hash_final_hkdf(hash_t *ctx,void *hash,size_t len);
+
 /* ------------------------------------------------ *
-   Calculate the HMAC (RFC-2104 ,RFC-6234 and
-   RFC-4868) of 'tam' bytes from 'data' and copies
-   the result onto 'hash', which is suppossed to
-   have enough space to hold it.
-
-   Returns the size of the result or 0 if there
-   was an error like the algorithm  'alg' is not
-   recognized or a parameter is wrong.
-
-   As explained before, if you use poly1305 the
-   code doesn't follow the RFCs but uses the
-   algorithm directly.
+    Functiosn ot update using strings
  * ------------------------------------------------ */
 
-int calc_hmac(int alg,const void *key,int tam_key,const void *datos,int tam,void *hash);
+void hash_update_str(hash_t *ctx,const char *str);
+void hash_update_wcs(hash_t *ctx,const wchar_t *str);
+
 
 /* ------------------------------------------------ *
-   Calculate the HMAC (RFC-2104 ,RFC-6234 and
-   RFC-4868)
+   no-destructive version of hash_final(),
+   which allow get the current hash and keep going
+ * ------------------------------------------------ */
+
+void hash_partial(hash_t *ctx,void *hash);
+
+/* ------------------------------------------------ *
+   Calculate the HMAC (RFC-2104 ,RFC-6234 and 
+   RFC-4868)  by initialazing a context and update 
+   it with a series of calls to the update function.
  * ------------------------------------------------ */
 
 int  hmac_init(hmac_t *ctx,int alg,const void *key,size_t tam_key);
 void hmac_update(hmac_t *ctx,const void *datos,size_t tam);
 void hmac_final(hmac_t *ctx,void *hash);
+
+void hmac_update_str(hmac_t *ctx,const char *str);
+void hmac_update_wcs(hmac_t *ctx,const wchar_t *str);
+
+/** no-destructive version of hmac_final(), which allow get the current hash and keep going */
+
+void hmac_partial(hmac_t *ctx,void *hash);
 
 #ifdef __cplusplus
 }
