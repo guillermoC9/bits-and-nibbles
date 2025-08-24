@@ -550,8 +550,19 @@ int ecc_keys_from_seq_asn1(ecc_key_t **k,const void *buf,int blen)
 
             ctx = ecc_get_curve_from_asn1(pub.lst[0].data,pub.lst[0].len);
             if(ctx == NULL)
-                ctx = ecc_get_curve(ecc_sign_algorithm_asn1(pub.lst[0].data,pub.lst[0].len));            
-
+            {
+                switch(ecc_sign_algorithm_asn1(pub.lst[0].data,pub.lst[0].len))
+                {
+                    case EdDSA_25519:
+                        ctx = ecc_get_curve(ECC_CURVE_X25519);            
+                        break;
+                    case EdDSA_448:
+                        ctx = ecc_get_curve(ECC_CURVE_X448);            
+                        break;
+                    default:
+                        break;
+                }
+            }
             if(ctx == NULL)
             {
                 wchar_t tmp[81];
