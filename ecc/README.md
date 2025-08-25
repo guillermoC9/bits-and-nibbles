@@ -31,7 +31,7 @@ Now, I personally think that relay in key size is not a good strategy with *Quan
 
 **Food for thought:** Shor's algorithm realys on the predictability of the result. In common words is like baking with infinite ovens, and then Shor's finds out which one to open to find your cake ready. So if an algorithm that cannot be predicted on that manner is used, the cake will be either carbonized or raw when an ovan is chosen and opened.
 
-Regarding binary curves, we do not use them here because they are not of widespread use and this repository aims to support common use stuff, although Michael Rosing's book *Elliptic Curve Criptography* talks exclusively about them, and even show ways to create random elliptic curves. The protocols for ```ECDH```, ```MQV``` and ```Elgamal``` here were adapted to prime curves from his code.
+Regarding binary curves, we do not use them here because they are not of widespread use, and this repository aims to support common use stuff. Michael Rosing's book *Elliptic Curve Criptography* talks exclusively about them and even show ways to create random elliptic curves and many things. Actually, the protocols for ```ECDH```, ```MQV``` and ```Elgamal``` here were adapted from the code from his book.
 
 ## To build it:
 
