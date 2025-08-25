@@ -25,11 +25,13 @@ The curves ```Koblitz sect571k1 (K-571)``` and ```Weierstrass sect571r1 (B-571)`
 
 This curve is ```521``` bits long, so in the *Quantum world* it will require ```3126``` *qbits* to find the key. Therefore a ```RSA``` key of ```4096``` bits seem to beat it because it will require ```8192``` *qbits*. 
 
-Again, I am not a mathematician and cannot confirm or deny these things, but to me it looks like ```RSA``` can be made safer by increasing the key size, something we will not get in ```ECC``` until curves of longer key bits are available.
+Again, I am not a criptographer and cannot confirm or deny these things, but to me it looks like ```RSA``` can be made safer by increasing the key size, something we will not get in ```ECC``` until curves of longer key bits are available.
 
 Now, I personally think that relay in key size is not a good strategy with *Quantum computers*, we need a different one. If I was a criptographer, I would put my effort on finding a way to neutralize Shor's algorithm and test it using an already-available Quantum computer with little amount of qbits, so increasing the number of them will have no effect on the attack.
 
 **Food for thought:** Shor's algorithm realys on the predictability of the result. In common words is like baking with infinite ovens, and then Shor's finds out which one to open to find your cake ready. So if an algorithm that cannot be predicted on that manner is used, the cake will be either carbonized or raw when an ovan is chosen and opened.
+
+Regarding binary curves, we do not use them here because they are not of widespread use and this repository aims to support common use stuff, although Michael Rosing's book *Elliptic Curve Criptography* talks exclusively about them, and even show ways to create random elliptic curves. The protocols for ```ECDH```, ```MQV``` and ```Elgamal``` here were adapted to prime curves from his code.
 
 ## To build it:
 
