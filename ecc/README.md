@@ -15,7 +15,7 @@ There are many ```ECC``` algorithms, but here we present a small library that us
 
 There are also the same protocols for key exchange and signature used with the other encription algorithms: ```ECDSA```, ```ECDH```, etc.
 
-This algorithms are also vulnerable to the infamous -but great- Shor's algorithm for *Quantum computers*.
+Although these algorithms are said to also be vulnerable to the infamous -but great- Shor's algorithm for *Quantum computers*, ```TLSv1.2``` and ```TLSv1.3``` relay heavily on them to replace RSA, specially for key exchange -with a preference for curve25519-. To be honest, apart from the key size and a little performance gain, I am not sure how safer is to use ```ECC``` over ```RSA```, especially with regards of Quantum safety. But again, I am an implementor of algorithms, not a mathematician, so I cannot give a proper answer. 
 
 ## To build it:
 
