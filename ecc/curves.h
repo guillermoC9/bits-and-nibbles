@@ -127,24 +127,24 @@ enum
 {
     ECC_CURVE_NONE = 0,
 
-    ECC_CURVE_192k1,        /* Weierstrass secp192k1 / ansip192k1 */
-    ECC_CURVE_192r1,        /* Weierstrass secp192r1 / prime192v1 / nistp192 */
+    ECC_CURVE_192k1,        /* Koblitz secp192k1 / ansip192k1 */
+    ECC_CURVE_192r1,        /* Random secp192r1 / prime192v1 / nistp192 */
 
-    ECC_CURVE_256r1,        /* Weierstrass secp256r1 / prime256v1 / nistp256 */
-    ECC_CURVE_256k1,        /* Weierstrass secp256k1 / ansip256k1 */
+    ECC_CURVE_256r1,        /* Random  secp256r1 / prime256v1 / nistp256 */
+    ECC_CURVE_256k1,        /* Koblitz  secp256k1 / ansip256k1 */
 
-    ECC_CURVE_384r1,        /* Weierstrass secp384r1 / prime384v1 / nistp384 */
-    ECC_CURVE_521r1,        /* Weierstrass secp521r1 / prime521v1 / nistp521 */
+    ECC_CURVE_384r1,        /* Random secp384r1 / prime384v1 / nistp384 */
+    ECC_CURVE_521r1,        /* Koblitz secp521r1 / prime521v1 / nistp521 */
 
-    ECC_CURVE_BRAIN_192,    /* Weierstrass Brainpool 192r1 */
-    ECC_CURVE_BRAIN_224,    /* Weierstrass Brainpool 224r1 */
-    ECC_CURVE_BRAIN_256,    /* Weierstrass Brainpool 256r1 */
-    ECC_CURVE_BRAIN_320,    /* Weierstrass Brainpool 320r1 */
-    ECC_CURVE_BRAIN_384,    /* Weierstrass Brainpool 384r1 */
-    ECC_CURVE_BRAIN_512,    /* Weierstrass Brainpool 512r1 */
+    ECC_CURVE_BRAIN_192,    /* Brainpool 192r1 */
+    ECC_CURVE_BRAIN_224,    /* Brainpool 224r1 */
+    ECC_CURVE_BRAIN_256,    /* Brainpool 256r1 */
+    ECC_CURVE_BRAIN_320,    /* Brainpool 320r1 */
+    ECC_CURVE_BRAIN_384,    /* Brainpool 384r1 */
+    ECC_CURVE_BRAIN_512,    /* Brainpool 512r1 */
 
-    ECC_CURVE_X25519,        /* Edwards curve25519 */
-    ECC_CURVE_X448,          /* Edwards curve448 */
+    ECC_CURVE_X25519,       /* Edwards curve25519 */
+    ECC_CURVE_X448,         /* Edwards curve448 */
 
     ECC_NUM_CURVES          /* Always last */
 };

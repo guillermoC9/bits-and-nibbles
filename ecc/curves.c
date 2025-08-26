@@ -501,7 +501,9 @@ void ecc_point_add(ecc_curve_t *ctx,ecc_point_t *p,ecc_point_t *q)
 /* ---------------------------------------------------- *
     Galois Field function for prime curves:
 
-        y^2 = (x^3 + coeff_a * x + coeff_b) mod p        
+        y^2 = (x^3 + coeff_a * x + coeff_b) mod p       
+        
+    Also known as Weierstrass equation
  * ---------------------------------------------------- */
 
 static void Fx_GFp(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *res)
