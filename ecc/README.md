@@ -27,7 +27,7 @@ This curve uses a key ```521``` bits long, so in the *Quantum world* it will req
 
 Again, I am not a criptographer and cannot confirm or deny these things, but to me it looks like ```RSA``` can be made safer by increasing the key size, something we will not get in ```ECC``` until curves of longer key bits are available. This is not to say that one is better than the other, its just to actually say that is very difficult to assess which one is better.  Although it doesn't really matter, as *real* experts say that they are both on similar safety with regards of *Quantum computers*. Basically doesn't matter which one you use, they are both in *danger*.
 
-Now, I personally think that relay in key size is not a good strategy with *Quantum computers*, we need a different one. If I was a criptographer, I would put my effort on finding a way to neutralize Shor's algorithm and test it using an already-available Quantum computer with little amount of qbits, so increasing the number of them will have no effect on the attack.
+Now, I personally think that relay on key size is not a good strategy with *Quantum computers*, we need a different one. If I was a criptographer, I would put my effort on finding a way to neutralize Shor's algorithm and test it using an already-available Quantum computer with little amount of qbits, so increasing the number of them will have no effect on the attack.
 
 **Food for thought:** Shor's algorithm realys on the predictability of the result. In common words is like baking with infinite ovens, and then Shor's finds out which one to open to find your cake ready. So if an algorithm that cannot be predicted on that manner is used, the cake will be either carbonized or raw when an ovan is chosen and opened.
 
