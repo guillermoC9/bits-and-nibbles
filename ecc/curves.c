@@ -466,7 +466,7 @@ void ecc_point_add(ecc_curve_t *ctx,ecc_point_t *p,ecc_point_t *q)
         {
             if (mp_cmp(&(p->x), &(q->x)) == MP_EQ)
             {
-	            if (mp_cmp(&(p->y), &(q->y)) != MP_EQ)
+	            if (mp_cmp(&(p->y), &(q->y)) == MP_EQ)
           	        ecc_point_double(ctx,p);
 	            else
             	    ecc_point_set_zero(p);
