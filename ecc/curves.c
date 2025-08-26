@@ -744,11 +744,97 @@ void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m)
 	}
 }
 
+
+/* ---------------------------------------------------- *
+   Find the Y coordinate for a given X on the curve
+   defined by 'ctx'
+ * ---------------------------------------------------- */
+
+static void ecc_point_find_y(ecc_curve_t *ctx,ecc_point_t *p,int xodd)
+{    
+    mp_int_t p1;
+    int yeven = FALSE;
+
+
+    mp_init(&p1);
+
+    /*  
+        Do the GFp equation so p->y is y^2, as:
+
+        y^2 = (x^3 + coeff_a * x + coeff_b) mod p
+    */
+
+    Fx_GFp(ctx,&(p->x),&(p->y));
+
+    /*
+        Now perform:
+
+        p->y = (p->y ^ ((ctx->p+1)/4)) mod ctx->p
+
+        Which will end up with a potential y in p->y
+        without using square root, as some values
+        may fail.
+
+        Adjust for p->y = ctx->p - p->y if needed.
+
+        I've got the idea for it in an anwser to:
+
+        https://crypto.stackexchange.com/questions/20627/point-decompression-on-an-elliptic-curve
+
+    */
+
+    mp_add_d(&(ctx->p),1,&p1);
+    mp_div_d(&p1,4,&p1,NULL);
+    mp_exptmod(&(p->y),&p1,&(ctx->p),&(p->y));
+
+    if(!mp_is_odd(&(p->y)))
+        yeven = TRUE;
+
+    if(xodd == yeven)
+        mp_sub(&(ctx->p), &(p->y),&(p->y));
+
+    mp_clear(&p1);
+}
+
 /* ---------------------------------------------------- */
 
-void ecc_random_field(ecc_curve_t *ctx,rand_t *rc,mp_int_t  *bn)
+int ecc_point_from_data(ecc_curve_t *ctx,ecc_point_t *p,const void *data,int len)
+{
+    int xodd = FALSE;
+    unsigned char tmp[ECC_MAX_BYTES] = {0};
+
+    ecc_point_set_zero(p);
+
+    if(len > (ctx->NUMBYTES - 2) )
+        return -1;
+
+    memcpy(tmp + (ctx->NUMBYTES - len) - 1,data,len);
+    if(mp_set_bytes(&(p->x),tmp,ctx->NUMBYTES) == MP_OKAY)
+    {
+        if(!is_curve25519(ctx) && !is_curve448(ctx))
+        {
+            if(mp_is_odd(&(p->x)))
+                xodd = TRUE;
+            ecc_point_find_y(ctx,p,xodd);
+        }
+        return 0;
+    }
+
+    return -2;
+}
+
+/* ---------------------------------------------------- */
+
+void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
 {
     unsigned char tmp[ECC_MAX_BYTES];
+    rand_t *rnd = NULL;
+
+    if(rc == NULL)
+    {
+        rnd = rand_start(RAND_OS,RAND_TLS_SHA256);
+        rc  = rnd; 
+    }
 
     /* Generate a random field which is safe
        for the given curve in three steps:
@@ -778,6 +864,8 @@ void ecc_random_field(ecc_curve_t *ctx,rand_t *rc,mp_int_t  *bn)
     if(ctx->h > 1 && bn->dp)
         bn->dp[0] &= ~(ctx->h - 1);
 
+    if(rnd)
+        rand_end(rnd);
 }
 
 /* ---------------------------------------------------- */
@@ -799,16 +887,16 @@ void ecc_make_order(ecc_curve_t *ctx,mp_int_t *bn)
 
 /* ---------------------------------------------------- */
 
-void ecc_random_point(ecc_curve_t *ctx,rand_t *rc,ecc_point_t *p)
+void ecc_random_point(ecc_curve_t *ctx,ecc_point_t *p,rand_t *rc)
 {
     if(p)
     {
-        ecc_random_field(ctx,rc,&(p->x));
+       
+        ecc_random_field(ctx,&(p->x),rc);
+        mp_init_set_d(&(p->y),0);
 
-        if(is_curve25519(ctx) || is_curve448(ctx))
-            mp_init_set_d(&(p->y),0);
-        else
-            ecc_random_field(ctx,rc,&(p->y));
+        if(!is_curve25519(ctx) && !is_curve448(ctx))
+            ecc_point_find_y(ctx,p,mp_is_odd(&(p->x)));
     }
 }
 
@@ -881,7 +969,7 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
 {
     int num;
     unsigned char *src=(unsigned char *)source;
-    int cmp = FALSE, odd = FALSE;
+    int cmp = FALSE, xodd = FALSE;
 
     ecc_point_set_zero(p);
 
@@ -898,7 +986,7 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
         case 0x04:
             break;
         case 0x03:
-            odd = TRUE;
+            xodd = TRUE;
         case 0x02:
             cmp = TRUE;
             break;
@@ -924,46 +1012,7 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
         }
         else 
         {
-            mp_int_t p1;
-            int even = FALSE;
-
-            mp_init(&p1);
-
-            /*  Do the GFp equation so p->y is y^2, as:
-
-                y^2 = (x^3 + coeff_a * x + coeff_b) mod p
-            */
-
-            Fx_GFp(ctx,&(p->x),&(p->y));
-
-            /*
-                Now perform:
-
-                p->y = (p->y ^ ((ctx->p+1)/4)) mod ctx->p
-
-                Which will end up with a potential y in p->y
-                without using square root, as some values
-                may fail.
-
-                Adjust for p->y = ctx->p - p->y if needed.
-
-                I've got the idea for it in an anwser to:
-
-                https://crypto.stackexchange.com/questions/20627/point-decompression-on-an-elliptic-curve
-
-            */
-
-            mp_add_d(&(ctx->p),1,&p1);
-            mp_div_d(&p1,4,&p1,NULL);
-            mp_exptmod(&(p->y),&p1,&(ctx->p),&(p->y));
-
-            if(!mp_is_odd(&(p->y)))
-                even = TRUE;
-
-            if(odd == even)
-                mp_sub(&(ctx->p), &(p->y),&(p->y));
-
-            mp_clear(&p1);
+            ecc_point_find_y(ctx,p,xodd);
         }
         return 0;
     }

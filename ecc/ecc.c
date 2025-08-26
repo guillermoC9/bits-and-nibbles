@@ -387,7 +387,7 @@ static ecc_key_t *ecc_gen_keys(ecc_curve_t *ctx,rand_t *rc)
         if(rc)
         {
             kc->pri = mp_create();
-            ecc_random_field(ctx,rc,kc->pri);
+            ecc_random_field(ctx,kc->pri,rc);
             ecc_point_mult(ctx,&(kc->pub),&(ctx->G),kc->pri);
         }
     }
@@ -1389,7 +1389,7 @@ ecc_dh_t *ecc_dh_start(ecc_curve_t *ctx,const void *rpub,size_t rsz,rand_t *rc)
             ecc_point_init(&(dh->lpub));
             ecc_point_init(&(dh->rpub));
 
-            ecc_random_field(ctx,rc,&(dh->lpri));
+            ecc_random_field(ctx,&(dh->lpri),rc);
 
             ecc_point_mult(ctx,&(dh->lpub),&(ctx->G),&(dh->lpri));
 

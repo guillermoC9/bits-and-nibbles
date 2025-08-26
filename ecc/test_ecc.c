@@ -495,6 +495,42 @@ static void test_prime_binary_points()
 
 
 
+static void test_random_point_ops(int curve)
+{
+    ecc_point_t res,pt;
+    ecc_curve_t *ecc;
+
+    ecc = ecc_get_curve(curve);
+
+    printf("==== Random Point operation using Curve '%s' of %d bits ====\n\n", ecc->alias[0],ecc->NUMBITS);  
+    
+    ecc_point_init(&res);
+    ecc_random_point(ecc,&pt,NULL);
+
+      
+    ecc_point_show("Random point",&pt,FALSE);
+    printf("Is in the curve? %s\n\n",ecc_point_on_curve(ecc,&pt) ? "Yes" : "No");
+    
+    ecc_point_mult(ecc,&res,&pt,mp_two());
+    ecc_point_show("Mulitplied by 2",&res,FALSE);
+    printf("Is in the curve? %s\n\n",ecc_point_on_curve(ecc,&res) ? "Yes" : "No");
+
+    ecc_point_copy(&res,&pt);
+    ecc_point_add(ecc,&res,&pt);
+    ecc_point_show("Added to itself",&res,FALSE);
+    printf("Is in the curve? %s\n\n",ecc_point_on_curve(ecc,&res) ? "Yes" : "No");
+
+    ecc_point_copy(&res,&pt);
+    ecc_point_double(ecc,&res);
+    ecc_point_show("Doubled point ",&res,FALSE);
+    printf("Is in the curve? %s\n\n",ecc_point_on_curve(ecc,&res) ? "Yes" : "No");
+
+    ecc_point_clear(&res);
+    ecc_point_clear(&pt);    
+}
+
+
+
 /* ------------------------------------------------ *
 
     Vectors for point mulitplication
@@ -844,6 +880,7 @@ void test_ecc(void)
     {
         test_ecc_rnd(curve);
         test_compression(curve);
+        test_random_point_ops(curve);
     }
 
     printf("\n\n");

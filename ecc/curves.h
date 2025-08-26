@@ -285,8 +285,8 @@ void ecc_make_order(ecc_curve_t *ctx,mp_int_t *bn);
    IMPORTANT!! bn and p should NOT be initialized
  * -------------------------------------------------- */
 
-void ecc_random_field(ecc_curve_t *ctx,rand_t *rc,mp_int_t  *bn);
-void ecc_random_point(ecc_curve_t *ctx,rand_t *rc,ecc_point_t *p);
+void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc);
+void ecc_random_point(ecc_curve_t *ctx,ecc_point_t *p,rand_t *rc);
 
 /* -------------------------------------------------- *
    Show a point in the screen, 'decimal' is TRUE or
