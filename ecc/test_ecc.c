@@ -423,14 +423,14 @@ const char *qY[pMAX] =
 
 /* ------------------------ */
 
-static void test_prime_binary_points()
+static void test_prime_points()
 {
     ecc_curve_t *ctx;
     ecc_point_t pt,s,t,r,p,q;
     mp_int_t d;
     int i;
 
-    printf("\n===== Test Prime & Binary Points =====\n");
+    printf("\n===== Test Prime Points =====\n");
 
 
     mp_init(&d);
@@ -503,7 +503,7 @@ static void test_random_point_ops(int curve)
     ecc = ecc_get_curve(curve);
 
     printf("==== Random Point operation using Curve '%s' of %d bits ====\n\n", ecc->alias[0],ecc->NUMBITS);  
-    
+
     ecc_point_init(&res);
     ecc_random_point(ecc,&pt,NULL);
 
@@ -1311,7 +1311,7 @@ int main(void)
     test_curve_25519();
     test_curve_448();
 
-    test_prime_binary_points();
+    test_prime_points();
 
     test_point_mult();
 
