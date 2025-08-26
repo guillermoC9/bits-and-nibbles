@@ -154,7 +154,6 @@ enum
 #define ecc_curve_bits(_c)   ((_c)->NUMBITS)
 #define ecc_curve_bytes(_c)  ((_c)->NUMBYTES)
 #define ecc_curve_name(_c)   ((_c)->alias[0])
-#define ecc_curve_type(_c)   ((_c)->type)
 #define ecc_curve_id(_c)     ((_c)->curve)
 
 #define is_curve25519(_c)    ((_c)->curve == ECC_CURVE_X25519)
