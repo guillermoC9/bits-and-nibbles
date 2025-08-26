@@ -160,7 +160,9 @@ mp_int_t *quality_prime(int nbits, int modulus, int residue, mp_int_t *factor,un
 /* -------------------------------------------------- *
    Generates a prime of 'nbits' bits long with no
    special properties (uses quality_prime() with
-   a small modulus).
+   a small modulus, but unlike that function, this 
+   one returns a small prime other than 65537 if 
+   'nbits' is smaller than 17.
 
    The random context 'rc' cannot be NULL
  * -------------------------------------------------- */

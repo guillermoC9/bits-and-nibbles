@@ -1240,7 +1240,26 @@ int next_prime(mp_int_t *p,rand_t *rc)
 
 mp_int_t *generate_prime(int bits,rand_t *rc)
 {
-    return quality_prime(bits, 37, 1, NULL,0,rc);
+    mp_int_t *ret = NULL;
+        
+    if(bits < 16)
+    {
+         int num = 1 << (bits - 1);
+         
+         ret = mp_create();
+         if(ret)
+         {
+            if(bits < 3)
+                mp_set_d(ret, (unpredictable_seed() % 3) ? 2 : 3);
+            else
+                mp_set_d(ret,closest_small_prime(num));
+         }
+    }
+    else
+    {
+        ret = quality_prime(bits, 37, 1, NULL,0,rc);
+    }
+    return ret; 
 }
 
 
