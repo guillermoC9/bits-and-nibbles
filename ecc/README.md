@@ -25,7 +25,7 @@ The curves ```Koblitz sect571k1 (K-571)``` and ```Weierstrass sect571r1 (B-571)`
 
 This curve uses a key ```521``` bits long, so in the *Quantum world* it will require ```3126``` *qbits* to find the key. Therefore a ```RSA``` key of ```4096``` bits seem to beat it because it will require ```8192``` *qbits*. 
 
-Again, I am not a criptographer and cannot confirm or deny these things, but to me it looks like ```RSA``` can be made safer by increasing the key size, something we will not get in ```ECC``` until curves of longer key bits are available. This is not to say that one is better than the other, its just to actually say that is very difficult to assess which one is better.  Although it doesn't really matter, as *real* experts say that they are both on similar safety with regards of *Quantum computers*: in *danger*.
+Again, I am not a criptographer and cannot confirm or deny these things, but to me it looks like ```RSA``` can be made safer by increasing the key size, something we will not get in ```ECC``` until curves of longer key bits are available. This is not to say that one is better than the other, its just to actually say that is very difficult to assess which one is better.  Although it doesn't really matter, as *real* experts say that they are both on similar safety with regards of *Quantum computers*. Basically doesn't matter which one you use, they are both in *danger*.
 
 Now, I personally think that relay in key size is not a good strategy with *Quantum computers*, we need a different one. If I was a criptographer, I would put my effort on finding a way to neutralize Shor's algorithm and test it using an already-available Quantum computer with little amount of qbits, so increasing the number of them will have no effect on the attack.
 
