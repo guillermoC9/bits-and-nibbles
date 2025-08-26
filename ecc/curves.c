@@ -579,6 +579,7 @@ void ecc_point_mult(ecc_curve_t *ctx,ecc_point_t *r,ecc_point_t *p, mp_int_t *k)
     }
     else if(is_curve448(ctx))
     {
+        /* Same for Curve 448... */
         curve448_scalarmult(k,&(p->x),&(r->x));
         mp_set_d(&(r->y),0);
     }
@@ -730,7 +731,6 @@ void ecc_point_set(ecc_point_t *p,mp_int_t *x,mp_int_t *y)
 
 /* ---------------------------------------------------- */
 
-
 void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m)
 {
     if(unpredictable_seed_non_linear() && ecc_point_is_zero(p))
@@ -744,13 +744,12 @@ void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m)
 	}
 }
 
-
 /* ---------------------------------------------------- *
-   Find the Y coordinate for a given X on the curve
+   Calculate the Y coordinate for a X on a given curve
    defined by 'ctx'
  * ---------------------------------------------------- */
 
-static void ecc_point_find_y(ecc_curve_t *ctx,ecc_point_t *p,int xodd)
+static void ecc_calc_y(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y,int xodd)
 {    
     mp_int_t p1;
     int yeven = FALSE;
@@ -764,7 +763,7 @@ static void ecc_point_find_y(ecc_curve_t *ctx,ecc_point_t *p,int xodd)
         y^2 = (x^3 + coeff_a * x + coeff_b) mod p
     */
 
-    Fx_GFp(ctx,&(p->x),&(p->y));
+    Fx_GFp(ctx,x,y);
 
     /*
         Now perform:
@@ -785,43 +784,58 @@ static void ecc_point_find_y(ecc_curve_t *ctx,ecc_point_t *p,int xodd)
 
     mp_add_d(&(ctx->p),1,&p1);
     mp_div_d(&p1,4,&p1,NULL);
-    mp_exptmod(&(p->y),&p1,&(ctx->p),&(p->y));
+    mp_exptmod(y,&p1,&(ctx->p),y);
 
-    if(!mp_is_odd(&(p->y)))
+    if(!mp_is_odd(y))
         yeven = TRUE;
 
     if(xodd == yeven)
-        mp_sub(&(ctx->p), &(p->y),&(p->y));
+        mp_sub(&(ctx->p), y,y);
 
     mp_clear(&p1);
 }
 
-/* ---------------------------------------------------- */
+/* ---------------------------------------------------- *
+   Finds out the Y coordinate for a X in the given 
+   curve, and  returns if X is a valid coordinate
+   on the field. 
+   
+   It basically checks if Y^2 is a quadratic residue:
 
-int ecc_point_from_data(ecc_curve_t *ctx,ecc_point_t *p,const void *data,int len)
-{
-    int xodd = FALSE;
-    unsigned char tmp[ECC_MAX_BYTES] = {0};
+    y = calc_y(x)
+    y2 = Fx_GFp(x)
 
-    ecc_point_set_zero(p);
+    TRUE if y^2 mod ctx->p == y2
 
-    if(len > (ctx->NUMBYTES - 2) )
-        return -1;
+ * ---------------------------------------------------- */
 
-    memcpy(tmp + (ctx->NUMBYTES - len) - 1,data,len);
-    if(mp_set_bytes(&(p->x),tmp,ctx->NUMBYTES) == MP_OKAY)
-    {
-        if(!is_curve25519(ctx) && !is_curve448(ctx))
-        {
-            if(mp_is_odd(&(p->x)))
-                xodd = TRUE;
-            ecc_point_find_y(ctx,p,xodd);
-        }
-        return 0;
-    }
+ static int ecc_is_field_quadratic(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y)
+ {
+    mp_int_t res,pm1,tmp;
+    int quadratic = FALSE;        
+ 
+    mp_init(&pm1);
+    mp_init(&res);
+    mp_init(&tmp);
 
-    return -2;
-}
+    if(y == NULL)
+        y = &tmp;
+
+    ecc_calc_y(ctx,x,y,mp_is_odd(x));
+
+    Fx_GFp(ctx,x,&pm1);
+    mp_exptmod(y,mp_two(),&(ctx->p),&res);
+ 
+    if(mp_cmp(&pm1,&res) == MP_EQ)
+        quadratic = TRUE;
+         
+    mp_clear(&tmp);
+    mp_clear(&pm1);
+    mp_clear(&res);
+ 
+     return quadratic;
+
+ }
 
 /* ---------------------------------------------------- */
 
@@ -844,7 +858,6 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
     */
 
     rand_bytes_no_zeros(rc,tmp,ctx->NUMBYTES);
-
     mp_init_set_bytes(bn,ctx->NUMBYTES,tmp);
     mp_set_bit(bn,ctx->NUMBITS - 1,1);
 
@@ -854,15 +867,37 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
     */
 
     mp_mod(bn,&(ctx->n),bn);
-
-    /*
-        3.- Make it a multiple of the cofactor,
-            as recommended by D.J. Berstein
-            and others...
+    
+   if(is_curve25519(ctx) || is_curve448(ctx))
+   {
+    /* 
+        3.a - If it is an Edwards curve, make it 
+               multiple of the cofactor, as 
+               recommended  by D.J. Berstein.
     */
+        if(ctx->h > 1 && bn->dp)
+            bn->dp[0] &= ~(ctx->h - 1);
+   }
+   else
+   {                    
+        
+    /* 
+        3.b - Otherwise, correct X to make sure 
+              it can have a Y 
+              
+              Note that I tested this few thousand
+              times counting how many increments 
+              took to find a correct X and it never 
+              took more than 4 increments.
+    */        
 
-    if(ctx->h > 1 && bn->dp)
-        bn->dp[0] &= ~(ctx->h - 1);
+        while (ecc_is_field_quadratic(ctx,bn,NULL)==FALSE)
+        {
+            mp_add_d(bn,1,bn);            
+            mp_set_bit(bn,ctx->NUMBITS - 1,1);
+            mp_mod(bn,&(ctx->n),bn);                        
+        }        
+    }
 
     if(rnd)
         rand_end(rnd);
@@ -876,9 +911,9 @@ void ecc_make_order(ecc_curve_t *ctx,mp_int_t *bn)
 
     mp_mod(bn,&(ctx->n),bn);
 
-    /* Make it a multiple of the cofactor,
-       as recommended by D.J. Berstein
-       and others...
+    /* 
+        Make it multiple of the cofactor, 
+        as recommended  by D.J. Berstein.
     */
 
     if(ctx->h > 1 && bn->dp)
@@ -892,11 +927,10 @@ void ecc_random_point(ecc_curve_t *ctx,ecc_point_t *p,rand_t *rc)
     if(p)
     {
        
-        ecc_random_field(ctx,&(p->x),rc);
+        ecc_random_field(ctx,&(p->x),rc);        
         mp_init_set_d(&(p->y),0);
-
         if(!is_curve25519(ctx) && !is_curve448(ctx))
-            ecc_point_find_y(ctx,p,mp_is_odd(&(p->x)));
+            ecc_calc_y(ctx,&(p->x),&(p->y),mp_is_odd(&p->x));
     }
 }
 
@@ -1012,7 +1046,7 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
         }
         else 
         {
-            ecc_point_find_y(ctx,p,xodd);
+            ecc_calc_y(ctx,&(p->x),&(p->y),xodd);
         }
         return 0;
     }
