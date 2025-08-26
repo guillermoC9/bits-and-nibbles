@@ -21,7 +21,7 @@ To be honest, apart from the key size and a little performance gain, I am not su
 
 Said this, and as far as I know from reading stuff, the ratio to break ```ECC``` using Shor's is around ```key_bits * 6``` *qbits*, whereas ```RSA``` seem to require *only* ```key_bits * 2```. Whereas this seem to indicate that ```ECC``` is stronger than ```RSA```, the biggests curves I know of are smaller than ```RSA``` key bits you can easily use.
 
-The curves ```Koblitz sect571k1 (K-571)``` and ```Weierstrass sect571r1 (B-571)``` -which are binary curves- are the longest I know of common use, although they are not used often, as the use of prime curves seem to be preferred over binary curves. This effectively makes the prime cure ```Weierstrass secp521r1``` the biggest curve of widespread use. 
+The curves ```Koblitz sect571k1 (K-571)``` and ```Weierstrass sect571r1 (B-571)``` -which are binary curves- are the longest I know of common use, although they are not used often, as the use of prime curves seem to be preferred over binary curves. This effectively makes the prime curve ```Weierstrass secp521r1``` the biggest curve of widespread use. 
 
 This curve uses a key ```521``` bits long, so in the *Quantum world* it will require ```3126``` *qbits* to find the key. Therefore a ```RSA``` key of ```4096``` bits seem to beat it because it will require ```8192``` *qbits*. 
 
