@@ -24,14 +24,22 @@
 
         * https://en.wikipedia.org/wiki/Elliptic-curve_cryptography
 
-        * Hankerson, Menezes & Vanstone's "Guide to Elliptic Curve Cryptography"
-          Springer (2004)
+        * Hankerson, Menezes & Vanstone's from Springer:
+        
+            - "Guide to Elliptic Curve Cryptography" (2004)
+        
+        * Menezes, Oorschot & Vanstone (https://cacr.uwaterloo.ca/hac/): 
+        
+            "Handbook of Applied Cryptography" (1997)            
 
-        * Michael Rosing's Book "Implementing Elliptic Curve Cryptography".
-          Manning Publications Co (1998).
+        * Michael Rosing's Books from Manning Publications Co: 
+        
+          - "Implementing Elliptic Curve Cryptography" (1998)
+          - "Elliptic Curve Cryptography for Developers" (2025)
 
-        * Phrack's "All Hackers Need To Know About Elliptic Curve Cryptography".
-          http://www.phrack.org/issues/63/3.html (2005)
+        * Phrack's article at http://www.phrack.org/issues/63/3.html 
+
+          "All Hackers Need To Know About Elliptic Curve Cryptography" (2005)
 
         * B. Poettering's articles at http://point-at-infinity.org/ecc/
 
@@ -39,26 +47,29 @@
 
         * RFC 7748 at https://tools.ietf.org/html/rfc7748
 
-        * RFC 7748 at https://tools.ietf.org/html/rfc8032
+        * RFC 8032 at https://tools.ietf.org/html/rfc8032
 
         * https://www.cs.miami.edu/home/burt/learning/Csc609.142/ecdsa-cert.pdf
 
         * http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
 
-        * SEC 2: Recommended Elliptic Curve Domain Parameters
-          http://www.secg.org/sec2-v2.pdf
+        * SEC 2: Recommended Elliptic Curve Domain Parameters:
 
-       * Handbook of Applied Cryptography - https://cacr.uwaterloo.ca/hac/
+            - http://www.secg.org/sec2-v2.pdf
+
 
        * https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.204.9073&rep=rep1&type=pdf
 
     - The functions have been made time-unpredictable. Some are time-constant and some never
       take the same time to execute even if they are given exactly the same data.
 
-    - We include Curve25519 and Curve448 in our homogeneus management of Elliptic Curves,
-      which is why we consider points on those curves, even if the Y coordinate is ignored
-      when used and -thus- always set to 0.
+    - We include Curve25519 and Curve448 in our homogeneus management of Elliptic Curves, so
+      points on those curves only use the X coordinate, as the Y coordinate is ignored when
+      used and -thus- always set to 0.
 
+      The only 'legit' operation with these curves is scalar multiplication, which is 
+      handled correctly by s9_ecc_point_mult(). Adding and doubling points is not recommended 
+      as the result will end up being a point in the infinite (aka 0,0).  
 
                                 --oO0Oo--
 */
@@ -88,34 +99,25 @@ typedef struct
     mp_int_t y;
 } ecc_point_t;
 
-/** ECC Curve  */
+/* ECC Curve  */
 
 typedef struct
 {
-    int     curve;       /* What curve is this (see enum below ) */
+    int     curve;          /* What curve is this (see enum below ) */
 
-    const char **alias;  /* Curve aliases list */
+    const char **alias;     /* Curve aliases list */
 
-    int     NUMBITS;     /* Bits of the curve */
-    int     NUMBYTES;    /* Size in bytes of the curve */
-    int     NUMWORDS;    /* Size in words of the fields (for GF2m arithmetic) */
+    int     NUMBITS;        /* Bits of the curve */
+    int     NUMBYTES;       /* Size in bytes of the curve */
+    
+    mp_int_t     p;         /* Polynomial P */
+    mp_int_t     a;         /* Element A */
+    mp_int_t     b;         /* Element B */
+    mp_int_t     n;         /* Order N */
 
-    mp_int_t     p;      /* Polynomial P */
-    mp_int_t     a;      /* Element A */
-    mp_int_t     b;      /* Element B */
-    mp_int_t     n;      /* Order N */
+    ecc_point_t G;          /* Base point (Generator)*/
 
-    ecc_point_t G;      /* Base point (Generator)*/
-
-    int         h;      /* Cofactor H */
-
-    /* Stuff for  Binary Arithmetics */
-
-    mp_digit_t  UPRBIT;
-    mp_digit_t  UPRMASK;
-
-    int     FULLWORDS;
-    int     LOG2;
+    int         h;          /* Cofactor H */
 
 } ecc_curve_t;
 
@@ -168,7 +170,7 @@ extern "C" {
 #endif
 
 /* -------------------------------------------------- *
-   Returns an Elliptic Curve with the given curve type:
+   Returns an Elliptic Curve with the given curve id
 
     Eg: curve = ecc_get_curve(ECC_CURVE_224r1);
 
@@ -253,9 +255,8 @@ int ecc_curve_pub_size(ecc_curve_t *ctx,int compressed);
 
    compress = TRUE to get a compressed curve.
 
-   Note that 'compress' is ignored for curves x25519,
-   x448 and for binary curves, which are always
-   uncompressed.
+   Note that 'compress' is ignored for curves x25519
+   and x448 which only use the X coordinate
  * -------------------------------------------------- */
 
 int ecc_point_to_bytes(ecc_curve_t *ctx,ecc_point_t *p,void *dest,int max,int compress);
@@ -264,9 +265,9 @@ int ecc_point_to_bytes(ecc_curve_t *ctx,ecc_point_t *p,void *dest,int max,int co
    Convert bytes to a point. It expects a type/prefix
    byte (0x02, 0x03 or 0x04) at the start for
    curves other than x25519 or x448, and it will
-   return S9_EINCORRECT if not there.
+   return -3 if not there.
 
-   Returns error or S9_OK (0) if done
+   Returns error or (0) if done
  * -------------------------------------------------- */
 
 int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int len);
@@ -279,17 +280,21 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
 void ecc_make_order(ecc_curve_t *ctx,mp_int_t *bn);
 
 /* -------------------------------------------------- *
-   Generate random fields and points
+   Generate random fields and points on the given
+   curve.
 
-   IMPORTANT!! bn and p should NOT be initialized
+   IMPORTANT!! neither bn and p should be initialized
+
+   If rc is NULL, then it uses RAND_OS and if not
+   present uses RAND_TLS_SHA25
  * -------------------------------------------------- */
 
 void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc);
 void ecc_random_point(ecc_curve_t *ctx,ecc_point_t *p,rand_t *rc);
 
 /* -------------------------------------------------- *
-   Show a point in the screen, 'decimal' is TRUE or
-   FALSE show as decimal. FALSE show hexa
+   Show a point in the screen, 'decimal' is TRUE 
+   to show as decimal. FALSE shows as hexa
  * -------------------------------------------------- */
 
 void ecc_point_show(char *prefix,ecc_point_t *p,int decimal);
@@ -326,7 +331,7 @@ void ecc_point_copy(ecc_point_t *p,ecc_point_t *from);
 /* -------------------------------------------------- *
    IMPORTANT!! This function is to set values to an
    existing point so p should BE initialized becasue
-   the current x,y of p will be freed, and the alues
+   the current x,y of p will be freed, and the values
    of x,y would be copied so they are independent
    of the originals
    .

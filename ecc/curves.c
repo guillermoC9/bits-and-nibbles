@@ -24,14 +24,22 @@
 
         * https://en.wikipedia.org/wiki/Elliptic-curve_cryptography
 
-        * Hankerson, Menezes & Vanstone's "Guide to Elliptic Curve Cryptography"
-          Springer (2004)
+        * Hankerson, Menezes & Vanstone's from Springer:
+        
+            - "Guide to Elliptic Curve Cryptography" (2004)
+        
+        * Menezes, Oorschot & Vanstone (https://cacr.uwaterloo.ca/hac/): 
+        
+            "Handbook of Applied Cryptography" (1997)            
 
-        * Michael Rosing's Book "Implementing Elliptic Curve Cryptography".
-          Manning Publications Co (1998).
+        * Michael Rosing's Books from Manning Publications Co: 
+        
+          - "Implementing Elliptic Curve Cryptography" (1998)
+          - "Elliptic Curve Cryptography for Developers" (2025)
 
-        * Phrack's "All Hackers Need To Know About Elliptic Curve Cryptography".
-          http://www.phrack.org/issues/63/3.html (2005)
+        * Phrack's article at http://www.phrack.org/issues/63/3.html 
+
+          "All Hackers Need To Know About Elliptic Curve Cryptography" (2005)
 
         * B. Poettering's articles at http://point-at-infinity.org/ecc/
 
@@ -39,25 +47,29 @@
 
         * RFC 7748 at https://tools.ietf.org/html/rfc7748
 
-        * RFC 7748 at https://tools.ietf.org/html/rfc8032
+        * RFC 8032 at https://tools.ietf.org/html/rfc8032
 
         * https://www.cs.miami.edu/home/burt/learning/Csc609.142/ecdsa-cert.pdf
 
         * http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
 
-        * SEC 2: Recommended Elliptic Curve Domain Parameters
-          http://www.secg.org/sec2-v2.pdf
+        * SEC 2: Recommended Elliptic Curve Domain Parameters:
 
-       * Handbook of Applied Cryptography - https://cacr.uwaterloo.ca/hac/
+            - http://www.secg.org/sec2-v2.pdf
+
 
        * https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.204.9073&rep=rep1&type=pdf
 
     - The functions have been made time-unpredictable. Some are time-constant and some never
       take the same time to execute even if they are given exactly the same data.
 
-    - We include Curve25519 and Curve448 in our homogeneus management of Elliptic Curves,
-      which is why we consider points on those curves, even if the Y coordinate is ignored
-      when used and -thus- always set to 0.
+    - We include Curve25519 and Curve448 in our homogeneus management of Elliptic Curves, so
+      points on those curves only use the X coordinate, as the Y coordinate is ignored when
+      used and -thus- always set to 0.
+
+      The only 'legit' operation with these curves is scalar multiplication, which is 
+      handled correctly by s9_ecc_point_mult(). Adding and doubling points is not recommended 
+      as the result will end up being a point in the infinite (aka 0,0).  
 
                                 --oO0Oo--
 */
@@ -223,24 +235,24 @@ static ecc_curve_t curve_list[ECC_NUM_CURVES]=
 
   /* Prime Curves */
 
-  {ECC_CURVE_192k1, name_curve_192k1, 192, 24,  6, {MP_ZPOS, 6, 6,s192k1_p},{MP_ZPOS, 1, 1,&bnZero },{MP_ZPOS, 1, 1,&bnThree},{MP_ZPOS, 6, 6,s192k1_n},{{MP_ZPOS, 6, 6,s192k1_Gx},{MP_ZPOS, 6, 6,s192k1_Gy}}, 1},
-  {ECC_CURVE_192r1, name_curve_192r1, 192, 24,  6, {MP_ZPOS, 6, 6,s192r1_p},{MP_ZPOS, 6, 6,s192r1_a},{MP_ZPOS, 6, 6,s192r1_b},{MP_ZPOS, 6, 6,s192r1_n},{{MP_ZPOS, 6, 6,s192r1_Gx},{MP_ZPOS, 6, 6,s192r1_Gy}}, 1},
-  {ECC_CURVE_256r1, name_curve_256r1, 256, 32,  8, {MP_ZPOS, 8, 8,s256r1_p},{MP_ZPOS, 8, 8,s256r1_a},{MP_ZPOS, 8, 8,s256r1_b},{MP_ZPOS, 8, 8,s256r1_n},{{MP_ZPOS, 8, 8,s256r1_Gx},{MP_ZPOS, 8, 8,s256r1_Gy}}, 1},
-  {ECC_CURVE_256k1, name_curve_256k1, 256, 32,  8, {MP_ZPOS, 8, 8,s256k1_p},{MP_ZPOS, 1, 1,&bnZero },{MP_ZPOS, 1, 1,&bnSeven},{MP_ZPOS, 8, 8,s256k1_n},{{MP_ZPOS, 8, 8,s256k1_Gx},{MP_ZPOS, 8, 8,s256k1_Gy}}, 1},
-  {ECC_CURVE_384r1, name_curve_384r1, 384, 48, 12, {MP_ZPOS,12,12,s384r1_p},{MP_ZPOS,12,12,s384r1_a},{MP_ZPOS,12,12,s384r1_b},{MP_ZPOS,12,12,s384r1_n},{{MP_ZPOS,12,12,s384r1_Gx},{MP_ZPOS,12,12,s384r1_Gy}}, 1},
-  {ECC_CURVE_521r1, name_curve_521r1, 521, 66, 17, {MP_ZPOS,17,17,s521r1_p},{MP_ZPOS,17,17,s521r1_a},{MP_ZPOS,17,17,s521r1_b},{MP_ZPOS,17,17,s521r1_n},{{MP_ZPOS,17,17,s521r1_Gx},{MP_ZPOS,17,17,s521r1_Gy}}, 1},
+  {ECC_CURVE_192k1, name_curve_192k1, 192, 24,  {MP_ZPOS, 6, 6,s192k1_p},{MP_ZPOS, 1, 1,&bnZero },{MP_ZPOS, 1, 1,&bnThree},{MP_ZPOS, 6, 6,s192k1_n},{{MP_ZPOS, 6, 6,s192k1_Gx},{MP_ZPOS, 6, 6,s192k1_Gy}}, 1},
+  {ECC_CURVE_192r1, name_curve_192r1, 192, 24,  {MP_ZPOS, 6, 6,s192r1_p},{MP_ZPOS, 6, 6,s192r1_a},{MP_ZPOS, 6, 6,s192r1_b},{MP_ZPOS, 6, 6,s192r1_n},{{MP_ZPOS, 6, 6,s192r1_Gx},{MP_ZPOS, 6, 6,s192r1_Gy}}, 1},
+  {ECC_CURVE_256r1, name_curve_256r1, 256, 32,  {MP_ZPOS, 8, 8,s256r1_p},{MP_ZPOS, 8, 8,s256r1_a},{MP_ZPOS, 8, 8,s256r1_b},{MP_ZPOS, 8, 8,s256r1_n},{{MP_ZPOS, 8, 8,s256r1_Gx},{MP_ZPOS, 8, 8,s256r1_Gy}}, 1},
+  {ECC_CURVE_256k1, name_curve_256k1, 256, 32,  {MP_ZPOS, 8, 8,s256k1_p},{MP_ZPOS, 1, 1,&bnZero },{MP_ZPOS, 1, 1,&bnSeven},{MP_ZPOS, 8, 8,s256k1_n},{{MP_ZPOS, 8, 8,s256k1_Gx},{MP_ZPOS, 8, 8,s256k1_Gy}}, 1},
+  {ECC_CURVE_384r1, name_curve_384r1, 384, 48,  {MP_ZPOS,12,12,s384r1_p},{MP_ZPOS,12,12,s384r1_a},{MP_ZPOS,12,12,s384r1_b},{MP_ZPOS,12,12,s384r1_n},{{MP_ZPOS,12,12,s384r1_Gx},{MP_ZPOS,12,12,s384r1_Gy}}, 1},
+  {ECC_CURVE_521r1, name_curve_521r1, 521, 66,  {MP_ZPOS,17,17,s521r1_p},{MP_ZPOS,17,17,s521r1_a},{MP_ZPOS,17,17,s521r1_b},{MP_ZPOS,17,17,s521r1_n},{{MP_ZPOS,17,17,s521r1_Gx},{MP_ZPOS,17,17,s521r1_Gy}}, 1},
 
-  {ECC_CURVE_BRAIN_192, name_curve_b192r1, 192, 24,  6, {MP_ZPOS, 6, 6,b192r1_p},{MP_ZPOS, 6, 6,b192r1_a},{MP_ZPOS, 6, 6,b192r1_b},{MP_ZPOS, 6, 6,b192r1_n},{{MP_ZPOS, 6, 6,b192r1_Gx},{MP_ZPOS, 6, 6,b192r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_224, name_curve_b224r1, 224, 28,  7, {MP_ZPOS, 7, 7,b224r1_p},{MP_ZPOS, 7, 7,b224r1_a},{MP_ZPOS, 7, 7,b224r1_b},{MP_ZPOS, 7, 7,b224r1_n},{{MP_ZPOS, 7, 7,b224r1_Gx},{MP_ZPOS, 7, 7,b224r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_256, name_curve_b256r1, 256, 32,  8, {MP_ZPOS, 8, 8,b256r1_p},{MP_ZPOS, 8, 8,b256r1_a},{MP_ZPOS, 8, 8,b256r1_b},{MP_ZPOS, 8, 8,b256r1_n},{{MP_ZPOS, 8, 8,b256r1_Gx},{MP_ZPOS, 8, 8,b256r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_320, name_curve_b320r1, 320, 40, 10, {MP_ZPOS,10,10,b320r1_p},{MP_ZPOS,10,10,b320r1_a},{MP_ZPOS,10,10,b320r1_b},{MP_ZPOS,10,10,b320r1_n},{{MP_ZPOS,10,10,b320r1_Gx},{MP_ZPOS,10,10,b320r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_384, name_curve_b384r1, 384, 48, 12, {MP_ZPOS,12,12,b384r1_p},{MP_ZPOS,12,12,b384r1_a},{MP_ZPOS,12,12,b384r1_b},{MP_ZPOS,12,12,b384r1_n},{{MP_ZPOS,12,12,b384r1_Gx},{MP_ZPOS,12,12,b384r1_Gy}}, 1},
-  {ECC_CURVE_BRAIN_512, name_curve_b512r1, 512, 64, 16, {MP_ZPOS,16,16,b512r1_p},{MP_ZPOS,16,16,b512r1_a},{MP_ZPOS,16,16,b512r1_b},{MP_ZPOS,16,16,b512r1_n},{{MP_ZPOS,16,16,b512r1_Gx},{MP_ZPOS,16,16,b512r1_Gy}}, 1},
+  {ECC_CURVE_BRAIN_192, name_curve_b192r1, 192, 24, {MP_ZPOS, 6, 6,b192r1_p},{MP_ZPOS, 6, 6,b192r1_a},{MP_ZPOS, 6, 6,b192r1_b},{MP_ZPOS, 6, 6,b192r1_n},{{MP_ZPOS, 6, 6,b192r1_Gx},{MP_ZPOS, 6, 6,b192r1_Gy}}, 1},
+  {ECC_CURVE_BRAIN_224, name_curve_b224r1, 224, 28, {MP_ZPOS, 7, 7,b224r1_p},{MP_ZPOS, 7, 7,b224r1_a},{MP_ZPOS, 7, 7,b224r1_b},{MP_ZPOS, 7, 7,b224r1_n},{{MP_ZPOS, 7, 7,b224r1_Gx},{MP_ZPOS, 7, 7,b224r1_Gy}}, 1},
+  {ECC_CURVE_BRAIN_256, name_curve_b256r1, 256, 32, {MP_ZPOS, 8, 8,b256r1_p},{MP_ZPOS, 8, 8,b256r1_a},{MP_ZPOS, 8, 8,b256r1_b},{MP_ZPOS, 8, 8,b256r1_n},{{MP_ZPOS, 8, 8,b256r1_Gx},{MP_ZPOS, 8, 8,b256r1_Gy}}, 1},
+  {ECC_CURVE_BRAIN_320, name_curve_b320r1, 320, 40, {MP_ZPOS,10,10,b320r1_p},{MP_ZPOS,10,10,b320r1_a},{MP_ZPOS,10,10,b320r1_b},{MP_ZPOS,10,10,b320r1_n},{{MP_ZPOS,10,10,b320r1_Gx},{MP_ZPOS,10,10,b320r1_Gy}}, 1},
+  {ECC_CURVE_BRAIN_384, name_curve_b384r1, 384, 48, {MP_ZPOS,12,12,b384r1_p},{MP_ZPOS,12,12,b384r1_a},{MP_ZPOS,12,12,b384r1_b},{MP_ZPOS,12,12,b384r1_n},{{MP_ZPOS,12,12,b384r1_Gx},{MP_ZPOS,12,12,b384r1_Gy}}, 1},
+  {ECC_CURVE_BRAIN_512, name_curve_b512r1, 512, 64, {MP_ZPOS,16,16,b512r1_p},{MP_ZPOS,16,16,b512r1_a},{MP_ZPOS,16,16,b512r1_b},{MP_ZPOS,16,16,b512r1_n},{{MP_ZPOS,16,16,b512r1_Gx},{MP_ZPOS,16,16,b512r1_Gy}}, 1},
 
   /* Edward's Curves */
 
-  {ECC_CURVE_X25519, name_curve_25519, 256, 32,  8, {MP_ZPOS, 8, 8,c25519_p},{MP_ZPOS, 1, 1,c25519_a},{MP_ZPOS, 1, 1,&bnOne   },{MP_ZPOS, 8, 8,c25519_n},{{MP_ZPOS, 8, 8,c25519_Gx},{MP_ZPOS, 8, 8,c25519_Gy}}, 8},
-  {ECC_CURVE_X448,   name_curve_448,   448, 56, 14, {MP_ZPOS,14,14,c448_p  },{MP_ZPOS, 1, 1,c448_a  },{MP_ZPOS, 1, 1,&bnZero  },{MP_ZPOS,14,14,c448_n  },{{MP_ZPOS,14,14,c448_Gx  },{MP_ZPOS,14,14,c448_Gy  }}, 4},
+  {ECC_CURVE_X25519, name_curve_25519, 256, 32,  {MP_ZPOS, 8, 8,c25519_p},{MP_ZPOS, 1, 1,c25519_a},{MP_ZPOS, 1, 1,&bnOne   },{MP_ZPOS, 8, 8,c25519_n},{{MP_ZPOS, 8, 8,c25519_Gx},{MP_ZPOS, 8, 8,c25519_Gy}}, 8},
+  {ECC_CURVE_X448,   name_curve_448,   448, 56,  {MP_ZPOS,14,14,c448_p  },{MP_ZPOS, 1, 1,c448_a  },{MP_ZPOS, 1, 1,&bnZero  },{MP_ZPOS,14,14,c448_n  },{{MP_ZPOS,14,14,c448_Gx  },{MP_ZPOS,14,14,c448_Gy  }}, 4},
 
 };
 
@@ -257,10 +269,10 @@ typedef struct
 
 static eccodid_t ecc_oid[] =
 {
-    { ECC_CURVE_192k1,     "1.3.132.0.31",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x1f,0x00,0x00,0x00,0x00}},
+    { ECC_CURVE_192k1,     "1.3.132.0.31",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x1f,0x00,0x00,0x00,0x00,0x00}},
     { ECC_CURVE_192r1,     "1.2.840.10045.3.1.1",   {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x03,0x01,0x01,0x00,0x00}},
     { ECC_CURVE_256r1,     "1.2.840.10045.3.1.7",   {0x06,0x08,0x2a,0x86,0x48,0xce,0x3d,0x03,0x01,0x07,0x00,0x00}},
-    { ECC_CURVE_256k1,     "1.3.132.0.10",          {0x06,0x05,0x2b,0x81,0x04,0x00,0xa,0x00,0x00,0x00,0x00,0x00}},
+    { ECC_CURVE_256k1,     "1.3.132.0.10",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x0a,0x00,0x00,0x00,0x00,0x00}},
     { ECC_CURVE_384r1,     "1.3.132.0.34",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x22,0x00,0x00,0x00,0x00,0x00}},
     { ECC_CURVE_521r1,     "1.3.132.0.35",          {0x06,0x05,0x2b,0x81,0x04,0x00,0x23,0x00,0x00,0x00,0x00,0x00}},
 
@@ -809,6 +821,8 @@ static void ecc_calc_y(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y,int xodd)
 
     TRUE if y^2 mod ctx->p == y2
 
+    y can be NULL if you do nto need the value
+
  * ---------------------------------------------------- */
 
  static int ecc_is_field_quadratic(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y)
@@ -852,7 +866,8 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
         rc  = rnd; 
     }
 
-    /* Generate a random field which is safe
+    /* 
+       Generate a random field which is safe
        for the given curve in three steps:
 
         1.- Generate the number with the
@@ -874,8 +889,8 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
    {
     /* 
         3.a - If it is an Edwards curve, make it 
-               multiple of the cofactor, as 
-               recommended  by D.J. Berstein.
+              multiple of the cofactor, as 
+              recommended  by D.J. Berstein.
     */
         if(ctx->h > 1 && bn->dp)
             bn->dp[0] &= ~(ctx->h - 1);
@@ -890,7 +905,8 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
               Note that I tested this few thousand
               times counting how many increments 
               took to find a correct X and it never 
-              took more than 4 increments.
+              took more than 4 increments, being 
+              0 or 1 the majority of cases.
     */        
 
         while (ecc_is_field_quadratic(ctx,bn,NULL)==FALSE)
