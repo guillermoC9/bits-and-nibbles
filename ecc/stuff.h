@@ -281,7 +281,7 @@ size_t strlcpy(char *s1, const char *s2, size_t max);
  * -------------------------------------------------- */
 
 int hex_to_char(char *dest,size_t max,const void *buf,size_t tam,char sep);
-int hex_to_wchar(wchar_t *dest,size_t max,const void *buf,size_t tam,char sep);
+int hex_to_wchar(wchar_t *dest,size_t max,const void *buf,size_t tam,wchar_t sep);
 
 /* -------------------------------------------------- *
    Do the reverse of the above functions, that is
