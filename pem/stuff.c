@@ -342,7 +342,7 @@ int hex_to_char(char *dest,size_t max,const void *buf,size_t tam,char sep)
 
 /* ------------------------------- */
 
-int hex_to_wchar(wchar_t *dest,size_t max,const void *buf,size_t tam,char sep)
+int hex_to_wchar(wchar_t *dest,size_t max,const void *buf,size_t tam,wchar_t sep)
 {
     unsigned char *ptr=(unsigned char *)buf;
     size_t i,ns=0;
