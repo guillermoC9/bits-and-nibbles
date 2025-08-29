@@ -317,7 +317,10 @@ mp_digit_t *mp_get_digits(mp_int_t *mpi,unsigned int *count);
 
 unsigned char *mp_get_bytes(mp_int_t *mpi,unsigned int *count);
 
+/* Return number as a wchar_t string of hexa chars or decimal */
+
 wchar_t *mp_get_wide_string(mp_int_t *mpi);
+wchar_t *mp_get_wide_string_decimal(mp_int_t *mpi);
 
 /*
  * Get the last digit of a mp_int_t as int
