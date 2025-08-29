@@ -642,6 +642,38 @@ wchar_t *mp_get_wide_string(mp_int_t *mpi)
 
 /* -------------------------- */
 
+wchar_t *mp_get_wide_string_decimal(mp_int_t *mpi)
+{
+    wchar_t *ret = NULL;
+
+    if(mpi)
+    {
+        unsigned int len;
+
+        s_mp_clamp(mpi);
+
+        len = mp_radix_size(mpi, 10);
+        if(len < 1)
+        {
+            ret = (wchar_t *)calloc(sizeof(wchar_t),2);
+            if(ret)
+            {
+                ret[0]=L'0';
+                ret[1]=0;
+            }
+        }
+        else
+        {
+            ret = (wchar_t *)calloc(sizeof(wchar_t),len + 1);
+            if(ret)
+                mp_toradixw(mpi,ret,10);
+        }
+    }
+    return ret;
+}
+
+/* -------------------------- */
+
 int mp_init_set_string(mp_int_t *mp,const char *str,int radix)
 {
     int ret = MP_BADARG;
