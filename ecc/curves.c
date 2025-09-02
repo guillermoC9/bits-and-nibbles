@@ -774,66 +774,62 @@ void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m)
     y can be NULL if you do not need the value
  * ---------------------------------------------------- */
 
-static int ecc_calc_y(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y,int xodd)
-{    
-    mp_int_t pm1,y2,tmp;
-    int yeven = FALSE;
-    int xvalid = FALSE;
-
-    mp_init(&pm1);
-    mp_init(&y2);
-    mp_init(&tmp);
-
-    if(y == NULL)
-        y = &tmp;
-
-    /*  
-        Do the GFp equation :
-
-        y2 = (x^3 + coeff_a * x + coeff_b) mod p
-    */
-
-    Fx_GFp(ctx,x,&y2);
-
-    /*
-        Now perform:
-
-        y = (y2 ^ ( (ctx->p + 1) / 4)) mod ctx->p
-
-        Which will end up with a potential y for
-        the X without using square root, as some 
-        values will fail the calculation.
-
-        Adjust for y = ctx->p - y if needed.
-
-        I've got the idea for it from an anwser to:
-
-        https://crypto.stackexchange.com/questions/20627/point-decompression-on-an-elliptic-curve
-
-    */
-
-    mp_add_d(&(ctx->p),1,&pm1);
-    mp_div_d(&pm1,4,&pm1,NULL);
-    mp_exptmod(&y2,&pm1,&(ctx->p),y);
-
-    if(!mp_isodd(y))
-        yeven = TRUE;
-
-    if(xodd == yeven)
-        mp_sub(&(ctx->p), y,y);
-
-    mp_exptmod(y,mp_two(),&(ctx->p),&pm1);
+ static int ecc_calc_y(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y)
+ {    
+     mp_int_t pm1,y2,tmp;
+     int xvalid = FALSE;
  
-    if(mp_cmp(&pm1,&y2) == MP_EQ)
-        xvalid = TRUE;
-         
-    mp_clear(&tmp);
-    mp_clear(&pm1);
-    mp_clear(&y2);
+     mp_init(&pm1);
+     mp_init(&y2);
+     mp_init(&tmp);
  
-     return xvalid;
-
- }
+     if(y == NULL)
+         y = &tmp;
+ 
+     /*  
+         Do the GFp equation :
+ 
+         y2 = (x^3 + coeff_a * x + coeff_b) mod p
+     */
+ 
+     Fx_GFp(ctx,x,&y2);
+ 
+     /*
+         Now perform:
+ 
+         y = (y2 ^ ( (ctx->p + 1) / 4)) mod ctx->p
+ 
+         Which will end up with a potential y for
+         the X without using square root, as some 
+         values will fail the calculation.
+ 
+         Adjust for y = ctx->p - y if needed.
+ 
+         I've got the idea for it from an anwser to:
+ 
+         https://crypto.stackexchange.com/questions/20627/point-decompression-on-an-elliptic-curve
+ 
+     */
+ 
+     mp_add_d(&(ctx->p),1,&pm1);
+     mp_div_d(&pm1,4,&pm1,NULL);
+     mp_exptmod(&y2,&pm1,&(ctx->p),y);
+ 
+     if(mp_isodd(y) == mp_iseven(x))
+         mp_sub(&(ctx->p), y,y);
+ 
+     mp_exptmod(y,mp_two(),&(ctx->p),&pm1);
+  
+     if(mp_cmp(&pm1,&y2) == MP_EQ)
+         xvalid = TRUE;
+          
+     mp_clear(&tmp);
+     mp_clear(&pm1);
+     mp_clear(&y2);
+  
+      return xvalid;
+ 
+  }
 
 /* ---------------------------------------------------- */
 
@@ -891,7 +887,8 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
               took more than 4 increments, being 
               0 or 1 the majority of cases.
     */        
-        while (ecc_calc_y(ctx,bn,NULL,mp_isodd(bn))==FALSE)
+
+        while (ecc_calc_y(ctx,bn,NULL)==FALSE)
         {
             mp_add_d(bn,1,bn);            
             mp_set_bit(bn,ctx->NUMBITS - 1,1);
@@ -931,7 +928,7 @@ void ecc_random_point(ecc_curve_t *ctx,ecc_point_t *p,rand_t *rc)
         ecc_random_field(ctx,&(p->x),rc);        
         mp_init_set_d(&(p->y),0);
         if(!is_curve25519(ctx) && !is_curve448(ctx))
-            ecc_calc_y(ctx,&(p->x),&(p->y),mp_isodd(&p->x));
+            ecc_calc_y(ctx,&(p->x),&(p->y));
     }
 }
 
@@ -1004,7 +1001,7 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
 {
     int num;
     unsigned char *src=(unsigned char *)source;
-    int cmp = FALSE, xodd = FALSE;
+    int cmp = FALSE, yodd = FALSE;
 
     ecc_point_set_zero(p);
 
@@ -1021,7 +1018,7 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
         case 0x04:
             break;
         case 0x03:
-            xodd = TRUE;
+            yodd = TRUE;
         case 0x02:
             cmp = TRUE;
             break;
@@ -1047,20 +1044,18 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
         }
         else 
         {
-            int xcheck = mp_isodd(&(p->x)) ? TRUE : FALSE;
+            int ycheck = (yodd) ? FALSE : TRUE;
+            
+            /* Calculate Y and check if X is correct */
 
-            if(xcheck != xodd)  /* Type byte is wrong */
-            { 
-                /* 
-                    We should fail here, but we will continue 
-                    just in case it is an attack using corrupted
-                    data. We'll just use the correct value.
-                */
-                xodd = xcheck;
-                //return -1;
+            if(ecc_calc_y(ctx,&(p->x),&(p->y)))            
+            {
+                /* Check if parity byte is correct */
+                ycheck = (mp_isodd(&(p->y))) ? TRUE : FALSE;
             }
 
-            ecc_calc_y(ctx,&(p->x),&(p->y),xodd);
+            if(ycheck != yodd)    
+                return -1;           
         }
         return 0;
     }
