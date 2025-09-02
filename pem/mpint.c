@@ -205,16 +205,6 @@ static size_t s_mp_outlen(unsigned int bits, int r); /* output length in bytes *
 
 /* -------------------------- */
 
-int mp_is_odd(mp_int_t *mp)
-{
-    if(mp && mp->dp)
-        return (mp->dp[0] & 1);
-
-    return FALSE;
-}
-
-/* -------------------------- */
-
 int mp_is_one(mp_int_t *mp)
 {
     ARGCHK(mp != NULL, 0);

@@ -1019,7 +1019,7 @@ int is_prime(mp_int_t *p,rand_t *rc)
        even prime is 2
     */
 
-    if(!mp_is_odd(p))
+    if(!mp_isodd(p))
         return (mp_cmp(p,mp_two()) == MP_EQ);
 
     if(!rc)
@@ -1204,7 +1204,7 @@ int next_prime(mp_int_t *p,rand_t *rc)
 
     mp_init(&r);    
 
-    if(mp_is_odd(p)) 
+    if(mp_isodd(p)) 
     {
         mp_init(&pm1);
         mp_add(p,mp_one(),&pm1);

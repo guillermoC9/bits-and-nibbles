@@ -116,10 +116,6 @@ unsigned int mp_get_prec(void);
 
 void mp_set_prec(unsigned int prec);
 
-/*  Return if a mp is odd */
-
-int mp_is_odd(mp_int_t *mp);
-
 /* Returns a true (non-zero) value if mp is zero, false (zero) otherwise. */
 
 #define mp_is_zero(_mp)     (mp_cmp_z(_mp) == MP_EQ)

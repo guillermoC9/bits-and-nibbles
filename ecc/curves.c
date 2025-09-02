@@ -760,96 +760,78 @@ void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m)
 
 /* ---------------------------------------------------- *
    Calculate the Y coordinate for a X on a given curve
-   defined by 'ctx'
- * ---------------------------------------------------- */
-
-static void ecc_calc_y(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y,int xodd)
-{    
-    mp_int_t p1;
-    int yeven = FALSE;
-
-
-    mp_init(&p1);
-
-    /*  
-        Do the GFp equation so p->y is y^2, as:
-
-        y^2 = (x^3 + coeff_a * x + coeff_b) mod p
-    */
-
-    Fx_GFp(ctx,x,y);
-
-    /*
-        Now perform:
-
-        p->y = (p->y ^ ((ctx->p+1)/4)) mod ctx->p
-
-        Which will end up with a potential y in p->y
-        without using square root, as some values
-        may fail.
-
-        Adjust for p->y = ctx->p - p->y if needed.
-
-        I've got the idea for it in an anwser to:
-
-        https://crypto.stackexchange.com/questions/20627/point-decompression-on-an-elliptic-curve
-
-    */
-
-    mp_add_d(&(ctx->p),1,&p1);
-    mp_div_d(&p1,4,&p1,NULL);
-    mp_exptmod(y,&p1,&(ctx->p),y);
-
-    if(!mp_is_odd(y))
-        yeven = TRUE;
-
-    if(xodd == yeven)
-        mp_sub(&(ctx->p), y,y);
-
-    mp_clear(&p1);
-}
-
-/* ---------------------------------------------------- *
-   Finds out the Y coordinate for a X in the given 
-   curve, and  returns if X is a valid coordinate
-   on the field. 
+   defined by 'ctx' and  returns if X is a valid 
+   coordinate on the field. 
    
-   It basically checks if Y^2 is a quadratic residue:
+   It basically does this:
+    
+        y2 = Fx_GFp(x)
 
-    y = calc_y(x)
-    y2 = Fx_GFp(x)
+        y = calc_y(x)
 
-    TRUE if y^2 mod ctx->p == y2
+        Returns TRUE if y^2 mod ctx->p == y2
 
-    y can be NULL if you do nto need the value
-
+    y can be NULL if you do not need the value
  * ---------------------------------------------------- */
 
- static int ecc_is_field_quadratic(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y)
- {
-    mp_int_t res,pm1,tmp;
-    int quadratic = FALSE;        
- 
+static int ecc_calc_y(ecc_curve_t *ctx,mp_int_t *x,mp_int_t *y,int xodd)
+{    
+    mp_int_t pm1,y2,tmp;
+    int yeven = FALSE;
+    int xvalid = FALSE;
+
     mp_init(&pm1);
-    mp_init(&res);
+    mp_init(&y2);
     mp_init(&tmp);
 
     if(y == NULL)
         y = &tmp;
 
-    ecc_calc_y(ctx,x,y,mp_is_odd(x));
+    /*  
+        Do the GFp equation :
 
-    Fx_GFp(ctx,x,&pm1);
-    mp_exptmod(y,mp_two(),&(ctx->p),&res);
+        y2 = (x^3 + coeff_a * x + coeff_b) mod p
+    */
+
+    Fx_GFp(ctx,x,&y2);
+
+    /*
+        Now perform:
+
+        y = (y2 ^ ( (ctx->p + 1) / 4)) mod ctx->p
+
+        Which will end up with a potential y for
+        the X without using square root, as some 
+        values will fail the calculation.
+
+        Adjust for y = ctx->p - y if needed.
+
+        I've got the idea for it from an anwser to:
+
+        https://crypto.stackexchange.com/questions/20627/point-decompression-on-an-elliptic-curve
+
+    */
+
+    mp_add_d(&(ctx->p),1,&pm1);
+    mp_div_d(&pm1,4,&pm1,NULL);
+    mp_exptmod(&y2,&pm1,&(ctx->p),y);
+
+    if(!mp_isodd(y))
+        yeven = TRUE;
+
+    if(xodd == yeven)
+        mp_sub(&(ctx->p), y,y);
+
+    mp_exptmod(y,mp_two(),&(ctx->p),&pm1);
  
-    if(mp_cmp(&pm1,&res) == MP_EQ)
-        quadratic = TRUE;
+    if(mp_cmp(&pm1,&y2) == MP_EQ)
+        xvalid = TRUE;
          
     mp_clear(&tmp);
     mp_clear(&pm1);
-    mp_clear(&res);
+    mp_clear(&y2);
  
-     return quadratic;
+     return xvalid;
 
  }
 
@@ -859,7 +841,7 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
 {
     unsigned char tmp[ECC_MAX_BYTES];
     rand_t *rnd = NULL;
-
+    
     if(rc == NULL)
     {
         rnd = rand_start(RAND_OS,RAND_TLS_SHA256);
@@ -879,8 +861,9 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
     mp_set_bit(bn,ctx->NUMBITS - 1,1);
 
     /*
-        2.- Make sure the number is in
-            the order of N.
+        2.- Make sure the number is in the order 
+           N (whi is make it smaller than N), so 
+           it can be used safely as secret key 
     */
 
     mp_mod(bn,&(ctx->n),bn);
@@ -908,8 +891,7 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
               took more than 4 increments, being 
               0 or 1 the majority of cases.
     */        
-
-        while (ecc_is_field_quadratic(ctx,bn,NULL)==FALSE)
+        while (ecc_calc_y(ctx,bn,NULL,mp_isodd(bn))==FALSE)
         {
             mp_add_d(bn,1,bn);            
             mp_set_bit(bn,ctx->NUMBITS - 1,1);
@@ -925,7 +907,8 @@ void ecc_random_field(ecc_curve_t *ctx,mp_int_t  *bn,rand_t *rc)
 
 void ecc_make_order(ecc_curve_t *ctx,mp_int_t *bn)
 {
-    /* Make sure the number is in the order of N */
+    /* Make sure the number is in the order of N (that  
+       is smaller than N) so it can be used as secret key */
 
     mp_mod(bn,&(ctx->n),bn);
 
@@ -948,7 +931,7 @@ void ecc_random_point(ecc_curve_t *ctx,ecc_point_t *p,rand_t *rc)
         ecc_random_field(ctx,&(p->x),rc);        
         mp_init_set_d(&(p->y),0);
         if(!is_curve25519(ctx) && !is_curve448(ctx))
-            ecc_calc_y(ctx,&(p->x),&(p->y),mp_is_odd(&p->x));
+            ecc_calc_y(ctx,&(p->x),&(p->y),mp_isodd(&p->x));
     }
 }
 
@@ -1001,7 +984,7 @@ int ecc_point_to_bytes(ecc_curve_t *ctx,ecc_point_t *p,void *dest,int max,int co
     }
 
     if(compress)
-       *dst++= mp_is_odd(&(p->y)) ? 0x03 : 0x02;
+       *dst++= mp_isodd(&(p->y)) ? 0x03 : 0x02;
     else
        *dst++= 0x04;
 
@@ -1054,7 +1037,7 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
     len--;
 
     if(mp_set_bytes(&(p->x),src,ctx->NUMBYTES) == MP_OKAY)
-    {
+    {                
         if(cmp == FALSE)
         {
             src+= ctx->NUMBYTES;
@@ -1064,6 +1047,19 @@ int ecc_point_from_bytes(ecc_curve_t *ctx,ecc_point_t *p,const void *source,int 
         }
         else 
         {
+            int xcheck = mp_isodd(&(p->x)) ? TRUE : FALSE;
+
+            if(xcheck != xodd)  /* Type byte is wrong */
+            { 
+                /* 
+                    We should fail here, but we will continue 
+                    just in case it is an attack using corrupted
+                    data. We'll just use the correct value.
+                */
+                xodd = xcheck;
+                //return -1;
+            }
+
             ecc_calc_y(ctx,&(p->x),&(p->y),xodd);
         }
         return 0;
