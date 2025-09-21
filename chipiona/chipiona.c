@@ -76,15 +76,204 @@ static unsigned int chipiona_mother_function(unsigned short int *mtop,unsigned s
     return (unsigned int)(((top & 0xFFFFU) << 16) | (bot & 0xFFFFU));
 }
 
+/* -------------------------------- */
+
+static void chipiona_mother_generate(unsigned int seed,unsigned int *sbox,int len)
+{
+    unsigned int dn,tn,t;
+    unsigned short int sn,top[10],bot[10];  
+    
+    /* Let's init mother with that seed */
+
+    dn=(unsigned int)(seed & 0x7FFFFFFFU);
+    sn=(unsigned short int)(seed & 0xFFFFU);
+
+    for(t=0;t<9;t++)
+    {
+        dn>>=16;
+        tn=30903;
+        tn*=sn;
+        tn+=dn;
+        sn=(unsigned short int)(tn & 0xFFFFU);
+        top[t]=sn;
+        dn=tn;
+    }
+
+    for(t=0;t<9;t++)
+    {
+        dn>>=16;
+        tn=30903;
+        tn*=sn;
+        tn+=dn;
+        sn=(unsigned short int)(tn & 0xFFFFU);
+        bot[t]=sn;
+        dn=tn;
+    }
+
+    top[0]&=0x7FFF;
+    bot[0]&=0x7FFF;
+
+    /* Now lets generate the SBOX  */
+
+    for(t=0;t<len;t++)
+    {   
+        do {     
+            sbox[t] = chipiona_mother_function(top,bot);
+        } while(!sbox[t]);        
+    }    
+
+    memset(top,0,sizeof(top));
+    memset(bot,0,sizeof(bot));
+}
+
+/* ----------------------------------------------------------- *
+   MERSENNE TWISTER
+ * ----------------------------------------------------------- */
+
+#define MT_N     624
+#define MT_M     397
+#define MT_A     0x9908b0dfU
+#define MT_U     0x80000000U
+#define MT_L     0x7fffffffU
+
+typedef struct
+{
+    unsigned int    x[MT_N];
+    unsigned int    next;
+} mt_rand_t;
+
+/* -------------------------------- */
+
+static unsigned int chipiona_mersenne_twister_function(mt_rand_t *rc)
+{
+    unsigned int y, a;
+    int i;
+
+    if (rc->next == MT_N )
+    {
+        rc->next = 0;
+
+        for ( i = 0; i < MT_N - 1; i++ )
+        {
+            y = ( rc->x[i] & MT_U ) | (rc->x[i + 1] & MT_L);
+            a = ( y & 0x1U ) ? MT_A : 0x0U;
+            rc->x[i] = rc->x[( i + MT_M ) % MT_N] ^ ( y >> 1 ) ^ a;
+        }
+
+        y = ( rc->x[MT_N - 1] & MT_U ) | (rc->x[0] & MT_L);
+
+        a = ( y & 0x1U ) ? MT_A : 0x0U;
+
+        rc->x[MT_N - 1] = rc->x[MT_M - 1] ^ ( y >> 1 ) ^ a;
+    }
+
+    y = rc->x[rc->next++];
+
+    /* Improve distribution */
+
+    y ^= (y >> 11);
+    y ^= (y << 7) & 0x9d2c5680U;
+    y ^= (y << 15) & 0xefc60000U;
+    y ^= (y >> 18);
+
+    return y;
+}
+
+/* -------------------------------- */
+
+static void chipiona_mersenne_twister_generate(unsigned int seed,unsigned int *sbox,int len)
+{
+    mt_rand_t rc;
+    int i;
+
+    rc.next=0;
+
+    rc.x[0] = (seed & 0xffffffff);
+
+    for ( i = 1; i < MT_N; i++ )
+    {
+        rc.x[i] = ( 1812433253 * ( rc.x[i - 1] ^ ( rc.x[i - 1] >> 30 ) ) + i );
+        rc.x[i] &= 0xffffffff;
+    }
+
+    /* Now lets generate the SBOX  */
+
+    for(i=0;i<len;i++)
+    {   
+        do {     
+            sbox[i] = chipiona_mersenne_twister_function(&rc);
+        } while(!sbox[i]);        
+    }   
+
+    memset(&rc,0,sizeof(rc));
+}
+
+/* ----------------------------------------------------------- *
+    XORSHIFT 128
+ * ----------------------------------------------------------- */
+
+typedef struct
+{
+    unsigned int x, y, z, w;
+} gx_rand_t;
+
+/* -------------------------------- */
+
+static unsigned int chipiona_xorshift128_function(gx_rand_t *rc)
+{
+    unsigned int tmp;
+
+    tmp = rc->x ^ (rc->x << 11);
+
+    rc->x = rc->y;
+    rc->y = rc->z;
+    rc->z = rc->w;
+
+    rc->w = rc->w ^ (rc->w >> 19) ^ tmp ^ (tmp >> 8);
+
+    return rc->w;
+}
+
+
+/* -------------------------------- */
+
+static void chipiona_xorshift128_generate(unsigned int seed,unsigned int *sbox,int len)
+{
+    gx_rand_t rc;
+    int i;
+    unsigned int tmp[4];
+
+    /* Use mother for initial values */
+
+    chipiona_mother_generate(seed,tmp,4);
+    
+    rc.x = tmp[0];
+    rc.y = tmp[1];
+    rc.z = tmp[2];
+    rc.w = tmp[3];
+
+    /* Now lets generate the SBOX  */
+
+    for(i=0;i<len;i++)
+    {   
+        do {     
+            sbox[i] = chipiona_xorshift128_function(&rc);
+        } while(!sbox[i]);        
+    }   
+
+    memset(tmp,0,sizeof(tmp));
+    memset(&rc,0,sizeof(rc));
+}
+
 /* -------------------------------- *
    Generate S-BOXES for the key
  * -------------------------------- */
 
+
 static void chipiona_create_sboxes(chipiona_t *ctx,const unsigned char *key)
 {
-    unsigned int dn,tn,t,seed,i;
-    unsigned short int sn,top[10],bot[10];  
-
+    unsigned int seed,t,i;
+    
     for(i=0;i<ctx->snum;i++)
     {
         /* Take 4 bytes of key as seed */
@@ -96,47 +285,27 @@ static void chipiona_create_sboxes(chipiona_t *ctx,const unsigned char *key)
             seed |= *key++;
         }
 
-        /* Let's init mother with that seed */
+        ctx->prg[i] = (seed % 3);        
 
-        dn=(unsigned int)(seed & 0x7FFFFFFFU);
-        sn=(unsigned short int)(seed & 0xFFFFU);
-
-        for(t=0;t<9;t++)
+        switch(ctx->prg[i])
         {
-            dn>>=16;
-            tn=30903;
-            tn*=sn;
-            tn+=dn;
-            sn=(unsigned short int)(tn & 0xFFFFU);
-            top[t]=sn;
-            dn=tn;
+
+            case CHIPIONA_PRG_MERSENNE:
+                chipiona_mersenne_twister_generate(seed,ctx->sboxes[i],256);
+                break;
+            case CHIPIONA_PRG_XORSHIFT:
+                chipiona_xorshift128_generate(seed,ctx->sboxes[i],256);
+                break;
+            case CHIPIONA_PRG_MOTHER:
+            default:
+                chipiona_mother_generate(seed,ctx->sboxes[i],256);
+                break;
         }
+    }
 
-        for(t=0;t<9;t++)
-        {
-            dn>>=16;
-            tn=30903;
-            tn*=sn;
-            tn+=dn;
-            sn=(unsigned short int)(tn & 0xFFFFU);
-            bot[t]=sn;
-            dn=tn;
-        }
 
-        top[0]&=0x7FFF;
-        bot[0]&=0x7FFF;
-
-        /* Now lets generate the SBOX  */
-
-        for(t=0;t<256;t++)
-        {   
-            do {     
-                seed = chipiona_mother_function(top,bot);
-            } while(!seed);
-            ctx->sboxes[i][t]=seed;
-        }
-    }    
 }
+
 
 /* -------------------------------- *
    MD5 Constants 
@@ -333,10 +502,11 @@ static void chipiona_block_function(chipiona_t *ctx,const void *buf, size_t tam)
 }
 
 /* ------------------------------- */
+/* ------------------------------- */
 
-int chipiona_init(chipiona_t *ctx,const void *key,size_t len)
+int chipiona_init(chipiona_t *ctx, const void *key,size_t len)
 {
-    unsigned int ns;    
+    unsigned int ns;   
 
     if(ctx && key && len >= CHIPIONA_KEY_SIZE)
     {              
@@ -346,7 +516,7 @@ int chipiona_init(chipiona_t *ctx,const void *key,size_t len)
         {
             ctx->sboxes[ns] = (unsigned int *)calloc(sizeof(unsigned int),256);
             if(!ctx->sboxes[ns])
-                break;
+                break;            
         }
 
         if(ns == 16)
@@ -359,8 +529,8 @@ int chipiona_init(chipiona_t *ctx,const void *key,size_t len)
 	        ctx->state[3] = 0x10325476;
 
             ctx->snum = 16;   /* First block always uses the 16 s-boxes */
-
-            chipiona_create_sboxes(ctx,(const unsigned char *)key);            
+            
+            chipiona_create_sboxes(ctx,(const unsigned char *)key); 
             chipiona_block_function(ctx,key,len); 
 
             return 0;
@@ -461,10 +631,11 @@ void chipiona_decode(chipiona_t *ctx,void *dst,const void *src, size_t len)
     }
 }
 
-
 /* ------------------------------- *
     Function to debug the cipher
  * ------------------------------- */
+
+ const char *rand_name[3]={"Marsaglia's Mother","Mersenne Twister","Marsaglia's Xorshift128"};
 
 void chipiona_dump_data(chipiona_t *ctx,FILE *fp,int show_sboxes)
 {
@@ -475,11 +646,11 @@ void chipiona_dump_data(chipiona_t *ctx,FILE *fp,int show_sboxes)
     {
         fprintf(fp,"MEMORY USAGE: %lu bytes\n",(unsigned long) (((( sizeof(chipiona_t) + (256 * sizeof(unsigned int) * 16)) + 8191) * 4096) / 4096 ));
         if(show_sboxes)
-        {
-            fprintf(fp,"sboxes[%u] = \n{\n",ctx->snum);
+        {            
+            fprintf(fp,"sboxes[%u] =\n{\n",ctx->snum);
             for(i=0; i < ctx->snum; i++)
             {            
-                fprintf(fp,"    {\n        ");
+                fprintf(fp,"    {   /* Generated using %s */\n        ",rand_name[ctx->prg[i]]);
                 for(t=w=0;t<256;t++)
                 {
                     fprintf(fp,"0x%08x,",ctx->sboxes[i][t]);                

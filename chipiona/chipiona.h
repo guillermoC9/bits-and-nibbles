@@ -44,13 +44,24 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define CHIPIONA_KEY_SIZE  64
+/* Size of the initial key in bytes */
+
+#define CHIPIONA_KEY_SIZE         64
+
+/* PRG (Pseudo-Random Generator) for generating the s-boxes */
+
+#define CHIPIONA_PRG_MOTHER       0     /* George Marsaglia's Mother */
+#define CHIPIONA_PRG_MERSENNE     1     /* Mersenne Twister */
+#define CHIPIONA_PRG_XORSHIFT     2     /* George Marsaglia's Xorshift128 */    
+
+/* Encription context */
 
 typedef struct
-{    
+{        
+    unsigned int       prg[16];       /* PRG used in each S-BOX */
     unsigned int      *sboxes[16];    /* S-Boxes for the cipher */
-    unsigned int       snum;          /* Number of s-boxes */
-    unsigned long      cbits;         /* Counter of processed bits (MD5) */
+    unsigned int       snum;          /* Number of s-boxes in this round */
+    unsigned long      cbits;         /* Counter of processed bits */
     unsigned int       state[4];      /* MD5 state */
 	  unsigned char      data[16];      /* MD5 buffer */
     unsigned int       pos;           /* Position in the buffer */ 
