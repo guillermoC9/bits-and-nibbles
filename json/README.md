@@ -21,7 +21,7 @@ The library takes two approaches to key duplication:
 
 - Duplicate keys ARE allowed to be used when setting values or creating objects and arrays in memory, as the set functions will actually replace existing values of the object with the new ones, or will return the existing object if an existing path is especified to a creation function. 
 
-The second approach mimics JavaScript, where  ``` let b = { obj : { x : 23, y : 22, x : 11 } }; ``` will end up with ```obj.x``` having a value of ```11```.  
+The second approach mimics JavaScript, where  ``` let b = { obj : { x : 23, y : 22, x : 11 } }; ``` will end up with ```b.obj.x``` having a value of ```11```.  
 
 The test code loads a couple of JSON files, detach them from their root, fusion them together on another tree, and then adds/deletes few branches and things in order to demonstrate how to use the functions of the library. It then saves a third file with the results of the tests.
 
