@@ -17,9 +17,9 @@ Note that the library aims for data integrity, so -unlike JavScript- if two inde
 
 The library takes two approaches to key duplication: 
 
-1st.- Duplicate keys are NOT allowed when loading files or when adding existing objects into other objects for the reason explained above. Although they are actually allowed for arrays, as key names are ignored in array members and will be lost if saving the file, effectively avoiding the duplication.
+- Duplicate keys are NOT allowed when loading files or when adding existing objects into other objects for the reason explained above. Although they are actually allowed for arrays, as key names are ignored in array members and will be lost if saving the file, effectively avoiding the duplication.
 
-2nd.- Duplicate keys ARE allowed to be used when setting values or creating objects and arrays in memory, as the set functions will actually replace existing values of the object with the new ones, or will return the existing object if an existing path is especified to a creation function. 
+- Duplicate keys ARE allowed to be used when setting values or creating objects and arrays in memory, as the set functions will actually replace existing values of the object with the new ones, or will return the existing object if an existing path is especified to a creation function. 
 
 The second approach mimics JavaScript, where  ``` let b = { obj : { x : 23, y : 22, x : 11 } }; ``` will end up with ```obj.x``` having a value of ```11```.  
 
