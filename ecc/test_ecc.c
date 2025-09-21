@@ -548,7 +548,7 @@ static void test_point_mult_by_k(ecc_curve_t *ecc,mp_int_t *k,char *x,char *y)
     ecc_point_init(&res);
     ecc_point_init(&pt);
 
-    printf("Curve '%s' with ", ecc->alias[0]);
+    printf("Curve '%s' with ", ecc->alias[0]);    
     mp_show("k",k);
 
     ecc_point_mult(ecc,&res,&(ecc->G),k);
@@ -563,10 +563,9 @@ static void test_point_mult_by_k(ecc_curve_t *ecc,mp_int_t *k,char *x,char *y)
 
     printf("Which is %s\n\n",(ecc_point_is_equal(&pt,&res) ? "CORRECT" : "INCORRECT"));
 
-    printf("Given point in the curve? %s\n\n",ecc_point_on_curve(ecc,&pt) ? "Yes" : "No");
+    printf("Is given point in the curve? %s\n\n",ecc_point_on_curve(ecc,&pt) ? "Yes" : "No");
 
-
-
+    ecc_point_clear(&pt);
     ecc_point_clear(&res);
 }
 

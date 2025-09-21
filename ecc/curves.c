@@ -787,7 +787,7 @@ void ecc_point_inverse(ecc_point_t *r,ecc_point_t *p,mp_int_t *m)
          y = &tmp;
  
      /*  
-         Do the GFp equation :
+         Do the GF(p) equation :
  
          y2 = (x^3 + coeff_a * x + coeff_b) mod p
      */
