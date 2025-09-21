@@ -11,6 +11,8 @@ test_csv
 test_ecc
 test_entropy
 test_hashes
+test_json
+test_3.json
 test_mpint
 test_pdf
 test_pem

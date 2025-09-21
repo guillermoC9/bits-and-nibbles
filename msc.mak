@@ -38,6 +38,8 @@ cleanit:
 	nmake /f msc.mak cleanit
 	cd ../hashes
 	nmake /f msc.mak cleanit
+	cd ../json
+	nmake /f msc.mak cleanit
 	cd ../mpint
 	nmake /f msc.mak cleanit
 	cd ../pdf
@@ -69,6 +71,8 @@ buildit:
 	cd ../entropy
 	nmake /f msc.mak test
 	cd ../hashes
+	nmake /f msc.mak test
+	cd ../json
 	nmake /f msc.mak test
 	cd ../mpint
 	nmake /f msc.mak test

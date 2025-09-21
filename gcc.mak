@@ -30,6 +30,7 @@ cleanit:
 	cd ecc;      make -f gcc.mak cleanit; cd ..
 	cd entropy;  make -f gcc.mak cleanit; cd ..
 	cd hashes;   make -f gcc.mak cleanit; cd ..	
+	cd json;     make -f gcc.mak cleanit; cd ..	
 	cd mpint;    make -f gcc.mak cleanit; cd ..
 	cd pdf;      make -f gcc.mak cleanit; cd ..
 	cd pem;      make -f gcc.mak cleanit; cd ..
@@ -46,6 +47,7 @@ buildit:
 	cd ecc;      make -f gcc.mak test; cd ..	
 	cd entropy;  make -f gcc.mak test; cd ..
 	cd hashes;   make -f gcc.mak test; cd ..
+	cd json;     make -f gcc.mak test; cd ..
 	cd mpint;    make -f gcc.mak test; cd ..
 	cd pdf;      make -f gcc.mak test; cd ..
 	cd pem;      make -f gcc.mak test; cd ..

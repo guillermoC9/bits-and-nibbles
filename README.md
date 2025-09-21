@@ -32,6 +32,8 @@ I know this causes code duplication, but the idea here is to grab whatever you a
   There are some checksums which are very uself for everyday life, like the Luhn's checksum or the Spanish control letter (letra del DNI, NIF o NIE).
 - ### PDF:
   Wouldn't you like to create full fledged PDF files from C?
+- ### JSON:
+  Handle JSON files easily from C, as JSON is now the facto replacement for XML in data interchange and more.
 
 ## Licensing:
 The plan is that ALL code here would be released as public domain so people can use it for whatever they please, hopefully for the benefit of many people. Although in some point some code may be released under another license, just check the license at the top of each source code file to be sure what it is. 

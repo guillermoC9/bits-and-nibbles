@@ -1,0 +1,70 @@
+{
+    "certificate" :
+    {
+        "version"   :   3,
+        "serial"    :   null,
+
+        "validity" :
+        {
+            "notBefore" : null,
+            "notAfter"  : "20260610042531"
+        },
+
+        "subject" :
+        {
+
+            "dn" :
+            {
+                "cn" : "cloud-nueve uk RSA Test Certificate",
+                "c"  : "GB",
+                "l"  : "Largs",
+                "o"  : "cloud-nueve uk ltd.",
+                "ou" : "Server Operations",
+                "st" : "North Ayrshire",
+                "emailAddress" : "server@cloud-nueve.uk",
+                "ev_c" : "GB",
+                "jurisdictionOfIncorporationLocalityName" : "Largs",
+                "ev_st" : "North Ayrshire"
+            }
+        },
+
+        "extensions" :
+        {
+            "basicConstrains" :
+            {
+                "critical" : true,
+                "isCA"     : false
+            },
+
+            "keyUsage" :
+            {
+                "critical"  : true,
+                "uses" :
+                [
+                    "digitalSignature",
+                    "keyEncipherment"
+                ]
+            },
+
+            "extKeyUsage" :
+            {
+                "critical" : false,
+                "uses" :
+                [
+                    "serverAuth",
+                    "clientAuth"
+                ]
+            },
+
+            "subjectAltName" :
+            {
+                "critical" : false,
+                "names" :
+                {
+                    "DNS"   : "www.cloud-nueve.uk",
+                    "URI"   : "https://cloud-nueve.uk"
+                }
+            }
+        }
+    }    
+}

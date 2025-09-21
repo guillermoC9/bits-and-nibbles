@@ -1,0 +1,48 @@
+{
+    "recipes" : 
+    [
+        {
+            "name" : "Spanish Omelette",
+            "price" : "5€",
+            "ingredients" :
+            [
+                {"name":"potatoes","amount": 250,"unit": "g","notes":"We recommend old potatoes"}, 
+                {"name":"egss","amount": 4,"unit": "units","notes":""},
+                {"name":"onion","amount (g)": 1,"unit": "unit","notes":""}                
+            ],
+            "instructions": "Cut the potatoes in slices then fry them in sunflower or oliva oil but not too fried, then drain them in aplat with a paper towel, bater the eggs with some salt in a bowl and put the potatoes in. Mix it and the put on a flat frying pan with few drops of oliva oil to cook the omelette",
+            "attributes" :
+            [
+                {"name": "salty", "value": true},
+                {"name": "fresh", "value": false},
+                {"name": "sour", "value": false},
+                {"name": "bitter", "value": false}
+            ]    
+        },
+        {
+            "name" : "Ceviche",
+            "price" : "25€",
+            "ingredients" :
+            [
+                {"name":"fish","amount": 250,"unit": "g","notes":"We recommend Sole fish"}, 
+                {"name":"green lemmon","amount": 50,"unit": "ml","notes":"In spain, this kind of lemmon is called 'lima'"},
+                {"name":"red onion","amount (g)": 50,"unit": "g","notes":""}                
+            ],
+            "instructions": "This is a recipe where raw fish is seasoned with the lemmon and the onion on top",
+            "attributes" :
+            [
+                {"name": "sweet", "value": true},
+                {"name": "salty", "value": true},
+                {"name": "bitter", "value": false},
+                {"name": "fresh", "value": true},
+                {"name": "sour", "value": true},
+                {"name": "acid", "value": false}
+            ]    
+        },         
+        {
+           "name": "Not a recipe",
+           "      " : "This field is named with a string filled with spaces",
+           "number" : 18.234567E+12
+        }
+    ]    
+}
