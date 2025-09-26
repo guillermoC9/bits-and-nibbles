@@ -222,7 +222,7 @@ int wchar_to_ucs4(unsigned int *resp,const wchar_t *wch,size_t max);
 
  * ------------------------------------------------------ */
 
-int s9_ucs4_to_wchar(wchar_t *resp,unsigned int ucs4);
+int ucs4_to_wchar(wchar_t *resp,unsigned int ucs4);
 
 /* ------------------------------------------------------ *
 
@@ -412,17 +412,25 @@ char *strtrim(char *s);
 char *realloc_strcat(char *orig,const char *cat,size_t clen,char sep,size_t *nlen);
 
 /* -------------------------------------------------- *
-    malloc() and sprintf() in one go for both char 
-    and wchar strings.
+   malloc() and sprintf() in one go for both char 
+   and wchar strings.
 
-    They put in len (if not NULL) the number of 
-    chars/wchars  of the allocated string.
+   They put in len (if not NULL) the number of 
+   chars/wchars  of the allocated string.
 
-    Due to the intrinsics of swprintf(), the 
-    functions wcsallocf() and wcsallocfv() have a 
-    limitation of 32727 wchars in the resulting 
-    string. The char functions do not have that 
-    limitation.
+   Due to the intrinsics of swprintf(), the 
+   functions wcsallocf() and wcsallocfv() have a 
+   limitation of 32727 wchars in the resulting 
+   string. The char functions do not have that 
+   limitation.
+
+   strtowcs() allocs memory and convert 'len' chars 
+   from the string to wchar (assuming it is either 
+   ascii or utf-8). It doesn't have size limitations
+   but will copy less chars if NUL char is found. 
+   Send 'len' as 0 for converting the whole string.
+
+   Use free() to reclaim the memory
  * -------------------------------------------------- */
 
 wchar_t *wcsallocf(size_t *len,const wchar_t *fmt,...);
@@ -431,11 +439,15 @@ char    *strallocf(size_t *len,const char *fmt,...);
 wchar_t *wcsallocfv(size_t *len,const wchar_t *fmt,va_list vl);
 char    *strallocfv(size_t *len,const char *fmt,va_list vl);
 
+wchar_t *strtowcs(const char *str,size_t len);
+char    *wcstostr(const wchar_t *str,size_t len);
+
 /* -------------------------------------------------- *
    strlcpy() is a better version of strncpy() as
    always adds the NUL. Like is only for Mac, we add
    a version for the other OS
  * -------------------------------------------------- */
+
 #ifndef FOR_MAC
 
 size_t strlcpy(char *s1, const char *s2, size_t max);

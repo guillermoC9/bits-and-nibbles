@@ -656,9 +656,10 @@ void *read_whole_file(const char *file,size_t *tam)
 void *read_whole_filew(const wchar_t *file,size_t *tam)
 {
     void *ret = NULL;
-    char tmp[1384] = {0};
+    char *tmp;
     
-    if(file && wcstombs(tmp,file,1383) > 0)
+    tmp = wcstostr(file,0);
+    if(tmp)
     {
         FILE *fp = fopen(tmp,"rb");
         if(fp)
@@ -666,6 +667,7 @@ void *read_whole_filew(const wchar_t *file,size_t *tam)
             ret = read_whole(fp,tam);
             fclose(fp);
         }
+        free(tmp);
     }
     return ret;
 }
@@ -763,9 +765,10 @@ void *read_compressed(const char *file,size_t *tam,size_t *orig)
 void *read_compressedw(const wchar_t *file,size_t *tam,size_t *orig)
 {
     void *ret = NULL;
-    char tmp[1384] = {0};
+    char *tmp;
     
-    if(file && wcstombs(tmp,file,1383) > 0)
+    tmp = wcstostr(file,0);
+    if(tmp)
     {
         FILE *fp=fopen(tmp,"rb");
         if(fp)
@@ -773,6 +776,7 @@ void *read_compressedw(const wchar_t *file,size_t *tam,size_t *orig)
             ret = do_read_compressed(fp,tam,orig);
             fclose(fp);
         }
+        free(tmp);
     }
     return ret;
 }
@@ -1219,6 +1223,73 @@ char *strallocf(size_t *size,const char *fmt,...)
     }
     return ret;
 }
+
+/* ----------------------------- */
+
+wchar_t *strtowcs(const char *str,size_t len)
+{
+    wchar_t *ret = NULL,*cur;
+    const unsigned char * ptr;
+    int cnt;
+    unsigned int ch;
+    if(str)
+    {
+        if(len == 0)
+            len = strlen(str);
+        ret = (wchar_t *)calloc(sizeof(wchar_t),len);
+        if(ret)
+        {
+            ptr = (const unsigned char *)str;
+            cur = ret;
+            while(*ptr && len > 0)
+            {
+                cnt = utf8_to_ucs4(&ch,ptr,len);
+                if(cnt == 0)
+                    break;
+
+                len -= cnt;
+                ptr += cnt;
+
+                cur += ucs4_to_wchar(cur,ch);                
+            }
+        }
+    }
+    return ret;
+}
+
+/* ----------------------------- */
+
+char *wcstostr(const wchar_t *str,size_t len)
+{
+    char *ret = NULL;
+    unsigned char * ptr;
+    int cnt;
+    unsigned int ch;
+    if(str)
+    {
+        if(len == 0)
+            len = wcslen(str);
+        len *= 4;
+        ret = (char *)calloc(len,1);
+        if(ret)
+        {
+            ptr = (unsigned char *)ret;
+            while(*str && len > 0)
+            {
+                cnt = wchar_to_ucs4(&ch,str,len);
+                if(cnt == 0)
+                    break;
+                str += cnt;
+                cnt = ucs4_to_utf8(ptr,ch);                
+                len -= cnt;
+                ptr +=cnt;
+            }
+        }
+    }
+    return ret;
+}
+
+
 
 #ifndef FOR_MAC
 
