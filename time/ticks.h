@@ -497,10 +497,10 @@ int is_leap_year(int year);
     using the Greogrian Calendar, thus it will return
     0 in the values if a year before 1582 is used.
 
-    Sending a year over 20000 will have the same effect.
+    Sending a year over 9999 will have the same effect.
 
     If year is given as 0, it returns the month and
-    day of aster for the current year.
+    day of easter for the current year.
 
  * ------------------------------------------------------ */
 
@@ -509,7 +509,7 @@ void easter_date(int year,int *day,int *month);
 /* ------------------------------------------------------ *
     Returns the time stamp of easter on a given year
     from 1970 to 2037 if time_t is 32 bits or from
-    1970 to 20000 if time_t is bigger.
+    1970 to 9999 if time_t is bigger.
 
     Sending values outside these ranges will return
     0 (1st of January 1970), which was not easter but
@@ -550,7 +550,7 @@ time_t easter_time(int year);
                   will be used.
 
         'year'  = Year of the sheet to be returned,
-                  if out of the range 1582-20000 the 
+                  if out of the range 1582-9999 the 
                   current year would be the used.
 
         'full'  = If TRUE, the sheet will be complete.

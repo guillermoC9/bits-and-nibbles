@@ -347,7 +347,7 @@ time_t time_from_pot(point_on_time_t *pot)
     memset(&td,0,sizeof(td));
     td.tm_mday=(pot->day > 0 && pot->day < 32) ? pot->day : 1;
     td.tm_mon=(pot->mon > 0 && pot->mon < 13) ? (pot->mon  - 1) : 1;
-    td.tm_year=(pot->year > 1900 && pot->year < 20001) ? (pot->year - 1900) : 70;
+    td.tm_year=(pot->year > 1900 && pot->year < 10000) ? (pot->year - 1900) : 70;
     td.tm_hour=(pot->hour % 24);
     td.tm_min=(pot->min % 60);
     td.tm_sec=(pot->sec % 60);
@@ -516,7 +516,7 @@ static int easter_days(int year)
 {
     int g,c,p,d;
 
-    if(year > 1581 && year < 20001)
+    if(year > 1581 && year < 10000)
     {
         /* 
             Calculate the date of the full moon p 
@@ -609,7 +609,7 @@ time_t easter_time(int year)
     }
     else if(year > 2037)
     {
-        if(sizeof(time_t) == 4 || year > 20000)
+        if(sizeof(time_t) == 4 || year > 10000)
             return 0;
     }
 

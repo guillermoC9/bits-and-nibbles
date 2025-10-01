@@ -266,6 +266,9 @@ void test_calendar(void)
     
     printf("---> April 4601 starting on Sunday\n");
     test_calendar_sheet(4, 4601, FALSE,CAL_START_ON_SUN);    
+
+    printf("---> April 14601 starting on Monday\n");
+    test_calendar_sheet(4, 14601, FALSE,CAL_START_ON_MON);    
 }
 
 
