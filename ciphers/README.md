@@ -23,6 +23,8 @@ The cipher engine in cipher.c does support different cipher types like stream or
 
 Just have a look at the code and the examples. :-)
 
+If you are asking yourself why I have not included [**Chipiona**](https://github.com/guillermoC9/bits-and-nibbles/edit/main/chipiona) among the chipers here, is because this is intended for well-known ciphers, and ```Chipiona``` is not *yet* regarded as one of them. As you can imagine, it is part of the ```cipher_t``` implementations I use for myself. ;-)
+
 ## To build it:
 
 For Microsoft C/C++ for Windows (Visual Studio C++) use:  
