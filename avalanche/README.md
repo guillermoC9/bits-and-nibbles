@@ -16,7 +16,7 @@ Therefore, if you feed a word like ```test``` to this algorithm, you would obtai
 
 The generated passwords not only fit all the chars type requirements, they can be as long as you want to increase the difficulty of a brute-force attack.
 
-As the algorithm is deterministic -the same word/sentence always generates the same long password-, an attacker couldtry a brute-force attack on your long password using the algorithm to generate them, for example trying by avalanching all the words of a dictionary. The thing is that they cannot be sure of which is the correct password so easily, as there is an extra variable in there: you can choose the length the output, which will output a different password from he same word, so the attacker also needs to find out what is the size you used in order to find out which of the generated passwords is the correct.
+As the algorithm is deterministic -the same word/sentence always generates the same long password-, an attacker could try a brute-force attack on your long password using the algorithm to generate them, for example trying by avalanching all the words of a dictionary. The thing is that they cannot be sure of which is the correct password so easily, as there is an extra variable in there: you can choose the length of the output, which will output a different password from he same word, so the attacker also needs to find out what is the size you used in order to find out which of the generated passwords is the correct.
 
 Let me rephrase the previous statement: ```The algorithm is deterministic, so the same word/sentence will generate the same long password, only for the same ouput size. If you change the size, the password will also change```.
 
