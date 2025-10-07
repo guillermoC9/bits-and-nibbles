@@ -1,7 +1,7 @@
 /*
     test_primes.c
 
-    Test of entropy routines
+    Test of prime numbers routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

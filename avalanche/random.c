@@ -1,5 +1,5 @@
 /*
-    rand.c
+    random.c
 
     Random and pseudo-ramdom numbers generation
 

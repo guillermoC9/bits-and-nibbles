@@ -1,7 +1,7 @@
 /*
     test_csv.c
 
-    Test of entropy routines
+    Test of CSV routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

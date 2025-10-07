@@ -1,7 +1,7 @@
 /*
     test_hashes.c
 
-    Test of entropy routines
+    Test of hashing routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

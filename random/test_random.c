@@ -1,7 +1,7 @@
 /*
     test_random.c
 
-    Test of chipiona cipher routines
+    Test of random routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

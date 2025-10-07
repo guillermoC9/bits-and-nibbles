@@ -115,7 +115,7 @@ typedef void         (*rand8_func_t)(void *,void *,size_t);
     the generator itself.
 
     Look at examples of them for the provided generators
-    in rand.c
+    in random.c
 
  * -------------------------------------------------- */
 

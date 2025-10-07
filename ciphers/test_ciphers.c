@@ -1,7 +1,7 @@
 /*
     test_ciphers.c
 
-    Test of entropy routines
+    Test of cipher routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

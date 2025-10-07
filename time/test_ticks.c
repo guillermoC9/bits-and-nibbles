@@ -1,7 +1,7 @@
 /*
     test_ticks.c
 
-    Test of entropy routines
+    Test of timing routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

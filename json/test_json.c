@@ -1,7 +1,7 @@
 /*
     test_json.c
 
-    Test of entropy routines
+    Test of JSON routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

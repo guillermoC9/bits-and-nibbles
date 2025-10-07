@@ -1,7 +1,7 @@
 /*
     test_mpint.c
 
-    Test of entropy routines
+    Test of multiprecision integers routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 

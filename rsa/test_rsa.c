@@ -1,7 +1,7 @@
 /*
     test_rsa.c
 
-    Test of entropy routines
+    Test of RSA routines
 
     (CC) Creative Commons 2025 by Guillermo Amodeo Ojeda.
 
