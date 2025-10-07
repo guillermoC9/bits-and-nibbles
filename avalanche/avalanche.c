@@ -41,27 +41,31 @@
           64 bytes of the resulting hash as the temporary hash for the next
           step of the process.
           
-          If you feed a word like 'copy' to this algorithm, you would obtain 
+          If you feed a word like 'test' to this algorithm, you would obtain 
           the following passwords depending on the required size, which is 
           shown beside them:
 
-            12 - F1@oQrxr[c|i
-            20 - F1@oQrxr[c|ic!L{rd!h
-            35 - F1@oQrxr[c|ic!L{rd!hS{@y[@VMN!F=UB#
-            55 - F1@oQrxr[c|ic!L{rd!hS{@y[@VMN!F=UB#|[b8@#wBdC^5!rUGkN[T
+            12 p=t32_C!)HI!#
+            20 P3#b^w$kGRa7VPoox@tPZ
+            35 No8R=#HQHr@DoM^!~2cx9[$Td|_vwoxd{N4A
+            55 VgkoxBH)d12}r@J}M#Y/tREXU+Iu5t!B#G{!6oP(QtNIeeG2f(&jeDb@
 
           The generated passwords not only fit all the chars requirements, 
           they can be as long as you want to increase the difficulty of 
           a brute-force attack.
           
-          Yeah, as the algorithm is deterministic, so the same word always 
-          generates the same long password, an attacker could brute-force 
-          attack your password using the algorithm to generate the long 
-          passwords, or example trying all the words of a dictionary, but
-          they cannot be sure of which is the correct one so easily, as 
-          there is an extra variable there: you can choose the length the 
-          output, so the attacker also needs to find out what is the size
-          you used on yours.                     
+          The algorithm is deterministic, so the same word/sentence will 
+          generate the same long password, but only for the same ouput size. 
+          If you change the size, the password will also change.
+          
+          Therefore, an attacker could try a brute-force attack on your long 
+          password using the algorithm to generate them, for example trying 
+          by avalanching all the words of a dictionary. The thing is that they
+          cannot be sure of which is the correct password so easily, as there
+          is an extra variable in there: you can choose the length of the 
+          output, which will output a different password from he same word, 
+          so the attacker also needs to find out what is the size you used in 
+          order to find out which of the generated passwords is the correct.                    
 
 
                                 --oO0Oo--
