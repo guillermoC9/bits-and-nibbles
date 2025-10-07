@@ -105,7 +105,7 @@ int main(int argc,char **argv)
         if(argc > 2)
         {            
             for(t=2;t<argc;t++)
-                printf("%d - %s\n",len,pa55w0rd_avalanche(words[t],argv[t],len+1));   
+                printf("%d - %s\n",len,pa55w0rd_avalanche(argv[t],str,len + 1));   
             printf("\n");
             return 0;
         }

@@ -128,6 +128,7 @@ char *pa55w0rd_avalanche(const char *orig,char *dest,size_t max)
         sha512_init(&ctx);
         sha512_update(&ctx,orig,len);
         sha512_update(&ctx,tmp,SHA512_SIZE);
+        sha512_update(&ctx,tmp,(max % SHA512_SIZE));
         sha512_final(&ctx,tmp);
 
         /* Now convert it to the avalanche alphabet */
