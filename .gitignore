@@ -4,6 +4,7 @@
 # Executables
 *.exe
 test
+test_avalanche
 test_checksum
 test_chipiona
 test_ciphers

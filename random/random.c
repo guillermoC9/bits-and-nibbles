@@ -1203,3 +1203,4 @@ void hash_get_entropy(int hash,void *dest,size_t num)
         }
     }
 }
+

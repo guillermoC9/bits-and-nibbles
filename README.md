@@ -4,6 +4,9 @@ Each directory is an independent piece of code that can be used separately.
 I know this causes code duplication, but the idea here is to grab whatever you are interested on without dependencies, as the code should be easy to include in your own proyects. Just remember that the duplication always bear smaller functionality than the one in their own directory just to avoid making the repository too big.
 
 ## Directory Content:
+- ### Avalanche
+  Generate safe passwords from easy-to-remember words or sentences using Guillermo Amodeo Ojeda's ```Pa55w0rd Avalanche``` algorithm.
+
 - ### Chipiona:
   The first SHAX cipher from Guillermo Amodeo Ojeda, intented for ciphering big amounts of data-in-motion. Although it can cipher small amounts of data-at-rest too.
 - ### Hashes & HMACs:

@@ -24,6 +24,8 @@ dummy:
 	@echo "targets: buildit (build all dirs) or cleanit (clean all builds)"
 
 cleanit:
+	cd avalanche
+	nmake /f msc.mak cleanit 	
 	cd checksum
 	nmake /f msc.mak cleanit
  	cd ../chipiona
@@ -58,6 +60,8 @@ cleanit:
 	
 
 buildit: 
+	cd avalanche
+	nmake /f msc.mak test
 	cd checksum
 	nmake /f msc.mak test
 	cd ../chipiona

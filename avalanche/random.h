@@ -85,7 +85,7 @@
 #ifndef RANDOM_STUFF
 #define RANDOM_STUFF
 
-#include "hmac.h"
+#include "stuff.h"
 
 /* -------------------------------------------------- *
    Declare the function pointers which allow casting
@@ -312,100 +312,6 @@ typedef struct
         5,000,000    2886           0
         6,000,000    4150           1 (0x28445D25)
 
-
-* ----------------------------------------------------------- *
-
-                        ** TLS-PRF **
-
-    This is an attempt to write a TLS Pseudo-Ramdom Function 
-    (PRF) seeding it  with 'seed'. Like the previous, when it 
-    is 0, the function takes  as 'use me as true-random' and 
-    then it will produce  unpredictable input to generate the 
-    random data.
-
-    There are tree versions:
-
-        RAND_TLS_MD5_SHA1 for TLS 1.0 and 1.1's
-        RAND_TLS_SHA256 for TLS 1.2's
-        RAND_TLS_SHA384 for TLS 1.2's
-   
-                          IMPORTANT
-
-   Although TLS use this interface for some randomness, mostly
-   this is a way to let the standard TLS-PRF be used from other
-   applications through the rand_...() functions.
-   
-   As with the previous, I tested it with test_random.c, and 
-   these are the average results (seed was also 1234):
-
-   RAND_TLS_MD5_SHA1:
-
-          Target    1 Repeat   2 Repeats
-        ---------   --------   ---------
-           20,000       0          0
-          200,000       7          0
-        2,000,000     410          0
-        3,000,000    1028          1 (0x23deec34)
-        5,000,000    2093          3 (0x23deec34,0x0d8ce403,0x7ea79780)
-        6,000,000    4188          5 (0xbdea5718,0x7ea79780,0x23deec34,0xb9bf1f9e,0x0d8ce403)
-
-    RAND_TLS_SHA256:
-   
-          Target    1 Repeat   2 Repeats
-        ---------   --------   ---------
-           20,000       1          0
-          200,000       5          0
-        2,000,000     499          0
-        3,000,000    1072          1 (0xad480fcb)
-        5,000,000    2695          2 (0xad480fcb,0x81e3baf2)
-        6,000,000    4242          2 (0x81e3baf2,0xad480fcb)
-    
-    RAND_TLS_SHA384:
-
-          Target    1 Repeat   2 Repeats
-        ---------   --------   ---------
-           20,000       0          0
-          200,000       5          0
-        2,000,000     480          0
-        3,000,000     992          1 (0x9e4852ca)
-        5,000,000    2841          2 (0x9e4852ca,0xa202109b)
-        6,000,000    4166          2 (0xa202109b,0x18b2d4a4,0x9e4852ca)
-
-* ----------------------------------------------------------- *
-
-                        ** OSSYS **
-
-    This a true-random generator which produces random bytes
-    for cryptography using the device's Operating System
-    capabilities, which hopefully would use hardware entropy
-    when possible.
-
-    Given the nature of this generator, there is no 'seed'
-    which in the call to rand_start() is used to especify
-    a fallback generator if a Random Generator is not available
-    in the system.
-
-    Saving the state and loading it again should yell different 
-    number sequences as soon as the remaining bits of the current 
-    buffer are consumed. Thus, it should be *very* complex that 
-    the new hash would be the same in two contexts, but is not 
-    imposible. Hopefully, it will be complex enough to make 
-    impractical to build an attack against it. But -again-
-    save/load functions are there so the generator can be studied
-    to find problems with it.
-
-    As with the previous, I tested it with test_random.c, and here
-    are the results (seed was also 1234):
-
-          Target    1 Repeat   2 Repeats
-        ---------   --------   ---------
-           20,000      0           0
-          200,000      7           0
-        2,000,000    454           0
-        3,000,000   1000           0
-        5,000,000   2827           0
-        6,000,000   4092           0
-
 * ----------------------------------------------------------- *
 * ----------------------------------------------------------- *
 
@@ -420,52 +326,32 @@ typedef struct
 
         Xorshift128      -->  21.0 seconds. (285,714.2 per second)
         Mother           -->  27.0 seconds. (222,222.2 per second)
-        Mersenne Twister -->  31.0 seconds. (193,548.3 per second)
-        TLS-PRF-MD5-SHA1 -->   Not yet tested on this system
-        TLS-PRF-SHA-256  -->   Not yet tested on this system
-        TLS-PRF-SHA-384  -->   Not yet tested on this system
-        OSSYS            -->   Not yet tested on this system
+        Mersenne Twister -->  31.0 seconds. (193,548.3 per second)        
     
     Results on a MacPro 3.5 Ghz 6-Core Intel Xeon E5 (Late 2013).
 
         Xorshift128      -->   Not yet tested on this system
         Mother           -->   Not yet tested on this system
         Mersenne Twister -->   Not yet tested on this system
-        OSSYS            -->   Not yet tested on this system
-        TLS-PRF-MD5-SHA1 -->   Not yet tested on this system
-        TLS-PRF-SHA-256  -->   Not yet tested on this system
-        TLS-PRF-SHA-384  -->   Not yet tested on this system
-
+        
     Results on a MacBook Pro 3.46 Ghz 6-Core Intel Xeon (Mid 2010).
 
         Xorshift128      -->   1.1 seconds. (5,458,318.1 per second)
         Mother           -->   1.1 seconds. (5,458,318.1 per second)
         Mersenne Twister -->   1.1 seconds. (5,458,318.1 per second)
-        OSSYS            -->   2.5 seconds. (2,401,678.4 per second)
-        TLS-PRF-MD5-SHA1 -->   48.8 seconds (  122,950.8 per second)
-        TLS-PRF-SHA-256  -->   42.8 seconds (  140,845.1 per second)
-        TLS-PRF-SHA-384  -->   52.3 seconds (  114,722.7 per second)
-
+        
     Results on a MacBook Pro 2.5 Ghz Quad-Core Intel Core i7 (Mid 2015).
 
         Xorshift128      -->   2.8 seconds. ( 2,142,857.1 per second)
         Mother           -->   2.0 seconds. ( 3,000,000.0 per second)
         Mersenne Twister -->   1.9 seconds. ( 3,157,894.7 per second)
-        OSSYS            -->   3.7 seconds. ( 1,621,621.6 per second)
-        TLS-PRF-MD5-SHA1 -->   Not yet tested on this system
-        TLS-PRF-SHA-256  -->   Not yet tested on this system
-        TLS-PRF-SHA-384  -->   Not yet tested on this system
-
+        
     Results on a MacBook Pro M1 8 Core (2020).
 
         Xorshift128      -->   0.9 seconds. ( 6,666,666.6 per second)
         Mother           -->   1.0 seconds. ( 6,000,000.0 per second)
         Mersenne Twister -->   1.0 seconds. ( 6,000,000.0 per second)
-        OSSYS            -->   1.9 seconds. ( 3,157,894.7 per second)
-        TLS-PRF-MD5-SHA1 -->   Not yet tested on this system
-        TLS-PRF-SHA-256  -->   Not yet tested on this system
-        TLS-PRF-SHA-384  -->   Not yet tested on this system
-
+        
 
     These speeds include the insertion in a hash table with the
     10% entries of the number of numbers to be generated, so the
@@ -478,19 +364,6 @@ typedef struct
     explained, but these two algorithms fail some of the BigCrush
     tests, and therefore some people say none of them are actually
     suited for cryptography.
-
-    The TLS stuff have been implemented as to comply with the TLS 
-    requirements so it can be used for real TLS imlementations.
-
-    Its dificult to assess OSSYS but it should be pretty good as it
-    uses the recommended random devices in Unix, Linux and macOS and 
-    in Windows it uses Crypt Services, all of them very well regarded 
-    in the industry. The only drawback is that there is not garantee 
-    that it would be present in the system, so if you use it, just 
-    make sure that your code is ready for the possibility of not being
-    available by sending a fallback algorithm in rand_create() or
-    -if its crucial to use it- by not sending a fallback and letting
-    the function to fail by returning a NULL pointer.
 
     As said: take your pick, and if none of them convince you just
     use one of your own making/likeness. Which is the advantage of
@@ -505,13 +378,7 @@ enum
     RAND_GM,            /* George Marsaglia's Mother. 'param' is a seed */
     RAND_MT,            /* Mersenne Twister. 'param' is a seed */
     RAND_GX,            /* George Marsaglia's Xorshift128. 'param' is a seed */    
-    RAND_TLS_MD5_SHA1,  /* MD5+SHA1 based PRF (Default for TLSv1.0 and TLSv1.1) */
-    RAND_TLS_SHA256,    /* SHA256 based PRF (Default for TLSv1.2) */
-    RAND_TLS_SHA384,    /* SHA384 base PRF (Especified by connection since TLSv1.2) */
-    RAND_OS,            /* OSSYS generator. 'param' is fallback algorithm if not present  */    
     RAND_NUM,
-    /* Always last */
-    RAND_TEST,       /** Test random generator (look at rand_tester() below) */
 };
 
 /** Functions */
@@ -537,20 +404,6 @@ extern "C" {
 rand_t *rand_create(size_t len,rand32_func_t f32,rand8_func_t f8,rand_save_func_t fsave,rand_load_func_t fload);
 
 /* ----------------------------------------------------------- *
-   Saves the status of a generator to fp.
-   Returns 0 if works or error if it doesn't.    
- * ----------------------------------------------------------- */
-
-int rand_save_status(rand_t *rand,FILE *fp);
-
-/* ----------------------------------------------------------- *
-   This function load the status of the generator 'status'
-   into 'rand' 'len' is the size of 'status'.
- * ----------------------------------------------------------- */
-
-int rand_load_status(rand_t *rand,FILE *fp);
-
-/* ----------------------------------------------------------- *
     Uses rand_create() to create a generator context for one
     of the described above and implemented by us.
 
@@ -564,7 +417,7 @@ int rand_load_status(rand_t *rand,FILE *fp);
 
 rand_t *rand_start(int cual,unsigned int param);
 
-/* ----------------------------------------------------------- *
+/* --------------------------------------------------------------- *
    Creates a random test context that provides known random 
    sequences so routines that consume random numbers can be 
    tested with known random sequences.
@@ -577,7 +430,7 @@ rand_t *rand_start(int cual,unsigned int param);
                 sure you provide enough values to cover your test
                 and make sure you consume them in the proper order
                 and size to make your tests meaningful.
-*/
+* --------------------------------------------------------------- */
 
 rand_t *rand_tester(void *buf,size_t len);
 
@@ -586,21 +439,6 @@ rand_t *rand_tester(void *buf,size_t len);
  * ----------------------------------------------------------- */
 
 void rand_end(rand_t *rc);
-
-
-/* -------------------------------------------------------------- *
-        Generate random data EXACTLY in the same way as TLS does, so 
-    it can be used for TLS as well as  for other applications.
-
-    'prf' is one of RAND_TLS_MD5_SHA1, RAND_TLS_SHA256 or 
-     RAND_TLS_SHA384, any other gets silently discarded and
-    set tothe default RAND_TLS_SHA256.
-
-    Refer to section 5 of RFC-4346 and RFC-5246 to see how does
-    s9_rand_tls_prf() works.
-* -------------------------------------------------------------- */ 
-
-void rand_tls_prf(int prf,void *sec,int tam_sec,const char *label,void *s1,int tam_s1,void *s2,int tam_s2,void *ret,size_t num);
 
 /* ----------------------------------------------------------- *
    Returns a random integer between -2147483647 and 2147483647 
@@ -672,65 +510,6 @@ u64_t rand_u64(rand_t *rc);
 * ----------------------------------------------------------- */
 
 void  rand_bits(rand_t *rc,void *buf, int bits);
-
-/* ------------------------------------------------------------------- *
-    These functions generate a string ID compatible with Firestore's 
-    AutoId generation, as they use the same technique than function
-    AutoId:newId(), which is the function that generates all the IDs 
-    used  by the Firestore's Javascript SDK.
-
-    Auto:newId() can be found in the file misc.ts inside the directory 
-    utils in the source code of the mentioned SDK, at:
-
-    https://github.com/firebase/firebase-js-sdk/blob/main/packages/firestore/src/util/misc.ts
-
-    On my view this is a risky way of generating IDs that are assumed
-    unique and unpredictable, as nothing is actually done to ensure 
-    their uniqueness besides hoping that Math.random() doesn't repeat
-    sequences of numbers.
-
-    Even if this repetition is very difficult, it is not impossible,
-    and as some experts said: "Random numbers are too important to be
-    left to chance". 
-    
-    We chose to use the original Marsaglia's Xorshift128 and not 
-    Xorshitf128+, which replaced MWC1616 in V8 v4.9.41.0 (see details in
-    https://v8.dev/blog/math-random).
-
-        firestore_auto_id()  -> Same as V8
-        firestore_auto_idw() -> Same as V8 (wchar)
-
-    Note that these functions can generate IDs smaller or longer than 
-    20 chars by changing 'max', which is assumed to be the lengh of
-    the desired string + 1 for the NUL. ;-)
- * ------------------------------------------------------------------- */
-
-char    *firestore_auto_id(char *string,size_t max);
-wchar_t *firestore_auto_idw(wchar_t *string,size_t max);
-
-
-/* -------------------------------------------- *
-    This function generates an unpredictable 
-    amount of data hashed with the specified
-    hash algorithm. 
-    
-                 *** WARNING ***
-
-    You may be tempted to use it as random data 
-    generator, but I discorage it if you are 
-    going to do something serious with the 
-    generated data. 
-    
-    Unless of course you have measured the risk,
-    or doing something like generating a random
-    IV.
-    
-    Random data generation is not a trivial 
-    business, specially for use in criptography.
- * -------------------------------------------- */
-
-void hash_get_entropy(int hash,void *dest,size_t num);
-
 
 #ifdef __cplusplus
 };
