@@ -39,7 +39,7 @@ This is why ```Pa55w0rd Avalanche``` let you generate different variable size pa
 You can use this algorithm in two ways:
 
 - To create an utility to generate a pasword from a given word or sentence -like the test program does-, which the user can copy & paste to the correct app.
-- Emebbed the algorithm into your system so the user can just type a word or sentence, the system generates the safe password, which is used as the actual password.
+- Embbed the algorithm into your system so the user can just type a word or sentence, which the system uses to generate the safe password and then use it as the actual password.
 
 In order to make these two protection options useful, the length of the generated password has to be chosen by the user and not the system, as it will be giving away the lenght for the generated password, making the life of attackers easier.
 
