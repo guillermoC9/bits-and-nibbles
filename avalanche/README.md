@@ -20,10 +20,10 @@ Yeah, as the algorithm is deterministic -the same word always generates the same
 
 The problem I solve with this algorithm is that these days the amount of requirements for passwords have increased hugely, and also you need two passwords everywhere. Yeah, the so called 'Multi Factor Authentication' is nothing else than 2 or more passwords, being one of them an OTP number, being OTP the anagram of 'One Time Password'. Oh yeah, that number is a second password to protect the first password (in case it has been compromised).
 
-On top of that, you are required that your first password is *safe*, which for most people define as: sort of 8-12 chars long (12 better than 8) and at least 4 of this chars are 1 lower case, 
+On top of that, you are required that your first password is *safe*, which for most people define as: sort of 8-12 chars long (12 better than 8) and at least 4 of these chars are 1 lower case, 
 1 upper case, 1 number and 1 symbol.
 
-Then, we have to add this other rule that say: 'you should not be using a password like ```Pa55w0rd!``` because it is too common', so even if it fits the requirements: 9 chars, of which 4 fit the asked types, you need to find something *better*, better being something like ```$;aR{[eX3```, which I don't see better -as computationally speaking- its actually easier to find than ```Pa55w0rd!``` using brute force. Yeah, the symbols have lower char values than letters and numbers so they will be tested before and found faster.
+Then, we have to add this other rule that say: *you should not be using a password like ```Pa55w0rd!``` because it is too common*, so even if it fits the requirements: 9 chars, of which 4 fit the asked types, you need to find something *better*, better being something like ```$;aR{[eX3```, which I don't see better -as computationally speaking- its actually easier to find than ```Pa55w0rd!``` using brute force. Yeah, the symbols have lower char values than letters and numbers so they will be tested before and found faster.
 
 Now, the reason why ```$;aR{[eX3``` is considered better than ```Pa55w0rd!``` probably is for protecting your password against a dictionary attack, where a dictionary composed of known words and variations with the char type requirements is offuscated with the same technique than the attacked system, and then compared to find matches.
 
@@ -32,7 +32,7 @@ To perform this attack succesfully, an attacker needs two things:
 - Access to the password database
 - Knowledge of the technique used to cipher the passwords
 
-This make this attack difficult to perform for most people, but not impossible for everyone, as hackers **do** get hold of password files, and *anyone* can buy them in the Dark Web, which is why administrators moved password hashing from salts to stuff similar to bcrypt(), which offers some protection against the second thing above.
+This make this attack difficult to perform for most people, but not impossible for everyone, as hackers **do** get hold of password files, and *anyone* can buy them in the Dark Web, which is why administrators moved password hashing from salts to stuff similar to bcrypt(), which offers some protection against the second thing above, as knowing is using bcrypt() doens't help to crack it.
 
 This is why ```Pa55w0rd Avalanche``` let you generate different variable size passwords from the same word, so the attacker needs to try many sizes which increases the number of combinations needed to perform a succesful brute-force attack, even using *rainbow tables*.
 
@@ -41,9 +41,9 @@ You can use this algorithm in two ways:
 - To create an utility to generate a pasword from a given word, that the user copy/paste to the correct app.
 - Emebbeding the algorithm into your system so the user can just type his word or sentence, but the system will use the generated password as the actual password
 
-In order to make these two protection options useful, the lenght of the generated password has to be chosen by the user and not the system, as it will be giving away the lenght for the generated password, making the life of attackers easier.
+In order to make these two protection options useful, the length of the generated password has to be chosen by the user and not the system, as it will be giving away the lenght for the generated password, making the life of attackers easier.
 
-Do not forget to advise your users that if they copy/paste a password, they shoudl inmediately copy few things in a row to the clipboard so these stuff will overwrite the password and will not be compromised as any program can grab the clipboard, and therefore is the first place the attackers look when stealing passwords. 
+Do not forget to advise your users that if they copy/paste a password, they should inmediately copy few things in a row to the clipboard so these stuff will overwrite the password and will not be compromised as any program can grab the clipboard, and therefore is the first place the attackers look when stealing passwords. 
 
 You can also provide your system with means to copy the password to the clipboard, and also to *safely* clear the clipboard after pasting it to the other app.
 

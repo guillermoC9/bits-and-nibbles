@@ -29,27 +29,21 @@ dummy:
 
 cleanit:
 	del /f *.obj
-	del /f test_random.exe
+	del /f test_avalanche.exe
 
-test: test_random.exe	
+test: test_avalanche.exe	
 
-test_random.exe: random.obj test_random.c
-	$(mkCC_EXE) test_random.c random.obj hmac.obj md5.obj sha2.obj sha1.obj stuff.obj 
+test_avalanche.exe: avalanche.obj test_avalanche.c
+	$(mkCC_EXE) test_avalanche.c avalanche.obj random.obj  sha512.obj stuff.obj 
 
-random.obj: hmac.obj random.c random.h
+avalanche.obj: random.obj sha512.obj avalanche.c avalanche.h
+	$(mkCC_OBJ) avalanche.c
+
+random.obj: random.c random.h
 	$(mkCC_OBJ) random.c
 
-hmac.obj: md5.obj sha2.obj hmac.c hmac.h
-	$(mkCC_OBJ) hmac.c
-
-md5.obj: stuff.obj md5.c md5.h
-	$(mkCC_OBJ) md5.c
-
-sha1.obj: stuff.obj sha1.c sha1.h
-	$(mkCC_OBJ) sha1.c
-
-sha2.obj: sha1.obj sha2.c sha2.h
-	$(mkCC_OBJ) sha2.c
+sha512.obj: stuff.obj sha512.c sha512.h
+	$(mkCC_OBJ) sha512.c
 
 stuff.obj: stuff.c stuff.h
 	$(mkCC_OBJ) stuff.c
