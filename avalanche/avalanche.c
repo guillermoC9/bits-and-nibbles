@@ -80,7 +80,7 @@ static char *chr_avalanche="ABCDEFGHIJKLMNOPQRSTUVWXYZ/^+[]{}()#@0123456789$!@#^
 
 char *pa55w0rd_avalanche(const char *orig,char *dest,size_t max)
 {
-    unsigned int seed;
+    unsigned int seed = 0;
     size_t t,len,pos,cnt;
     rand_t *rc;
     sha512_t ctx;
