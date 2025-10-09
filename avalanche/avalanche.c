@@ -99,7 +99,6 @@ char *pa55w0rd_avalanche(const char *orig,char *dest,size_t max)
     if(len > 1)
         seed = orig[0];
 
-    seed = orig[0];
     for(t=1; t<4 && t<len; t++)
     {
         seed <<= 8;
