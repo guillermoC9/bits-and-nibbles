@@ -111,6 +111,7 @@ int main(int argc,char **argv)
         }
     }
     
+    printf("pa55w0rd_avalanche(%13s) = %d - %s\n","",len, pa55w0rd_avalanche("",str,len + 1));   
     for(t=0; t<NUM_WORDS; t++)
         printf("pa55w0rd_avalanche(%13s) = %d - %s\n",words[t],len, pa55w0rd_avalanche(words[t],str,len + 1));   
     printf("\n");
