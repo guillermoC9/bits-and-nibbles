@@ -96,7 +96,7 @@ char *pa55w0rd_avalanche(const char *orig,char *dest,size_t max)
     /* Use the first 4 bytes of the original password to select and seed the PRG */
 
     len = strlen(orig);
-    if(len > 1)
+    if(len > 0)
         seed = orig[0];
 
     for(t=1; t<4 && t<len; t++)
