@@ -15,7 +15,7 @@ Now I can give Bob my public key and he can give me his. Whatever he ciphers wit
 
 This is not the place to discuss that -specially because this is the space of symmetric ciphers-, but let me say that when I said *wronlgy* I meant it, as all the protection you can have to avoid someone impersonating you, was to keep your key hidden. That is so dangerous, as it will be a **disaster** someone getting hold of your private key.
 
-Unlike with symmetric keys, were getting hold of a key exposes just your info, a private key is also used to prove that it was you who signed something, so someone with your private key can be yourself, and someone with a Quantum computer can become *anyone* for whom the public key can be obtained. Welcome to chaos, as most authentication systems use private keys to identify people, a thing invented to solve the distribution problem, not the identity one.    
+Unlike with symmetric keys, where getting hold of a key exposes just your info, a private key is also used to prove that it was you who signed something, so someone with your private key can be yourself, and someone with a Quantum computer can become *anyone* for whom the public key can be obtained. Welcome to chaos, as most authentication systems use private keys to identify people, a thing invented to solve the distribution problem, not the identity one.    
 
 Anyway, that is for another day, here we put at your dispossal the following symmetric cipher primitives: AES, ARIA, BLOWFISH, CAMELLIA, CHACHA, CHACHA+POLY, DES, RC4, SALSA, TWOFISH and XTEA, but the way you would use to distribute your keys is your problem, at least at the moment. ;-)
 
