@@ -19,7 +19,7 @@ Unlike with symmetric keys, where getting hold of a key exposes just your info, 
 
 Anyway, that is for another day, here we put at your dispossal the following symmetric cipher primitives: AES, ARIA, BLOWFISH, CAMELLIA, CHACHA, CHACHA+POLY, DES, RC4, SALSA, TWOFISH and XTEA, but the way you would use to distribute your keys is your problem, at least at the moment. ;-)
 
-The cipher engine in cipher.c does support different cipher types like stream or block ciphers, as well as different modes like: ECB, CBC, CTR, GCM and AED. It does also support few padding schemes for block ciphers. Note that this is implemented by the cipher engine itself, and not the cipher primitives themselves. This methodology allows to add new ciphers by just developing the initialization and basic encoding/decoding functions.
+The cipher engine in cipher.c does support different cipher types like stream or block ciphers, as well as different modes like: ECB, CBC, CTR, GCM and AEAD. It does also support few padding schemes for block ciphers. Note that this is implemented by the cipher engine itself, and not the cipher primitives themselves. This methodology allows to add new ciphers by just developing the initialization and basic encoding/decoding functions.
 
 Just have a look at the code and the examples. :-)
 
