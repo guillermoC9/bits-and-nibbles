@@ -37,7 +37,8 @@ cleanit:
 	cd pem;       make -f gcc.mak cleanit; cd ..
 	cd primes;    make -f gcc.mak cleanit; cd ..
 	cd random;    make -f gcc.mak cleanit; cd ..			
-	cd rsa;       make -f gcc.mak cleanit; cd ..	
+	cd rsa;       make -f gcc.mak cleanit; cd ..
+	cd sort;      make -f gcc.mak cleanit; cd ..	
 	cd time;      make -f gcc.mak cleanit; cd ..	
 
 buildit: 
@@ -56,6 +57,7 @@ buildit:
 	cd primes;    make -f gcc.mak test; cd ..	
 	cd random;    make -f gcc.mak test; cd ..
 	cd rsa;       make -f gcc.mak test; cd ..	
+	cd sort;      make -f gcc.mak test; cd ..	
 	cd time;      make -f gcc.mak test; cd ..
 
 

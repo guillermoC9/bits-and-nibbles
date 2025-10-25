@@ -20,6 +20,7 @@ test_pem
 test_primes
 test_random
 test_rsa
+test_sort
 test_ticks
 # Test output fil
 # Test output files

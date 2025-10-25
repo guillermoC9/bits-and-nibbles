@@ -53,9 +53,11 @@ cleanit:
 	cd ../random
 	nmake /f msc.mak cleanit
 	cd ../rsa
-		nmake /f msc.mak cleanit
+	nmake /f msc.mak cleanit
+	cd ../sort
+	nmake /f msc.mak cleanit
 	cd ../time
-		nmake /f msc.mak cleanit
+	nmake /f msc.mak cleanit
 	cd ..	
 	
 
@@ -89,6 +91,8 @@ buildit:
 	cd ../random
 	nmake /f msc.mak test
 	cd ../rsa
+	nmake /f msc.mak test
+	cd ../sort
 	nmake /f msc.mak test
 	cd ../time
 	nmake /f msc.mak test
