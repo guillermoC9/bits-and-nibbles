@@ -25,9 +25,9 @@ To let you see and play with the words, the test program creates a set of txt fi
 
 The test here is just to show how effient is a binary search when comnpared with a sequential search on a sorted word list. We search different words of each size and few more and compare results, as expected, the binary search greatly overperform the sequential search,  especially because the number of compares is tiny (never bigger than 12). 
 
-There are also a couple of unexistent words to show the difference of behaviour when the stuff is not found. You can learn about binary search in [**Wikipedia**](https://en.wikipedia.org/wiki/Binary_search).
+There are also a couple of unexistent words to show the difference of behaviour when the stuff is not found. You can learn about binary search in [**here**](https://en.wikipedia.org/wiki/Binary_search).
 
-Obviously you cannot use binary search on a list with is not ordered.
+Obviously you cannot use binary search on a list which is not ordered.
 
 ## To build it:
 
