@@ -29,6 +29,8 @@ There are also a couple of unexistent words to show the difference of behaviour 
 
 Obviously you cannot use binary search on a list which is not ordered.
 
+Note that we added a function called ```waste_cycles()``` to make sure the searching takes longer so differences can be seen. If you remove it, all searchs take 0.000
+
 ## To build it:
 
 For Microsoft C/C++ for Windows (Visual Studio C++) use:  
