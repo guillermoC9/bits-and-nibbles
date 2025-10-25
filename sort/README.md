@@ -15,7 +15,7 @@ The outputs are quite interesting, as if we use the sorted list is very fast, al
 
 - When using the reversed list, ```bubble_sort()``` performs similar to ```cocktail_shaker()```, with exactly the same number of compares. Again ```qsort()``` overperform the others and uses a fraction of the compares.
 
-- When using the unsorted list, ```cocktail__shaker()``` unsurprisingly outperforms ```bubble_sort()```, and uses less than half compares, which is why this algorithm is preferred for assword stuff. Of course, ```qsort()``` overperform the others again and uses a fraction of the compares.
+- When using the unsorted list, ```cocktail_shaker()``` unsurprisingly outperforms ```bubble_sort()```, and uses less than half compares, which is why this algorithm is preferred for assorted stuff. Of course, ```qsort()``` overperform the others again and uses a fraction of the compares.
 
 A last sorting experiment consits on using the sorted list of words to build a list of word sorted by the lenght of the word, an alphabetically sorted in each lenght list. This let's you see how to achieve this kind of sort, as well as to see that ```qsort()``` keeps beating the other two, which differ in speed depending -like onthe other tests- depending on the original sort of the list.
 
