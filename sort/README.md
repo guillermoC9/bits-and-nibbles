@@ -19,7 +19,7 @@ The outputs are quite interesting, as if we use the sorted list is very fast, al
 
 A last sorting experiment consits on using the sorted list of words to build a list of word sorted by the lenght of the word, an alphabetically sorted in each lenght list. This let's you see how to achieve this kind of sort, as well as to see that ```qsort()``` keeps beating the other two, which differ in speed depending -like onthe other tests- depending on the original sort of the list.
 
-To see the stuff and let you play with them, the otupu program creates a set of txt files with the different sortings of the list.
+To let you see and play with the words, the test program creates a set of txt files with the different sortings of the list.
 
 ### Searching
 
